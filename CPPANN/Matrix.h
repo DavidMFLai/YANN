@@ -2,78 +2,59 @@
 #include <vector>
 #include <array>
 #include <cassert>
+#include <tuple>
 
 namespace CPPANN {
 	template<typename T>
-	class Layer
-	{
-	public:
-		Layer(const std::vector<T> &initialValues) :
-			networkValues{ std::move(initialValues) }
-		{};
-
-		const std::vector<T> &getValues() const
-		{
-			return networkValues;
-		};
-
-		void applySigmoid() {
-			for (auto &networkValue : networkValues) {
-				networkValue = sigmoid(networkValue);
+	class Matrix_Ref {
+		struct MatrixAccessProperties {
+			void setDimensions(size_t rowCount, size_t columnCount, size_t stride) {
+				dimensions = { rowCount, columnCount };
+				this->stride = stride;
 			}
-		};
 
-	private:
-		static T sigmoid(T x) {
-			return 1 / (1 + exp(-x));
-		};
-
-		std::vector<T> networkValues;
-	};
-
-
-	template<typename T>
-	class WeightMatrix
-	{
-	public:
-		WeightMatrix(std::initializer_list<std::initializer_list<T>> inputRows) {
-			for (auto &inputRow : inputRows) {
-				auto weightsBegingIt = weights.end();
-				weights.insert(weightsBegingIt, inputRow.begin(), inputRow.end());
+			size_t operator()(size_t i, size_t j) const {
+				return i*stride + j;
 			}
+
+			size_t stride;
+			std::array<size_t, 2> dimensions;
+		};
+
+	public:
+		//defaulted constructors and destructors
+		Matrix_Ref() = delete;
+		Matrix_Ref(Matrix_Ref &&) = default;
+		Matrix_Ref &operator=(Matrix_Ref &&) = default;
+		Matrix_Ref(const Matrix_Ref &) = delete;
+		Matrix_Ref &operator=(const Matrix_Ref &) = delete;
+		~Matrix_Ref() = default;
+
+		//Constructor by row and column size
+		Matrix_Ref(size_t rowCount, size_t columnCount, size_t stride, T* dataStartingAddress)
+			:elems(dataStartingAddress) {
+			matrixAccessProperties.setDimensions(rowCount, columnCount, stride);
+		};
+
+		//Getting dimensions
+		std::array<size_t, 2> getDimensions() const {
+			return matrixAccessProperties.dimensions;
 		}
 
-		WeightMatrix(const std::vector<std::vector<T>> &inputRows) {
-			for (auto &inputRow : inputRows) {
-				auto weightsBegingIt = weights.end();
-				weights.insert(weightsBegingIt, inputRow.begin(), inputRow.end());
-			}
+		//Getting element(i,j)
+		T& operator()(size_t i, size_t j) {
+			return elems[matrixAccessProperties(i, j)];
 		}
 
-		Layer<T> operator*(const Layer<T> &layer) {
-			std::vector<T> retval;
-
-			//initial conditions
-			retval.push_back(0);
-			std::vector<T> input = layer.getValues();
-			auto inputIt = input.begin();
-
-			//loop through the weights and produce a product
-			for (auto dataIt = weights.begin(); dataIt != weights.end(); ++dataIt) {
-				if (inputIt == input.end()) {
-					inputIt = input.begin();
-					retval.push_back(0);
-				}
-				retval.back() += (*inputIt)*(*dataIt);
-				++inputIt;
-			}
-			return Layer<T>{std::move(retval)};
+		//Getting element(i,j), const version
+		const T& operator()(size_t i, size_t j) const {
+			return elems[matrixAccessProperties(i, j)];
 		}
 
 	private:
-		std::vector<T> weights;
+		MatrixAccessProperties matrixAccessProperties;
+		T* elems;
 	};
-
 
 	template<typename T>
 	class Matrix {
@@ -82,7 +63,7 @@ namespace CPPANN {
 				dimensions = { rowCount, columnCount };
 			}
 
-			size_t operator()(size_t i, size_t j) const{
+			size_t operator()(size_t i, size_t j) const {
 				return i*dimensions[1] + j;
 			}
 
@@ -100,7 +81,7 @@ namespace CPPANN {
 
 		//Constructor by row and column size
 		Matrix(size_t rowCount, size_t columnCount)
-			:elems(rowCount*columnCount)	{
+			:elems(rowCount*columnCount) {
 			matrixAccessProperties.setDimensions(rowCount, columnCount);
 		};
 
@@ -112,8 +93,14 @@ namespace CPPANN {
 			}
 		}
 
+		//Constructor by vector (only for a n-by-1 Matrix
+		Matrix(const std::vector<T> &list) {
+			matrixAccessProperties.setDimensions(list.size(), 1);
+			elems = list;
+		}
+
 		//Getting dimensions
-		std::array<size_t, 2> getDimensions() const{
+		std::array<size_t, 2> getDimensions() const {
 			return matrixAccessProperties.dimensions;
 		}
 
@@ -125,6 +112,21 @@ namespace CPPANN {
 		//Getting element(i,j), const version
 		const T& operator()(size_t i, size_t j) const {
 			return elems[matrixAccessProperties(i, j)];
+		}
+
+		Matrix_Ref<T> getSubMatrixReference(std::tuple<size_t, size_t> row_range, std::tuple<size_t, size_t> column_range) {
+			size_t starting_position = std::get<0>(row_range)*matrixAccessProperties.dimensions[1] + std::get<0>(column_range);
+			T* starting_address = &elems[starting_position];
+			Matrix_Ref<T> retval{ (std::get<1>(row_range) - std::get<0>(row_range) + 1 ),
+				(std::get<1>(column_range) - std::get<0>(column_range) + 1),
+				matrixAccessProperties.dimensions[1],
+				starting_address
+			};
+			return retval;
+		}
+	protected:
+		std::vector<T> &getElems() {
+			return elems;
 		}
 
 	private:
