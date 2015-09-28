@@ -15,7 +15,7 @@ namespace CPPANN {
 			weights.push_back(std::move(weightMatrix));
 		}
 
-		const  std::vector<T> &forwardPropagate(const std::vector<T> &input) {
+		const std::vector<T> &forwardPropagate(const std::vector<T> &input) {
 			layers[0] = input;
 
 			for (int i = 0; i < weights.size(); i++) {

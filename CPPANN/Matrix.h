@@ -75,51 +75,22 @@ namespace CPPANN {
 	};
 
 
-
-
-	template<int N>
-	struct MatrixSlice {
-
-	};
-
-	template<>
-	struct MatrixSlice<1> {
-		MatrixSlice() = delete;
-		MatrixSlice(size_t length)
-			:size{length},
-			extents{ length }
-
-		{};
-
-		size_t operator()(size_t i) const {
-			return i;
-		}
-
-		const size_t size;
-		const std::array<size_t, 1> extents;
-	};
-
-	template<>
-	struct MatrixSlice<2> {
-		MatrixSlice() = delete;
-		MatrixSlice(size_t rowCount, size_t columnCount) 
-			:stride{ columnCount },
-			size{ rowCount * columnCount },
-			extents{ rowCount, columnCount }
-		{}
-
-		size_t operator()(size_t i, size_t j) const{
-			return i*stride + j;
-		}
-
-		const size_t size;
-		const size_t stride;
-		const std::array<size_t, 2> extents;
-	};
-
-	template<typename T, int N>
+	template<typename T>
 	class Matrix {
+		struct MatrixAccessProperties {
+			void setDimensions(size_t rowCount, size_t columnCount) {
+				dimensions = { rowCount, columnCount };
+			}
+
+			size_t operator()(size_t i, size_t j) const{
+				return i*dimensions[1] + j;
+			}
+
+			std::array<size_t, 2> dimensions;
+		};
+
 	public:
+		//defaulted constructors and destructors
 		Matrix() = default;
 		Matrix(Matrix &&) = default;
 		Matrix &operator=(Matrix &&) = default;
@@ -127,33 +98,49 @@ namespace CPPANN {
 		Matrix &operator=(const Matrix &) = default;
 		~Matrix() = default;
 
-		template<typename... Exts>
-		Matrix(Exts... exts)
-			:desc{ exts },
-			elems(desc.getSize())
-		{};
+		//Constructor by row and column size
+		Matrix(size_t rowCount, size_t columnCount)
+			:elems(rowCount*columnCount)	{
+			matrixAccessProperties.setDimensions(rowCount, columnCount);
+		};
 
-		std::array<size_t, N> extent() {
-			return desc.extent;
+		//Constructor by initialization list
+		Matrix(std::initializer_list<std::initializer_list<T>> lists) {
+			matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
+			for (std::initializer_list<T> list : lists) {
+				elems.insert(elems.end(), list);
+			}
 		}
 
-		template<typename... Args)
-		T& operator()(Args... args) {
-			auto slice = desc(args);
-			return elems(slice);
+		//Getting dimensions
+		std::array<size_t, 2> getDimensions() const{
+			return matrixAccessProperties.dimensions;
+		}
+
+		//Getting element(i,j)
+		T& operator()(size_t i, size_t j) {
+			return elems[matrixAccessProperties(i, j)];
+		}
+
+		//Getting element(i,j), const version
+		const T& operator()(size_t i, size_t j) const {
+			return elems[matrixAccessProperties(i, j)];
 		}
 
 	private:
-		MatrixSlice<N> desc;
+		MatrixAccessProperties matrixAccessProperties;
 		std::vector<T> elems;
 	};
 
-
-	// y = m*n; m is a M*P matrix, n is a column vector of length p
+	// retval = lhs*rhs; lhs is a M*P matrix, rhs is a P*N matrix
 	template<typename T>  
-	Matrix<T, 1> operator*(const Matrix<T, 2> &m, const Matrix<T, 1> &n) {
-		assert(m.extent(1) == n.extent(0));
-		Matrix<T, 1> retval(m.extent(0));
-		for
-	}
+	Matrix<T> operator*(const Matrix<T> &lhs, const Matrix<T> &rhs) {
+		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
+		Matrix<T> retval{ lhs.getDimensions()[0], rhs.getDimensions()[1] };
+		for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
+			for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
+				for (size_t n = 0; n < rhs.getDimensions()[1]; n++)
+					retval(m, n) += lhs(m, p)*rhs(p, n);
+		return retval;
+	};
 }
