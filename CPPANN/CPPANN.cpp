@@ -23,8 +23,6 @@ int main()
 	ann.add_layer(2); //2 neurons
 	auto result = ann.forward_propagate({ 1., 2., 3.});
 
-	//Matrix<double> n;
-
 	Matrix<double> m{
 		{ 1.0, 1.1, 1.2 },
 		{ 2.0, 2.1, 2.2 }

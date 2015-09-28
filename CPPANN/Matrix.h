@@ -93,7 +93,7 @@ namespace CPPANN {
 			}
 		}
 
-		//Constructor by vector (only for a n-by-1 Matrix
+		//Constructor by vector (only for a n-by-1 Matrix)
 		Matrix(const std::vector<T> &list) {
 			matrixAccessProperties.setDimensions(list.size(), 1);
 			elems = list;
