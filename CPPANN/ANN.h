@@ -3,20 +3,16 @@
 
 namespace CPPANN {
 	template<typename T>
-	class NetworkNodes;
-
-	template<typename T>
-	class SignalNodes : public Matrix<T>
-	{
+	class Signal_Nodes : public Matrix<T> {
 	public:
-		SignalNodes(size_t rowCount) 
+		Signal_Nodes(size_t rowCount) 
 			: Matrix<T>(rowCount, 1)
 		{};
 
-		SignalNodes &operator=(const Matrix<T> &mat) {
-			assert(this->getDimensions() == mat.getDimensions());
-			Matrix<T>::operator=(mat);
-			return *this;
+		void set_values(std::vector<T> &&values) {
+			assert(values.size() == Matrix<T>::getElems().size());
+			assert(values.size() == Matrix<T>::getDimensions()[0]);
+			Matrix<T>::getElems() = std::move(values);
 		}
 
 		std::vector<T> &get_values() {
@@ -25,32 +21,31 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	class NetworkNodes : public Matrix<T>
-	{
+	class Network_Nodes : public Matrix<T> {
 	public:
-		NetworkNodes(size_t rowCount)
+		Network_Nodes(size_t rowCount)
 			: Matrix<T>(rowCount, 1)
 		{};
 
-		NetworkNodes &operator=(const Matrix<T> & mat) {
+		Network_Nodes &operator=(const Matrix<T> & mat) {
 			assert(this->getDimensions() == mat.getDimensions());
 			Matrix<T>::operator=(mat);
 			return *this;
 		}
 
-		SignalNodes<T> apply_sigmoid() {
-			SignalNodes<T> retval{ Matrix<T>::getDimensions()[0]};
+		Signal_Nodes<T> apply_sigmoid() {
+			Signal_Nodes<T> retval{ Matrix<T>::getDimensions()[0]};
 
 			auto &elems = Matrix<T>::getElems();
 			for (size_t i = 0; i < elems.size(); i++) {
-				retval(i,0) = sigmoid(this->operator()(i,0));
+				retval(i,0) = sigmoid(Matrix<T>::operator()(i,0));
 			}
 
 			return retval;
 		};
 
 		std::vector<T> &get_values() {
-			return getElems();
+			return Matrix<T>::getElems();
 		}
 
 	private:
@@ -58,7 +53,6 @@ namespace CPPANN {
 			return 1 / (1 + exp(-x));
 		};
 	};
-
 
 	template<typename T>
 	class Weight_Matrix : public Matrix<T> {
@@ -69,14 +63,13 @@ namespace CPPANN {
 	};
 	
 	template<typename T>
-	class ANN
-	{
+	class ANN {
 	public:
 		ANN() = default;
 		void add_layer(uint64_t size) {
-			signalNodes.push_back(SignalNodes<T>{size});
-			if (signalNodes.size() > 1) {
-				networkNodes.push_back(NetworkNodes<T>{size});
+			signal_nodes.push_back(Signal_Nodes<T>{size});
+			if (signal_nodes.size() > 1) {
+				network_nodes.push_back(Network_Nodes<T>{size});
 			}
 		}
 
@@ -84,21 +77,21 @@ namespace CPPANN {
 			weights.push_back(std::move(matrix));
 		}
 
-		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
-			signalNodes[0] = input;
+		const std::vector<T> &forward_propagate(std::vector<T> &&input) {
+			signal_nodes[0].set_values(std::move(input));
 
 			for (int i = 0; i < weights.size(); i++) {
-				networkNodes[i] = weights[i] * signalNodes[i];
-				signalNodes[i + 1] = networkNodes[i].apply_sigmoid();
+				network_nodes[i] = weights[i] * signal_nodes[i];
+				signal_nodes[i + 1] = network_nodes[i].apply_sigmoid();
 			}
 
-			return signalNodes.back().get_values();
+			return signal_nodes.back().get_values();
 		}
 
 	private:
-		std::vector<SignalNodes<T>> signalNodes;
+		std::vector<Signal_Nodes<T>> signal_nodes;
 		std::vector<Weight_Matrix<T>> weights;
-		std::vector<NetworkNodes<T>> networkNodes;
+		std::vector<Network_Nodes<T>> network_nodes;
 	};
 
 }
