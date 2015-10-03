@@ -29,7 +29,7 @@ int main()
 	ann.add_layer(2); //2 neurons
 
 	auto result = ann.forward_propagate({ 1., 2., 3.});
-	ann.back_propagate();
+	ann.back_propagate(Matrix<double>{ {1., 0.} });
 
 
 	return 0;

@@ -18,8 +18,6 @@ namespace CPPANN {
 		void add_layer(uint64_t size) {
 			if (signal_nodes.size() > 0) {
 				network_nodes.push_back(Matrix<T>{1, size});
-			}
-			if (signal_nodes.size() > 1) {
 				dSOutput_dSn.push_back(Matrix<T>{ size, signal_nodes.back().getDimensions()[1]});
 			}
 			signal_nodes.push_back(Matrix<T>{1, size});
@@ -27,7 +25,8 @@ namespace CPPANN {
 
 		void add_weights(Matrix<T> matrix) {
 			weights.push_back(std::move(matrix));
-			dSn_dWn_1.push_back(Matrix<T>{matrix.getDimensions()[1], matrix.getDimensions()[0]});
+			weight_updates.push_back(Matrix<T>{matrix.getDimensions()[0], matrix.getDimensions()[1]});
+			dSn1_dWn.push_back(Matrix<T>{matrix.getDimensions()[1], matrix.getDimensions()[0]});
 		}
 
 		const std::vector<T> &forward_propagate(std::vector<T> &&input) {
@@ -41,19 +40,37 @@ namespace CPPANN {
 			return signal_nodes.back().getElems();
 		}
 
-		void back_propagate() {
-			//compute dSOutput_dSn
-			for (auto i = dSOutput_dSn.size() - 1; i != -1; --i) {
-				auto dSn_dSn_1 = compute_dSn_dSn_1(network_nodes[i + 1], weights[i + 1]);
+		void back_propagate(const Matrix<T> &expected) {
+			//speed
+			const double speed = 0.01;
+
+			//compute error
+			error_vector = signal_nodes.back() - expected;
+
+			//compute dSOutput_dSn. Skip dSOutput/dS0 because it will not be used
+			for (auto i = dSOutput_dSn.size() - 1; i > 0; --i) {
+				auto dSn_dSn_1 = compute_dSn_dSn_1(network_nodes[i], weights[i]);
 				if (i == dSOutput_dSn.size() - 1) {
 					dSOutput_dSn[i] = std::move(dSn_dSn_1);
 				}
 				else {
 					dSOutput_dSn[i] = dSOutput_dSn[i + 1] * dSn_dSn_1;
-				}
+				} 
 			}
 
+			//compute dSn1_dWn
+			for (auto i = 0; i < dSn1_dWn.size(); ++i) {
+				auto dSn_dWn_1_single = compute_dSn_dWn_1(network_nodes[i], signal_nodes[i]);
+				dSn1_dWn[i] = std::move(dSn_dWn_1_single);
+			}
 
+			//compute updates
+			for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getDimensions()[1]; indexOfNodeInSOutput++) {
+				std::vector<Matrix<T>> outputnode_contributions = compute_dSOutput_dWn(dSOutput_dSn, indexOfNodeInSOutput, dSn1_dWn);
+				for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
+					weights[idx] -= (outputnode_contributions[idx].transpose() * speed);
+				}
+			}
 		}
 
 	private:
@@ -91,12 +108,31 @@ namespace CPPANN {
 			return retval;
 		}
 
+		//returns dSOutput[indexOfNodeInSOutput]/dWn(). Hence, e.g. retval[10](20,30) = dSOutput_indexOfNodeInSn/dW[10](30,20)
+		static std::vector<Matrix<T>> compute_dSOutput_dWn(const std::vector<Matrix<T>> &dSOutput_dSn, size_t indexOfNodeInSOutput, const std::vector<Matrix<T>> &dSn1_dWn) {
+			std::vector<Matrix<T>> retval;
+			for (size_t idx = 1; idx < dSn1_dWn.size()-1; ++idx) {
+				Matrix<T> dSOutput_dWn_single{ dSn1_dWn[idx].getDimensions()[0], dSn1_dWn[idx - 1].getDimensions()[1] };
+				for (size_t i = 0; i < dSOutput_dWn_single.getDimensions()[0]; ++i)
+					for (size_t j = 0; j < dSOutput_dWn_single.getDimensions()[1]; ++j)
+						dSOutput_dWn_single(i, j) = dSOutput_dSn[idx](indexOfNodeInSOutput, i)*dSn1_dWn[idx - 1](i, j);
+				retval.push_back(std::move(dSOutput_dWn_single));
+			}
+			retval.push_back(dSn1_dWn.front());
+			return retval;
+		}
+
 	private:
 		//dSOutput_dSn[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n](0,j))
 		std::vector<Matrix<T>> dSOutput_dSn;
 
-		//dSn_dWn_1[n](i,j) := d(signal_nodes[n](0,i))/d(weights[n-1](j,i))
-		std::vector<Matrix<T>> dSn_dWn_1;
+		//dSn1_dWn[n](i,j) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
+		std::vector<Matrix<T>> dSn1_dWn;
+
+	
+		std::vector<Matrix<T>> weight_updates;
+
+		Matrix<T> error_vector;
 
 		//Every signal_nodes[i], i!=0, represents a layer of neuron output values. signal_nodes[0] := input. All signal_nodes are row vectors
 		std::vector<Matrix<T>> signal_nodes;
