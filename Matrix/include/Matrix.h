@@ -96,9 +96,9 @@ public:
 		}
 	}
 
-	//Constructor by vector (only for a n-by-1 Matrix)
+	//Constructor by vector (only for a 1-by-n Matrix)
 	Matrix(const std::vector<T> &list) {
-		matrixAccessProperties.setDimensions(list.size(), 1);
+		matrixAccessProperties.setDimensions(1, list.size());
 		elems = list;
 	}
 
@@ -135,7 +135,8 @@ public:
 		};
 		return retval;
 	}
-protected:
+
+public:
 	std::vector<T> &getElems() {
 		return elems;
 	}
