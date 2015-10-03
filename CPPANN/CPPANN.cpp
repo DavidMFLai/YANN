@@ -22,30 +22,15 @@ int main()
 		{ 1., 2. }  //weights towards the 2nd neuron to the next layer
 	});
 	ann.add_layer(2); //2 neurons
+	ann.add_weights({
+		{ 1., 2. }, //weights from the 0th neuron to the next layer
+		{ 1., 2. },
+	});
+	ann.add_layer(2); //2 neurons
+
 	auto result = ann.forward_propagate({ 1., 2., 3.});
+	ann.back_propagate();
 
-	Matrix<double> m{
-		{ 1.0, 1.1, 1.2 },
-		{ 2.0, 2.1, 2.2 }
-	};
-
-	Matrix<double> n{
-		{ 11.0, 11.1 },
-		{ 12.0, 12.1 },
-		{ 13.0, 13.1 }
-	};
-
-	auto mn = m*n;
-	auto nm = n*m;
-
-	auto mt = m*Matrix<double>{
-		{ 11.0, 11.1 },
-		{ 12.0, 12.1 },
-		{ 13.0, 13.1 }
-	};
-
-	auto result2 = n.getSubMatrixReference(std::tuple<size_t, size_t>{0, 1}, std::tuple<size_t, size_t>{0, 1});
-	auto result211 = result2(1,1);
 
 	return 0;
 }
