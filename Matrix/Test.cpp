@@ -89,7 +89,32 @@ TEST(BasicOperations, Subtract) {
 
 	auto result = m - m2;
 	
-	EXPECT_EQ(expected_result, result, 0.0001);
+	EXPECT_EQ(expected_result, result);
+}
+
+
+TEST(BasicOperations, Addition) {
+	Matrix<double> m{
+		{ 100.1, 100.4 },
+		{ 100.2, 100.5 },
+		{ 100.3, 100.6 }
+	};
+
+	Matrix<double> m2{
+		{ 11., 12. },
+		{ 21., 22. },
+		{ 31., 32. }
+	};
+
+	Matrix<double> expected_result{
+		{ 111.1, 112.4 },
+		{ 121.2, 122.5 },
+		{ 131.3, 132.6 }
+	};
+
+	auto result = m + m2;
+
+	EXPECT_EQ(expected_result, result);
 }
 
 TEST(BasicOperations, SubMatrix) {

@@ -145,6 +145,14 @@ public:
 		return *this;
 	}
 
+	Matrix &operator+(const Matrix<T> &rhs) {
+		assert(this->getDimensions() == rhs.getDimensions());
+		for (size_t i = 0; i < this->getDimensions()[0]; i++)
+			for (size_t j = 0; j < this->getDimensions()[1]; j++)
+				this->operator()(i, j) += rhs(i, j);
+		return *this;
+	}
+
 public:
 	std::vector<T> &getElems() {
 		return elems;
@@ -171,6 +179,13 @@ template<typename T>
 Matrix<T> operator-(const Matrix<T> &lhs, const Matrix<T> &rhs) {
 	auto retval = lhs;
 	retval -= rhs;
+	return retval;
+}
+
+template<typename T>
+Matrix<T> operator+(const Matrix<T> &lhs, const Matrix<T> &rhs) {
+	auto retval = lhs;
+	retval += rhs;
 	return retval;
 }
 
