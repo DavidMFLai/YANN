@@ -110,7 +110,6 @@ public:
 				this->Matrix::operator()(i,j) = matrix_ref(i, j);
 	}
 
-
 	//Getting dimensions
 	std::array<size_t, 2> getDimensions() const {
 		return matrixAccessProperties.dimensions;

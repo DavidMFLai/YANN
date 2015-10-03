@@ -17,8 +17,9 @@ int main()
 	ANN<double> ann;
 	ann.add_layer(3); //3 neurons
 	ann.add_weights({
-		{1., 1., 1.}, //weights towards the 0th neuron at the next layer
-		{2., 2., 2.}  //weights towards the 1st neuron at the next layer
+		{ 1., 2. }, //weights from the 0th neuron to the next layer
+		{ 1., 2. },
+		{ 1., 2. }  //weights towards the 2nd neuron to the next layer
 	});
 	ann.add_layer(2); //2 neurons
 	auto result = ann.forward_propagate({ 1., 2., 3.});
@@ -29,9 +30,9 @@ int main()
 	};
 
 	Matrix<double> n{
-		{ 11.0, 11.1},
-		{ 12.0, 12.1},
-		{ 13.0, 13.1}
+		{ 11.0, 11.1 },
+		{ 12.0, 12.1 },
+		{ 13.0, 13.1 }
 	};
 
 	auto mn = m*n;
