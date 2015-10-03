@@ -3,95 +3,67 @@
 
 namespace CPPANN {
 	template<typename T>
-	class Signal_Nodes : public Matrix<T> {
-	public:
-		Signal_Nodes(size_t rowCount) 
-			: Matrix<T>(1, rowCount)
-		{};
-
-		void set_values(std::vector<T> &&values) {
-			assert(values.size() == Matrix<T>::getElems().size());
-			assert(values.size() == Matrix<T>::getDimensions()[1]);
-			Matrix<T>::getElems() = std::move(values);
-		}
-
-		std::vector<T> &get_values() {
-			return Matrix<T>::getElems();
-		}
+	static Matrix<T> sigmoid(Matrix<T> x) {
+		Matrix<T> retval{ x.getDimensions()[0], x.getDimensions()[1] };
+		for (auto i = 0; i < retval.getDimensions()[0]; ++i)
+			for (auto j = 0; j < retval.getDimensions()[1]; ++j)
+				retval(i, j) = 1 / (1 + exp(-x(i,j)));
+		return retval;
 	};
 
-	template<typename T>
-	class Network_Nodes : public Matrix<T> {
-	public:
-		Network_Nodes(size_t rowCount)
-			: Matrix<T>(1, rowCount)
-		{};
-
-		Network_Nodes &operator=(const Matrix<T> & mat) {
-			assert(this->getDimensions() == mat.getDimensions());
-			Matrix<T>::operator=(mat);
-			return *this;
-		}
-
-		Signal_Nodes<T> apply_sigmoid() {
-			Signal_Nodes<T> retval{ Matrix<T>::getDimensions()[1]};
-
-			auto &elems = Matrix<T>::getElems();
-			for (size_t i = 0; i < elems.size(); i++) {
-				retval(0, i) = sigmoid(Matrix<T>::operator()(0, i));
-			}
-
-			return retval;
-		};
-
-		std::vector<T> &get_values() {
-			return Matrix<T>::getElems();
-		}
-
-	private:	
-		static T sigmoid(T x) {
-			return 1 / (1 + exp(-x));
-		};
-	};
-
-	template<typename T>
-	class Weight_Matrix : public Matrix<T> {
-	public:
-		Weight_Matrix(std::initializer_list<std::initializer_list<T>> lists)
-			: Matrix(lists)
-		{};
-	};
-	
 	template<typename T>
 	class ANN {
 	public:
 		ANN() = default;
 		void add_layer(uint64_t size) {
-			signal_nodes.push_back(Signal_Nodes<T>{size});
+			signal_nodes.push_back(Matrix<T>{1, size});
 			if (signal_nodes.size() > 1) {
-				network_nodes.push_back(Network_Nodes<T>{size});
+				network_nodes.push_back(Matrix<T>{1, size});
 			}
 		}
 
-		void add_weights(Weight_Matrix<T> matrix) {
+		void add_weights(Matrix<T> matrix) {
 			weights.push_back(std::move(matrix));
 		}
 
 		const std::vector<T> &forward_propagate(std::vector<T> &&input) {
-			signal_nodes[0].set_values(std::move(input));
+			signal_nodes[0] = std::move(input);
 
 			for (int i = 0; i < weights.size(); i++) {
 				network_nodes[i] = signal_nodes[i] * weights[i];
-				signal_nodes[i + 1] = network_nodes[i].apply_sigmoid();
+				signal_nodes[i + 1] = sigmoid(network_nodes[i]);
 			}
 
-			return signal_nodes.back().get_values();
+			return signal_nodes.back().getElems();
+		}
+
+	public:
+		Matrix<T> compute_dSn_dSn_1(const Matrix<T> &nodes, const Matrix<T> &weights){
+			//find dimensions
+			auto dimensions_of_weight_matrix = weights.getDimensions();
+
+			//output matrix has dimensions equal to weights transpose
+			Matrix<T> retval{ dimensions_of_weight_matrix[1], dimensions_of_weight_matrix[0] };
+
+			for (auto i = 0; i < retval.getDimensions()[0]; ++i)
+				for (auto j = 0; j < retval.getDimensions()[1]; ++j) {
+					//assuming sigmoid function
+					dSn_dNn_1 = nodes(0, i)*(1 - nodes(0, i));
+
+					//transfer from Network to Signal layer
+					dNn_1_dSn_1 = weights[j][i];
+
+					retval(i, j) = dSn_dNn_1 * dNn_1_dSn_1;
+				}
+			return retval;
 		}
 
 	private:
-		std::vector<Signal_Nodes<T>> signal_nodes;
-		std::vector<Weight_Matrix<T>> weights;
-		std::vector<Network_Nodes<T>> network_nodes;
+		std::vector<Matrix<T>> dSOutput_dSn;
+
+		std::vector<Matrix<T>> signal_nodes;
+		std::vector<Matrix<T>> weights;
+		std::vector<Matrix<T>> network_nodes;
 	};
 
 }
