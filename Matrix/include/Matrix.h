@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <tuple>
+#include <cmath>
 
 template<typename T>
 class Matrix_Ref {
@@ -136,6 +137,14 @@ public:
 		return retval;
 	}
 
+	Matrix &operator-(const Matrix<T> &rhs) {
+		assert(this->getDimensions() == rhs.getDimensions());
+		for (size_t i = 0; i < this->getDimensions()[0]; i++)
+			for (size_t j = 0; j < this->getDimensions()[1]; j++)
+				this->operator()(i, j) -= rhs(i, j);
+		return *this;
+	}
+
 public:
 	std::vector<T> &getElems() {
 		return elems;
@@ -159,14 +168,23 @@ Matrix<T> operator*(const Matrix<T> &lhs, const Matrix<T> &rhs) {
 };
 
 template<typename T>
+Matrix<T> operator-(const Matrix<T> &lhs, const Matrix<T> &rhs) {
+	auto retval = lhs;
+	retval -= rhs;
+	return retval;
+}
+
+template<typename T>
 bool operator==(const Matrix<T> &lhs, const Matrix<T> &rhs) {
+	double tolerance = 0.0000001;
+	
 	if (lhs.getDimensions() != rhs.getDimensions()) {
 		return false;
 	}
 
 	for (size_t i = 0; i < lhs.getDimensions()[0]; i++)
 		for (size_t j = 0; j < lhs.getDimensions()[1]; j++)
-			if (lhs(i, j) != rhs(i, j))
+			if (abs(lhs(i, j) - rhs(i, j)) > tolerance)
 				return false;
 
 	return true;
