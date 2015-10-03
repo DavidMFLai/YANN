@@ -126,6 +126,15 @@ public:
 		return elems[matrixAccessProperties(i, j)];
 	}
 
+	//transpose.. very inefficient
+	Matrix transpose() {
+		Matrix retval{ getDimensions()[1], getDimensions()[0] };
+		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
+			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
+				retval(i, j) = this->operator()(j, i);
+		return retval;
+	}
+
 	Matrix_Ref<T> getSubMatrixReference(std::tuple<size_t, size_t> row_range, std::tuple<size_t, size_t> column_range) {
 		size_t starting_position = std::get<0>(row_range)*matrixAccessProperties.dimensions[1] + std::get<0>(column_range);
 		T* starting_address = &elems[starting_position];
@@ -137,7 +146,7 @@ public:
 		return retval;
 	}
 
-	Matrix &operator-(const Matrix<T> &rhs) {
+	Matrix &operator-=(const Matrix<T> &rhs) {
 		assert(this->getDimensions() == rhs.getDimensions());
 		for (size_t i = 0; i < this->getDimensions()[0]; i++)
 			for (size_t j = 0; j < this->getDimensions()[1]; j++)
@@ -145,7 +154,7 @@ public:
 		return *this;
 	}
 
-	Matrix &operator+(const Matrix<T> &rhs) {
+	Matrix &operator+=(const Matrix<T> &rhs) {
 		assert(this->getDimensions() == rhs.getDimensions());
 		for (size_t i = 0; i < this->getDimensions()[0]; i++)
 			for (size_t j = 0; j < this->getDimensions()[1]; j++)
@@ -172,6 +181,16 @@ Matrix<T> operator*(const Matrix<T> &lhs, const Matrix<T> &rhs) {
 		for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
 			for (size_t n = 0; n < rhs.getDimensions()[1]; n++)
 				retval(m, n) += lhs(m, p)*rhs(p, n);
+	return retval;
+};
+
+template<typename T>
+Matrix<T> operator*(const Matrix<T> &lhs, T rhs) {
+	Matrix<T> retval{ lhs.getDimensions()[0], lhs.getDimensions()[1] };
+	for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
+
+		for (size_t n = 0; n < lhs.getDimensions()[1]; n++)
+			retval(m, n) = lhs(m, n)*rhs;
 	return retval;
 };
 

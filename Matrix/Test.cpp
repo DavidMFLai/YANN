@@ -68,6 +68,24 @@ TEST(BasicOperations, Multiply) {
 	EXPECT_EQ(expected_result, result);
 }
 
+TEST(BasicOperations, Multiply_Elementwise) {
+	Matrix<double> m{
+		{ 111., 112. },
+		{ 121., 122. },
+		{ 131., 132. }
+	};
+
+	auto result = m*2.;
+
+	Matrix<double> expected_result{
+		{ 222., 224. },
+		{ 242., 244. },
+		{ 262., 264. }
+	};
+
+	EXPECT_EQ(expected_result, result);
+}
+
 TEST(BasicOperations, Subtract) {
 	Matrix<double> m{
 		{ 111.1, 112.4 },
@@ -113,6 +131,23 @@ TEST(BasicOperations, Addition) {
 	};
 
 	auto result = m + m2;
+
+	EXPECT_EQ(expected_result, result);
+}
+
+TEST(BasicOperations, Transpose) {
+	Matrix<double> m{
+		{ 100.1, 100.4 },
+		{ 100.2, 100.5 },
+		{ 100.3, 100.6 }
+	};
+
+	Matrix<double> expected_result{
+		{ 100.1, 100.2, 100.3},
+		{ 100.4, 100.5, 100.6}
+	};
+
+	auto result = m.transpose();
 
 	EXPECT_EQ(expected_result, result);
 }
