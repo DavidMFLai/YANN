@@ -70,7 +70,7 @@ namespace CPPANN {
 			for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getDimensions()[1]; indexOfNodeInSOutput++) {
 				std::vector<Matrix<T>> outputnode_contributions = compute_dSOutput_dWn(dSOutput_dSnp1, indexOfNodeInSOutput, dSnp1_dWn);
 				for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
-					weights[idx] -= (outputnode_contributions[idx].transpose() * speed);
+					weights[idx] -= (outputnode_contributions[idx].transpose() * speed * error_vector(0, indexOfNodeInSOutput));
 				}
 			}
 		}

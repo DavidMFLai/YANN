@@ -9,10 +9,13 @@
 #include <vector>
 #include <tuple>
 
+#include "gmock\gmock.h"
+#include "gtest/gtest.h"
+
 using namespace std;
 using namespace CPPANN;
 
-int main()
+TEST(Basics, DISABLED_temp)
 {
 	ANN<double> ann;
 	ann.add_layer(5); //5 neurons
@@ -25,7 +28,7 @@ int main()
 	});
 	ann.add_layer(4); //4 neurons
 	ann.add_weights({
-		{ 2.11, 2.12, 2.13 }, //weights towards the 0th neuron of the next layer
+		{ 2.11, 2.12, 2.13 },  //weights towards the 0th neuron of the next layer
 		{ 2.21, 2.22, 2.23 },
 		{ 2.31, 2.32, 2.33 },  //weights towards the 2nd neuron of the next layer
 		{ 2.41, 2.42, 2.43 },
@@ -37,10 +40,29 @@ int main()
 		{ 3.31, 3.32 },
 	});
 	ann.add_layer(2); //2 neurons
-
-	auto result = ann.forward_propagate({ 0.11, 0.12, 0.13, 0.14, 0.15 });
-	ann.back_propagate(Matrix<double>{ {1., 0.} });
-	
-	return 0;
+	 
+	for (int i = 0; i < 1; i++) {
+		ann.forward_propagate({ 0.11, 0.12, 0.13, 0.14, 0.15 });
+		ann.back_propagate(Matrix<double>{ {1., 0.} });
+	}
 }
 
+TEST(Basics, XOR)
+{
+	ANN<double> ann;
+	ann.add_layer(3); //2 neurons, 1 bias
+	ann.add_layer(3); //2 neurons, 1 bias
+	ann.add_layer(2); //1 neuron, 1 bias
+
+	for (int i = 0; i < 1; i++) {
+		ann.forward_propagate({ 0.11, 0.12, 0.13, 0.14, 0.15 });
+		ann.back_propagate(Matrix<double>{ {1., 0.} });
+	}
+
+}
+
+int main(int argc, char *argv[])
+{
+	::testing::InitGoogleMock(&argc, argv);
+	return RUN_ALL_TESTS();
+}
