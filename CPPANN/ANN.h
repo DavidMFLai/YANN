@@ -63,21 +63,27 @@ namespace CPPANN {
 				}
 				else {
 					dSOutput_dSnp1[i] = dSOutput_dSnp1[i + 1] * dSn_dSnm1;
-				} 
+				}
 			}
 
 			//compute dSnp1_dWn
 			for (auto i = 0; i < dSnp1_dWn.size(); ++i) {
-				auto dSnp1_dWn_single = ANN<T>::compute_dSnp1_dWn(network_nodes[i], signal_nodes[i]);
+				auto dSnp1_dWn_single = compute_dSnp1_dWn(network_nodes[i], signal_nodes[i]);
 				dSnp1_dWn[i] = std::move(dSnp1_dWn_single);
 			}
 
-			//compute updates
+			//compute weight updates
 			for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getDimensions()[1]; indexOfNodeInSOutput++) {
 				std::vector<Matrix<T>> outputnode_contributions = compute_dSOutput_dWn(dSOutput_dSnp1, indexOfNodeInSOutput, dSnp1_dWn);
 				for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
 					weights[idx] -= (outputnode_contributions[idx].transpose() * speed * error_vector(0, indexOfNodeInSOutput));
 				}
+			}
+
+			//compute dSnp1_dBn		
+			for (auto i = 0; i < dSnp1_dBn.size(); ++i) {
+				auto dSnp1_dBn_single = compute_dSnp1_dBn(network_nodes[i]);
+				dSnp1_dBn[i] = std::move(dSnp1_dBn_single);
 			}
 		}
 
@@ -116,6 +122,19 @@ namespace CPPANN {
 			return retval;
 		}
 
+		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
+		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &network_layer_next) {
+			Matrix<T> retval{ network_layer_next.getDimensions()[0], network_layer_next.getDimensions()[1] };
+
+			for (auto i = 0; i < retval.getDimensions()[1]; ++i) {
+				//assuming sigmoid function
+				auto dSnp1_dNn = network_layer_next(0, i)*(1 - network_layer_next(0, i));
+				retval(0, i) = dSnp1_dNn;
+			}
+
+			return retval;
+		}
+
 		//returns dSOutput[indexOfNodeInSOutput]/dWn(). Hence, e.g. retval[10](20,30) = dSOutput_indexOfNodeInSOutput/dW[10](30,20)
 		static std::vector<Matrix<T>> compute_dSOutput_dWn(const std::vector<Matrix<T>> &dSOutput_dSnp1, size_t indexOfNodeInSOutput, const std::vector<Matrix<T>> &dSnp1_dWn) {
 			std::vector<Matrix<T>> retval;
@@ -136,6 +155,9 @@ namespace CPPANN {
 
 		//dSnp1_dWn[n](i,j) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
 		std::vector<Matrix<T>> dSnp1_dWn;
+
+		//dSnp1_dBn[n](i,j) := d(signal_nodes[n+1](0,i))/d(network_bias[n](0,j))
+		std::vector<Matrix<T>> dSnp1_dBn;
 
 		std::vector<Matrix<T>> weight_updates;
 
