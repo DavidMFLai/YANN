@@ -57,7 +57,7 @@ namespace CPPANN {
 
 			//compute dSOutput_dSnp1.
 			for (auto i = (int64_t)(dSOutput_dSnp1.size() - 1); i >= 0; --i) {
-				auto dSn_dSnm1 = compute_dSn_dSnm1(network_nodes[i], weights[i]);
+				auto dSn_dSnm1 = compute_dSn_dSnm1(signal_nodes[i+1], weights[i]);
 				if (i == dSOutput_dSnp1.size() - 1) {
 					dSOutput_dSnp1[i] = std::move(dSn_dSnm1);
 				}
@@ -68,7 +68,7 @@ namespace CPPANN {
 
 			//compute dSnp1_dWn
 			for (auto i = 0; i < dSnp1_dWn.size(); ++i) {
-				auto dSnp1_dWn_single = compute_dSnp1_dWn(network_nodes[i], signal_nodes[i]);
+				auto dSnp1_dWn_single = compute_dSnp1_dWn(signal_nodes[i+1], signal_nodes[i]);
 				dSnp1_dWn[i] = std::move(dSnp1_dWn_single);
 			}
 
@@ -82,20 +82,20 @@ namespace CPPANN {
 
 			//compute dSnp1_dBn		
 			for (auto i = 0; i < dSnp1_dBn.size(); ++i) {
-				auto dSnp1_dBn_single = compute_dSnp1_dBn(network_nodes[i]);
+				auto dSnp1_dBn_single = compute_dSnp1_dBn(signal_nodes[i+1]);
 				dSnp1_dBn[i] = std::move(dSnp1_dBn_single);
 			}
 		}
 
 	private:
 		//returns retval(i,j) = d(signal_layer(0,i))/d(signal_layer(0,j)).
-		static Matrix<T> compute_dSn_dSnm1(const Matrix<T> &network_layer, const Matrix<T> &weights) {
+		static Matrix<T> compute_dSn_dSnm1(const Matrix<T> &signal_layer, const Matrix<T> &weights) {
 			//output matrix has dimensions equal to weights transpose
 			Matrix<T> retval{ weights.getDimensions()[1], weights.getDimensions()[0] };
 
 			for (auto i = 0; i < retval.getDimensions()[0]; ++i) {
 				//assuming sigmoid function
-				auto dSn_dNn_1 = network_layer(0, i)*(1 - network_layer(0, i));
+				auto dSn_dNn_1 = signal_layer(0, i)*(1 - signal_layer(0, i));
 				for (auto j = 0; j < retval.getDimensions()[1]; ++j) {
 					//Network to Signal layer
 					auto dNn_1_dSn_1 = weights(j, i);
@@ -107,12 +107,12 @@ namespace CPPANN {
 		}
 
 		//returns retval(i,j) := d(signal_layer_next(0,i))/d(weights(j,i))
-		static Matrix<T> compute_dSnp1_dWn(const Matrix<T> &network_layer_next, const Matrix<T> &signal_layer) {
-			Matrix<T> retval{ network_layer_next.getDimensions()[1], signal_layer.getDimensions()[1] };
+		static Matrix<T> compute_dSnp1_dWn(const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer) {
+			Matrix<T> retval{ signal_layer_next.getDimensions()[1], signal_layer.getDimensions()[1] };
 
 			for (auto i = 0; i < retval.getDimensions()[0]; ++i) {
 				//assuming sigmoid function
-				auto dSn_dNn_1 = network_layer_next(0, i)*(1 - network_layer_next(0, i));
+				auto dSn_dNn_1 = signal_layer_next(0, i)*(1 - signal_layer_next(0, i));
 				for (auto j = 0; j < retval.getDimensions()[1]; ++j) {
 					//Network to Weight layer
 					auto dNn_1_dWn_1 = signal_layer(0, j);
@@ -123,12 +123,12 @@ namespace CPPANN {
 		}
 
 		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
-		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &network_layer_next) {
-			Matrix<T> retval{ network_layer_next.getDimensions()[0], network_layer_next.getDimensions()[1] };
+		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &signal_layer_next) {
+			Matrix<T> retval{ signal_layer_next.getDimensions()[0], signal_layer_next.getDimensions()[1] };
 
 			for (auto i = 0; i < retval.getDimensions()[1]; ++i) {
 				//assuming sigmoid function
-				auto dSnp1_dNn = network_layer_next(0, i)*(1 - network_layer_next(0, i));
+				auto dSnp1_dNn = signal_layer_next(0, i)*(1 - signal_layer_next(0, i));
 				retval(0, i) = dSnp1_dNn;
 			}
 
