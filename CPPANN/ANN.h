@@ -29,6 +29,7 @@ namespace CPPANN {
 			assert(network_nodes.size() > 0);
 			assert(network_nodes.back().getDimensions()[1] == input.size());
 			network_bias.push_back(std::move(input));
+			dSnp1_dBn.push_back(Matrix<T>{network_nodes.back().getDimensions()[1] });
 		}
 
 		void add_weights(Matrix<T> matrix) {
@@ -41,8 +42,8 @@ namespace CPPANN {
 			signal_nodes[0] = std::move(input);
 
 			for (int i = 0; i < weights.size(); i++) {
-				network_nodes[i] = signal_nodes[i] * weights[i];
-				signal_nodes[i + 1] = sigmoid(network_nodes[i] + network_bias[i]);
+				network_nodes[i] = signal_nodes[i] * weights[i] + network_bias[i];
+				signal_nodes[i + 1] = sigmoid(network_nodes[i]);
 			}
 
 			return signal_nodes.back().getElems();
@@ -81,9 +82,17 @@ namespace CPPANN {
 			}
 
 			//compute dSnp1_dBn		
-			for (auto i = 0; i < dSnp1_dBn.size(); ++i) {
+			for (size_t i = 0; i < dSnp1_dBn.size(); ++i) {
 				auto dSnp1_dBn_single = compute_dSnp1_dBn(signal_nodes[i+1]);
 				dSnp1_dBn[i] = std::move(dSnp1_dBn_single);
+			}
+
+			//compute bias updates
+			for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getDimensions()[1]; indexOfNodeInSOutput++) {
+				std::vector<Matrix<T>> outputnode_contributions = compute_dOutput_dBn(dSOutput_dSnp1, indexOfNodeInSOutput, dSnp1_dBn);
+				for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
+					network_bias[idx] -= outputnode_contributions[idx] * speed * error_vector(0, indexOfNodeInSOutput);
+				}
 			}
 		}
 
@@ -122,19 +131,6 @@ namespace CPPANN {
 			return retval;
 		}
 
-		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
-		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &signal_layer_next) {
-			Matrix<T> retval{ signal_layer_next.getDimensions()[0], signal_layer_next.getDimensions()[1] };
-
-			for (auto i = 0; i < retval.getDimensions()[1]; ++i) {
-				//assuming sigmoid function
-				auto dSnp1_dNn = signal_layer_next(0, i)*(1 - signal_layer_next(0, i));
-				retval(0, i) = dSnp1_dNn;
-			}
-
-			return retval;
-		}
-
 		//returns dSOutput[indexOfNodeInSOutput]/dWn(). Hence, e.g. retval[10](20,30) = dSOutput_indexOfNodeInSOutput/dW[10](30,20)
 		static std::vector<Matrix<T>> compute_dSOutput_dWn(const std::vector<Matrix<T>> &dSOutput_dSnp1, size_t indexOfNodeInSOutput, const std::vector<Matrix<T>> &dSnp1_dWn) {
 			std::vector<Matrix<T>> retval;
@@ -149,30 +145,66 @@ namespace CPPANN {
 			return retval;
 		}
 
+		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
+		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &signal_layer_next) {
+			Matrix<T> retval{ signal_layer_next.getDimensions()[0], signal_layer_next.getDimensions()[1] };
+
+			for (auto i = 0; i < retval.getDimensions()[1]; ++i) {
+				//assuming sigmoid function
+				auto dSnp1_dNn = signal_layer_next(0, i)*(1 - signal_layer_next(0, i));
+				retval(0, i) = dSnp1_dNn; //because dNn/dBn = 1
+			}
+
+			return retval;
+		}
+
+		//returns dOutput[indexOfNodeInSOutput]/dBn(), e.g. retval[10](0,30) = dSOutput_indexOfNodeInSOutput/dBias[10](0, 30). Notice that output is a std::vector of row vectors prese.
+		static std::vector<Matrix<T>> compute_dOutput_dBn(const std::vector<Matrix<T>> &dSOutput_dSnp1, size_t indexOfNodeInSOutput, const std::vector<Matrix<T>> &dSnp1_dBn) {
+			std::vector<Matrix<T>> retval;
+			for (size_t layer_index = 0; layer_index < dSnp1_dBn.size() - 1; ++layer_index) {
+				Matrix<T> retval_single{ 1, dSnp1_dBn[layer_index].getDimensions()[1] };
+				for (size_t indexofNodeInBias = 0; indexofNodeInBias < dSnp1_dBn[layer_index].getDimensions()[1]; ++indexofNodeInBias) {
+					retval_single(0, indexofNodeInBias) = dSOutput_dSnp1[layer_index](indexOfNodeInSOutput, indexofNodeInBias) * dSnp1_dBn[layer_index](0, indexofNodeInBias);
+				}
+				retval.push_back(retval_single);
+			}
+			retval.push_back(dSnp1_dBn[dSnp1_dBn.size() - 1]);
+
+			return retval;
+		}
+
 	private:
-		//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n](0,j))
-		std::vector<Matrix<T>> dSOutput_dSnp1;
+		/*
+		Back propagation variables:
+		*/
+			Matrix<T> error_vector;
 
-		//dSnp1_dWn[n](i,j) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
-		std::vector<Matrix<T>> dSnp1_dWn;
+			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n](0,j))
+			std::vector<Matrix<T>> dSOutput_dSnp1;
 
-		//dSnp1_dBn[n](i,j) := d(signal_nodes[n+1](0,i))/d(network_bias[n](0,j))
-		std::vector<Matrix<T>> dSnp1_dBn;
+			//dSnp1_dWn[n](i,j) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
+			std::vector<Matrix<T>> dSnp1_dWn;
 
-		std::vector<Matrix<T>> weight_updates;
+			//dSnp1_dBn[n](i,j) := d(signal_nodes[n+1](0,i))/d(network_bias[n](0,j))
+			std::vector<Matrix<T>> dSnp1_dBn;
 
-		Matrix<T> error_vector;
+			//Resultant updates
+			std::vector<Matrix<T>> weight_updates;
+			std::vector<Matrix<T>> network_bias_updates;
+		
+		/*
+		Forward propagation variables:
+		*/
+			//Every signal_nodes[i], i!=0, represents a layer of neuron output values. signal_nodes[0] := input. All signal_nodes are row vectors
+			std::vector<Matrix<T>> signal_nodes;
 
-		//Every signal_nodes[i], i!=0, represents a layer of neuron output values. signal_nodes[0] := input. All signal_nodes are row vectors
-		std::vector<Matrix<T>> signal_nodes;
+			//weights[m](i,j) := Weight from signal_nodes[m](0,i) to network_nodes[m](0,j). 
+			std::vector<Matrix<T>> weights;
 
-		//weights[m](i,j) := Weight from signal_nodes[m](0,i) to network_nodes[m](0,j). 
-		std::vector<Matrix<T>> weights;
+			//network_nodes[i] := signal_nodes[i] * weights[i]. All network_nodes are row vectors
+			std::vector<Matrix<T>> network_nodes;
 
-		//network_nodes[i] := signal_nodes[i] * weights[i]. All network_nodes are row vectors
-		std::vector<Matrix<T>> network_nodes;
-
-		//network_bias[i] := bias values on the neurons
-		std::vector<Matrix<T>> network_bias;
+			//network_bias[i] := bias values on the neurons
+			std::vector<Matrix<T>> network_bias;
 	};
 }
