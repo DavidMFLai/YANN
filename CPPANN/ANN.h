@@ -184,7 +184,7 @@ namespace CPPANN {
 						dSOutput_dWn_single(i, j) = dSOutput_dSnp1[idx](indexOfNodeInSOutput, j)*dSnp1_dWn[idx](j, i) * error;
 				retval.push_back(std::move(dSOutput_dWn_single));
 			}
-			retval.push_back(dSnp1_dWn[dSnp1_dWn.size() - 1] * error);
+			retval.push_back(dSnp1_dWn[dSnp1_dWn.size() - 1].createRowMatrix(indexOfNodeInSOutput).transpose() * error);
 			return retval;
 		}
 

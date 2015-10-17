@@ -126,8 +126,21 @@ public:
 		return elems[matrixAccessProperties(i, j)];
 	}
 
+	Matrix createRowMatrix(size_t rowToClone) const{
+		Matrix retval{ getDimensions()[1], getDimensions()[0] };
+		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
+			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
+				if (i == rowToClone) {
+					retval(i, j) = this->operator()(i, j);
+				}
+				else {
+					retval(i, j) = 0;
+				}
+		return retval;
+	}
+
 	//transpose.. very inefficient
-	Matrix transpose() {
+	Matrix transpose() const{
 		Matrix retval{ getDimensions()[1], getDimensions()[0] };
 		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
 			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
@@ -162,6 +175,12 @@ public:
 		return *this;
 	}
 
+	void zero() {
+		for (auto &elem : elems) {
+			elem = 0;
+		}
+	}
+
 public:
 	std::vector<T> &getElems() {
 		return elems;
@@ -177,6 +196,7 @@ template<typename T>
 Matrix<T> operator*(const Matrix<T> &lhs, const Matrix<T> &rhs) {
 	assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 	Matrix<T> retval{ lhs.getDimensions()[0], rhs.getDimensions()[1] };
+	retval.zero();
 	for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
 		for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
 			for (size_t n = 0; n < rhs.getDimensions()[1]; n++)
@@ -188,7 +208,6 @@ template<typename T>
 Matrix<T> operator*(const Matrix<T> &lhs, T rhs) {
 	Matrix<T> retval{ lhs.getDimensions()[0], lhs.getDimensions()[1] };
 	for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
-
 		for (size_t n = 0; n < lhs.getDimensions()[1]; n++)
 			retval(m, n) = lhs(m, n)*rhs;
 	return retval;
