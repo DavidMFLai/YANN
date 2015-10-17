@@ -97,7 +97,7 @@ TEST(Basics, DISABLED_XORWithGoodInitials)
 }
 
 
-TEST(Basics, mattmazur)
+TEST(Basics, DISABLED_mattmazur)
 {
 	ANN<double> ann;
 	ann.add_layer(2); //2 neurons
@@ -124,7 +124,7 @@ TEST(Basics, mattmazur)
 
 }
 
-TEST(Basics, DISABLED_RANDXOR)
+TEST(Basics, RANDXOR)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -149,7 +149,7 @@ TEST(Basics, DISABLED_RANDXOR)
 	ann.add_bias({ dis(gen) });
 
 	std::vector<double> tmp1, tmp2, tmp3, tmp4;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 100000; i++) {
 		tmp1 = ann.forward_propagate({ 0.99, 0.98 });
 		ann.back_propagate(Matrix<double>{ {0.} });
 		tmp4 = ann.forward_propagate({ 0.01, 0.01 });

@@ -127,7 +127,7 @@ public:
 	}
 
 	Matrix createRowMatrix(size_t rowToClone) const{
-		Matrix retval{ getDimensions()[1], getDimensions()[0] };
+		Matrix retval{ getDimensions()[0], getDimensions()[1] };
 		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
 			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
 				if (i == rowToClone) {
