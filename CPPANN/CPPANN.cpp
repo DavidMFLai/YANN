@@ -67,11 +67,35 @@ TEST(Basics, XOR)
 	ann.add_layer(1); //1 neuron
 	ann.add_bias({ 8.1});
 
-	for (int i = 0; i < 1; i++) {
-		ann.forward_propagate({ 0.99, 0.01 });
+	std::vector<double> tmp, tmp2, tmp3, tmp4;
+	for (int i = 0; i < 100; i++) {
+		tmp = ann.forward_propagate({ 0.99, 0.98 });
+		ann.back_propagate(Matrix<double>{ {0.} });
+		tmp4 = ann.forward_propagate({ 0.01, 0.01 });
+		ann.back_propagate(Matrix<double>{ {0.} });
+		tmp2 = ann.forward_propagate({ 0.01, 0.99 });
+		ann.back_propagate(Matrix<double>{ {1.} });
+		tmp3 = ann.forward_propagate({ 0.99, 0.01 });
 		ann.back_propagate(Matrix<double>{ {1.} });
 	}
 
+
+
+
+	tmp = ann.forward_propagate({ 0.99, 0.99 });
+	ann.back_propagate(Matrix<double>{ {0.} });
+
+	tmp2 = ann.forward_propagate({ 0.01, 0.99 });
+	ann.back_propagate(Matrix<double>{ {1.} });
+
+	tmp3 = ann.forward_propagate({ 0.99, 0.01 });
+	ann.back_propagate(Matrix<double>{ {1.} });
+
+	tmp4 = ann.forward_propagate({ 0.01, 0.01 });
+	ann.back_propagate(Matrix<double>{ {0.} });
+
+	auto &biases = ann.getBiases();
+	auto &weights = ann.getWeights();
 }
 
 int main(int argc, char *argv[])
