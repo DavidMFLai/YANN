@@ -53,56 +53,39 @@ TEST(Basics, mattmazur)
 	EXPECT_NEAR(0.56137012, weights[1](1, 1), tolerence);
 }
 
-TEST(Basics, DISABLED_RANDXOR)
+TEST(Basics, XOR_SIGMOID)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> dis(-1, 1);
-
 	ANN<double> ann;
 	ann.add_layer(2); //2 neurons
 	ann.add_weights({
-		{ dis(gen), dis(gen) },
-		{ dis(gen), dis(gen) },
+		{ 0.5, -0.7 },
+		{ -0.8, 0.6 },
 	});
-
 	ann.add_layer(2); //2 neurons
-	ann.add_bias({ dis(gen), dis(gen) });
-
+	ann.add_bias({ 0.01, -0.9 });
 	ann.add_weights({
-		{ dis(gen) }, //weights from the 0th neuron of the present layer
-		{ dis(gen) },
+		{ 2. }, //weights from the 0th neuron of the present layer
+		{ 3. },
 	});
-
 	ann.add_layer(1); //1 neuron
-	ann.add_bias({ dis(gen) });
+	ann.add_bias({ -0.8 });
 
-	std::vector<double> tmp1, tmp2, tmp3, tmp4;
-	for (int i = 0; i < 100000; i++) {
-		tmp1 = ann.forward_propagate({ 0.99, 0.98 });
+	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
+	for (int i = 0; i < 10000; i++) {
+		true_true_result = ann.forward_propagate({ 1., 1. });
 		ann.back_propagate(Matrix<double>{ {0.} });
-		tmp4 = ann.forward_propagate({ 0.01, 0.01 });
+		false_false_result = ann.forward_propagate({ 0., 0. });
 		ann.back_propagate(Matrix<double>{ {0.} });
-		tmp2 = ann.forward_propagate({ 0.01, 0.99 });
+		false_true_result = ann.forward_propagate({ 0., 1. });
 		ann.back_propagate(Matrix<double>{ {1.} });
-		tmp3 = ann.forward_propagate({ 0.99, 0.01 });
+		true_false_result = ann.forward_propagate({ 1., 0. });
 		ann.back_propagate(Matrix<double>{ {1.} });
 	}
-
-	tmp1 = ann.forward_propagate({ 0.99, 0.99 });
-	ann.back_propagate(Matrix<double>{ {0.} });
-
-	tmp2 = ann.forward_propagate({ 0.01, 0.99 });
-	ann.back_propagate(Matrix<double>{ {1.} });
-
-	tmp3 = ann.forward_propagate({ 0.99, 0.01 });
-	ann.back_propagate(Matrix<double>{ {1.} });
-
-	tmp4 = ann.forward_propagate({ 0.01, 0.01 });
-	ann.back_propagate(Matrix<double>{ {0.} });
-
-	auto &biases = ann.getBiases();
-	auto &weights = ann.getWeights();
+	double tolerence = 0.05;
+	EXPECT_NEAR(0., true_true_result[0], tolerence);
+	EXPECT_NEAR(0., false_false_result[0], tolerence);
+	EXPECT_NEAR(1., false_true_result[0], tolerence);
+	EXPECT_NEAR(1., true_false_result[0], tolerence);
 }
 
 int main(int argc, char *argv[])
