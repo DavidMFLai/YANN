@@ -4,7 +4,7 @@
 
 namespace CPPANN {
 	template<typename T>
-	static Matrix<T> sigmoid(Matrix<T> x) {
+	static Matrix<T> sigmoid(const Matrix<T> &x) {
 		Matrix<T> retval{ x.getDimensions()[0], x.getDimensions()[1] };
 		for (auto i = 0; i < retval.getDimensions()[0]; ++i)
 			for (auto j = 0; j < retval.getDimensions()[1]; ++j)
@@ -18,7 +18,7 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static Matrix<T> tanh(Matrix<T> x) {
+	static Matrix<T> tanh(const Matrix<T> &x) {
 		Matrix<T> retval{ x.getDimensions()[0], x.getDimensions()[1] };
 		for (auto i = 0; i < retval.getDimensions()[0]; ++i)
 			for (auto j = 0; j < retval.getDimensions()[1]; ++j)
@@ -37,12 +37,12 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static Matrix<T> evalute_perceptron(Matrix<T> x, Neuron_Type neuron_type) {
+	static Matrix<T> evalute_perceptron(const Matrix<T> &x, Neuron_Type neuron_type) {
 		if (neuron_type == Neuron_Type::Sigmoid) {
-			return CPPANN::sigmoid<T>(std::move(x));
+			return CPPANN::sigmoid<T>(x);
 		}
 		else {
-			return CPPANN::tanh<T>(std::move(x));
+			return CPPANN::tanh<T>(x);
 		}	
 	}
 

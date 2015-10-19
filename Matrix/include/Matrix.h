@@ -126,6 +126,7 @@ public:
 		return elems[matrixAccessProperties(i, j)];
 	}
 
+	//Creates a new matrix of the same dimensions, with row rowToClone identical to *this, and zero elsewhere.
 	Matrix createRowMatrix(size_t rowToClone) const{
 		Matrix retval{ getDimensions()[0], getDimensions()[1] };
 		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
@@ -161,17 +162,17 @@ public:
 
 	Matrix &operator-=(const Matrix<T> &rhs) {
 		assert(this->getDimensions() == rhs.getDimensions());
-		for (size_t i = 0; i < this->getDimensions()[0]; i++)
-			for (size_t j = 0; j < this->getDimensions()[1]; j++)
-				this->operator()(i, j) -= rhs(i, j);
+		for (size_t idx = 0; idx < elems.size(); ++idx) {
+			elems[idx] -= rhs.elems[idx];
+		}
 		return *this;
 	}
 
 	Matrix &operator+=(const Matrix<T> &rhs) {
 		assert(this->getDimensions() == rhs.getDimensions());
-		for (size_t i = 0; i < this->getDimensions()[0]; i++)
-			for (size_t j = 0; j < this->getDimensions()[1]; j++)
-				this->operator()(i, j) += rhs(i, j);
+		for (size_t idx = 0; idx < elems.size(); ++idx) {
+			elems[idx] += rhs.elems[idx];
+		}
 		return *this;
 	}
 
@@ -182,7 +183,7 @@ public:
 	}
 
 public:
-	std::vector<T> &getElems() {
+	const std::vector<T> &getElems() const{
 		return elems;
 	}
 

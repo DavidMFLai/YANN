@@ -170,6 +170,24 @@ TEST(BasicOperations, SubMatrix) {
 	EXPECT_EQ(expected_submatrix, submatrix);
 }
 
+TEST(BasicOperations, createRowMatrix) {
+	Matrix<double> m{
+		{ 111., 112., 113. },
+		{ 121., 122., 123. },
+		{ 131., 132., 133. }
+	};
+
+	Matrix<double> expected{
+		{ 0., 0., 0. },
+		{ 121., 122., 123. },
+		{ 0., 0., 0. }
+	};
+
+	auto result = m.createRowMatrix(1);
+
+	EXPECT_EQ(expected, result);
+}
+
 int main(int argc, char *argv[])
 {
 	::testing::InitGoogleMock(&argc, argv);
