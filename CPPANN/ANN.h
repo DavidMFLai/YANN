@@ -104,7 +104,7 @@ namespace CPPANN {
 			//Get number of layers
 			size_t layers_count = signal_counts.size();
 			
-			//Create matrices used by forward propagation 
+			//Create matrices required by forward propagation 
 			signal_nodes.resize(layers_count);
 			network_nodes.resize(layers_count - 1);
 			network_bias.resize(layers_count - 1);
@@ -116,15 +116,16 @@ namespace CPPANN {
 				else {
 					signal_nodes.at(idx) = Matrix<T>{1, signal_counts[idx]};
 					network_nodes.at(idx - 1) = Matrix<T>{1, signal_counts[idx]};
-					network_bias.at(idx - 1) = Matrix<T>{1, signal_counts[idx]};
+					network_bias.at(idx - 1) = biases_of_each_layer.at(idx - 1);
 					weights.at(idx - 1) = weight_matrices.at(idx - 1);
 				}
 			}
 
-			//Create matrices used by backward propagation
+			//Create additional matrices required by backward propagation
 			dSnp1_dBn.resize(layers_count - 1);
 			dSnp1_dWn.resize(layers_count - 1);
 			dSOutput_dSnp1.resize(layers_count - 2);
+			dSnp2_dSnp1.resize(layers_count - 2);
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getDimensions()[1] };
@@ -133,7 +134,8 @@ namespace CPPANN {
 				else {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getDimensions()[1] };
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getDimensions()[1],  weights.at(idx).getDimensions()[0] };
-					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getDimensions()[0], signal_nodes.at(idx - 1).getDimensions()[1]};
+					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getDimensions()[1], signal_nodes.at(idx - 1).getDimensions()[1]};
+					dSnp2_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.at(idx + 1).getDimensions()[1], signal_nodes.at(idx).getDimensions()[1] };
 				}
 			}
 
@@ -180,13 +182,17 @@ namespace CPPANN {
 			//compute error
 			error_vector = signal_nodes.back() - expected;
 
-			//compute dSOutput_dSnp1.
-			auto i = dSOutput_dSnp1.size() - 1;
-			auto dSnp2_dSnp1 = compute_dSnp1_dSn(signal_nodes[i + 2], weights[i + 1], neuron_type);
-			dSOutput_dSnp1[i] = std::move(dSnp2_dSnp1);
-			for (auto i = (int64_t)(dSOutput_dSnp1.size() - 2); i >= 0; --i) {
-				auto dSnp1_dSn = compute_dSnp1_dSn(signal_nodes[i+1], weights[i], neuron_type);
-				dSOutput_dSnp1[i] = dSOutput_dSnp1[i + 1] * dSnp1_dSn;
+			//compute dSnp2_dSnp1
+			for (size_t idx = 0; idx < dSnp2_dSnp1.size(); ++idx) {
+				compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_type);
+			}
+
+			//compute dSOutput_dSnp1
+			dSOutput_dSnp1.back() = dSnp2_dSnp1.back();
+			if (dSOutput_dSnp1.size() > 1) {
+				for (size_t idx = dSOutput_dSnp1.size() - 2; idx >= 0; --idx) {
+					Matrix<T>::multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
+				}
 			}
 
 			//compute dSnp1_dWn
@@ -220,7 +226,19 @@ namespace CPPANN {
 
 	private:
 		//returns retval(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
-		static Matrix<T> compute_dSnp1_dSn(const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
+		static void compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
+			for (auto i = 0; i < output.getDimensions()[0]; ++i) {
+				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
+				for (auto j = 0; j < output.getDimensions()[1]; ++j) {
+					//Network to Signal layer
+					auto dNn_dSn = weights(j, i);
+					output(i, j) = dSnp1_dNn * dNn_dSn;
+				}
+			}
+		}
+
+		//returns retval(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
+		static Matrix<T> deprecated_compute_dSnp1_dSn(const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
 			//output matrix has dimensions equal to weights transpose
 			Matrix<T> retval{ weights.getDimensions()[1], weights.getDimensions()[0] };
 
@@ -297,6 +315,9 @@ namespace CPPANN {
 		Back propagation variables:
 		*/
 			Matrix<T> error_vector;
+
+			//dSnp2_dSnp1[n](i,j) := d(signal_nodes[n+2](0,i))/d(signal_nodes[n+1](0,j))
+			std::vector<Matrix<T>> dSnp2_dSnp1;
 
 			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n](0,j))
 			std::vector<Matrix<T>> dSOutput_dSnp1;

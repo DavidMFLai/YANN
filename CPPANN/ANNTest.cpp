@@ -21,20 +21,36 @@ TEST(Basics, DISABLED_mattmazur)
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 
 	//Setup ANN
-	ANN<double> ann;
-	ann.add_layer(2); //2 neurons
-	ann.add_weights({ 
-		{ 0.15, 0.25 }, 
-		{ 0.20, 0.30 },
-	});
-	ann.add_layer(2); //2 neurons
-	ann.add_bias({ 0.35, 0.35 });
-	ann.add_weights({
-		{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
-		{ 0.45, 0.55 },
-	});
-	ann.add_layer(2); //1 neuron
-	ann.add_bias({ 0.60, 0.60 });
+	ANNBuilder<double> ann_builder;
+	auto ann = ann_builder.set_layer(0, 2)
+		.set_bias(0, { 0.35, 0.35 })
+		.set_layer(1, 2)
+		.set_bias(1, { 0.60, 0.60 })
+		.set_weights(0, {
+			{ 0.15, 0.25 },
+			{ 0.20, 0.30 },
+		})
+		.set_layer(2, 2)
+		.set_weights(1, {
+			{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
+			{ 0.45, 0.55 },
+		})
+		.build();
+
+	//ANN<double> ann;
+	//ann.add_layer(2); //2 neurons
+	//ann.add_weights({ 
+	//	{ 0.15, 0.25 }, 
+	//	{ 0.20, 0.30 },
+	//});
+	//ann.add_layer(2); //2 neurons
+	//ann.add_bias({ 0.35, 0.35 });
+	//ann.add_weights({
+	//	{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
+	//	{ 0.45, 0.55 },
+	//});
+	//ann.add_layer(2); //1 neuron
+	//ann.add_bias({ 0.60, 0.60 });
 
 	//Execute ANN
 	ann.forward_propagate({ 0.05, 0.10 });
@@ -71,7 +87,7 @@ TEST(Basics, DISABLED_XOR_SIGMOID)
 	ann.add_bias({ -0.8 });
 
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		true_true_result = ann.forward_propagate({ 1., 1. });
 		ann.back_propagate(Matrix<double>{ {0.} });
 		false_false_result = ann.forward_propagate({ 0., 0. });
@@ -92,23 +108,22 @@ TEST(Basics, XOR_SIGMOID)
 {
 	ANNBuilder<double> ann_builder;
 	auto ann = ann_builder.set_layer(0, 2)
+		.set_layer(1, 2)
 		.set_weights(0, {
 			{ 0.5, -0.7 },
 			{ -0.8, 0.6 }
 		})
-		.set_layer(1, 2)
-		.set_bias(1, { 0.01, -0.9 })
+		.set_bias(0, { 0.01, -0.9 })
 		.set_weights(1, {
 			{ 2. }, //weights from the 0th neuron of the present layer
 			{ 3. },
 		})
 		.set_layer(2, 1)
-		.set_bias(2, { -0.8 })
+		.set_bias(1, { -0.8 })
 		.build();
-	
 
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 10000; i++) {
 		true_true_result = ann.forward_propagate({ 1., 1. });
 		ann.back_propagate(Matrix<double>{ {0.} });
 		false_false_result = ann.forward_propagate({ 0., 0. });
