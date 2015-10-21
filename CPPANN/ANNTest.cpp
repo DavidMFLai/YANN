@@ -1,4 +1,4 @@
-// CPPANN.cpp : Defines the entry point for the console application.
+// ANNTest.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -16,7 +16,7 @@
 using namespace std;
 using namespace CPPANN;
 
-TEST(Basics, mattmazur)
+TEST(Basics, DISABLED_mattmazur)
 {
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 

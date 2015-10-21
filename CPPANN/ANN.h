@@ -4,12 +4,11 @@
 
 namespace CPPANN {
 	template<typename T>
-	static Matrix<T> sigmoid(const Matrix<T> &x) {
-		Matrix<T> retval{ x.getDimensions()[0], x.getDimensions()[1] };
-		for (auto i = 0; i < retval.getDimensions()[0]; ++i)
-			for (auto j = 0; j < retval.getDimensions()[1]; ++j)
-				retval(i, j) = 1 / (1 + exp(-x(i,j)));
-		return retval;
+	static void sigmoid(Matrix<T> &output, const Matrix<T> &x) {
+		assert(output.getDimensions() == x.getDimensions());
+		for (auto i = 0; i < output.getDimensions()[0]; ++i)
+			for (auto j = 0; j < output.getDimensions()[1]; ++j)
+				output(i, j) = 1 / (1 + std::exp(-x(i,j)));
 	};
 
 	template<typename T>
@@ -18,12 +17,11 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static Matrix<T> tanh(const Matrix<T> &x) {
-		Matrix<T> retval{ x.getDimensions()[0], x.getDimensions()[1] };
-		for (auto i = 0; i < retval.getDimensions()[0]; ++i)
-			for (auto j = 0; j < retval.getDimensions()[1]; ++j)
-				retval(i, j) = std::tanh(-x(i, j));
-		return retval;
+	static void tanh(Matrix<T> &output, const Matrix<T> &x) {
+		assert(output.getDimensions() == x.getDimensions());
+		for (auto i = 0; i < output.getDimensions()[0]; ++i)
+			for (auto j = 0; j < output.getDimensions()[1]; ++j)
+				output(i, j) = std::tanh(-x(i, j));
 	};
 
 	template<typename T>
@@ -37,12 +35,12 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static Matrix<T> evalute_perceptron(const Matrix<T> &x, Neuron_Type neuron_type) {
+	static void evalute_perceptron(Matrix<T> &output, const Matrix<T> &input, Neuron_Type neuron_type) {
 		if (neuron_type == Neuron_Type::Sigmoid) {
-			return CPPANN::sigmoid<T>(x);
+			CPPANN::sigmoid<T>(output, input);
 		}
 		else {
-			return CPPANN::tanh<T>(x);
+			CPPANN::tanh<T>(output, input);
 		}	
 	}
 
@@ -87,12 +85,11 @@ namespace CPPANN {
 
 		const std::vector<T> &forward_propagate(std::vector<T> &&input) {
 			signal_nodes[0] = std::move(input);
-
 			for (int i = 0; i < weights.size(); i++) {
-				network_nodes[i] = signal_nodes[i] * weights[i] + network_bias[i];
-				signal_nodes[i + 1] = evalute_perceptron(network_nodes[i], this->neuron_type);
+				Matrix<T>::multiply(network_nodes[i], signal_nodes[i], weights[i]);
+				Matrix<T>::add(network_nodes[i], network_nodes[i], network_bias[i]);
+				evalute_perceptron(signal_nodes[i + 1], network_nodes[i], this->neuron_type);
 			}
-
 			return signal_nodes.back().getElems();
 		}
 
