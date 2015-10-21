@@ -140,6 +140,27 @@ public:
 		return retval;
 	}
 
+	static void add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+		//output = lhs + rhs;
+		assert(lhs.getDimensions() == rhs.getDimensions());
+		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
+			output.elems[idx] = lhs.elems[idx] + rhs.elems[idx];
+		}
+	}
+
+	static void multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+		//output = lhs * rhs;
+		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
+		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
+		assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
+		for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
+			for (size_t n = 0; n < rhs.getDimensions()[1]; n++) {
+				output(m, n) = 0;
+				for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
+					output(m, n) += lhs(m, p)*rhs(p, n);
+			}
+	}
+
 	//transpose.. very inefficient
 	Matrix transpose() const{
 		Matrix retval{ getDimensions()[1], getDimensions()[0] };
