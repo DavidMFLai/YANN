@@ -55,9 +55,89 @@ namespace CPPANN {
 	}
 
 	template<typename T>
+	class ANN;
+
+	template<typename T>
+	class ANNBuilder {
+	public:
+		ANNBuilder() = default;
+
+		ANNBuilder &set_layer(size_t layer_index, uint64_t size) {
+			if (neuron_counts.size() <= layer_index) {
+				neuron_counts.resize(layer_index + 1);
+			}
+			neuron_counts.at(layer_index) = size;
+			return *this;
+		}
+		ANNBuilder &set_bias(size_t layer_index, const std::vector<T> &input) {
+			if (biases_of_each_layer.size() <= layer_index) {
+				biases_of_each_layer.resize(layer_index + 1);
+			}
+			biases_of_each_layer.at(layer_index) = input;
+			return *this;
+		}
+		ANNBuilder &set_weights(size_t starting_layer_index, const Matrix<T> &matrix) {
+			if (weight_matrices.size() <= starting_layer_index) {
+				weight_matrices.resize(starting_layer_index + 1);
+			}
+			weight_matrices.at(starting_layer_index) = matrix;
+			return *this;
+		}
+		ANN<T> build() {
+			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices };
+			return retval;
+		}
+	private:
+		std::vector<size_t> neuron_counts;
+		std::vector<std::vector<T>> biases_of_each_layer;
+		std::vector<Matrix<T>> weight_matrices;
+
+	};
+
+	template<typename T>
 	class ANN {
 	private:
 		Neuron_Type neuron_type = Neuron_Type::Sigmoid;
+		friend ANN<T> ANNBuilder<T>::build();
+		ANN(const std::vector<size_t> &signal_counts, const std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<Matrix<T>> &weight_matrices) {
+
+			//Get number of layers
+			size_t layers_count = signal_counts.size();
+			
+			//Create matrices used by forward propagation 
+			signal_nodes.resize(layers_count);
+			network_nodes.resize(layers_count - 1);
+			network_bias.resize(layers_count - 1);
+			weights.resize(layers_count - 1);
+			for (size_t idx = 0; idx < layers_count; idx++) {
+				if (idx == 0) {
+					signal_nodes.at(idx) = Matrix<T>{1, signal_counts[idx]};
+				}
+				else {
+					signal_nodes.at(idx) = Matrix<T>{1, signal_counts[idx]};
+					network_nodes.at(idx - 1) = Matrix<T>{1, signal_counts[idx]};
+					network_bias.at(idx - 1) = Matrix<T>{1, signal_counts[idx]};
+					weights.at(idx - 1) = weight_matrices.at(idx - 1);
+				}
+			}
+
+			//Create matrices used by backward propagation
+			dSnp1_dBn.resize(layers_count - 1);
+			dSnp1_dWn.resize(layers_count - 1);
+			dSOutput_dSnp1.resize(layers_count - 2);
+			for (size_t idx = 0; idx < layers_count - 1; idx++) {
+				if (idx == 0) {
+					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getDimensions()[1] };
+					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx + 1).getDimensions()[1],  weights.at(idx).getDimensions()[0] };
+				}
+				else {
+					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getDimensions()[1] };
+					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getDimensions()[1],  weights.at(idx).getDimensions()[0] };
+					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getDimensions()[0], signal_nodes.at(idx - 1).getDimensions()[1]};
+				}
+			}
+
+		}
 	public:
 		ANN() = default;
 		void add_layer(uint64_t size) {

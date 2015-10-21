@@ -53,7 +53,7 @@ TEST(Basics, DISABLED_mattmazur)
 	EXPECT_NEAR(0.56137012, weights[1](1, 1), tolerence);
 }
 
-TEST(Basics, XOR_SIGMOID)
+TEST(Basics, DISABLED_XOR_SIGMOID)
 {
 	ANN<double> ann;
 	ann.add_layer(2); //2 neurons
@@ -71,7 +71,44 @@ TEST(Basics, XOR_SIGMOID)
 	ann.add_bias({ -0.8 });
 
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
-	for (int i = 0; i < 10000; i++) {
+	for (int i = 0; i < 100000; i++) {
+		true_true_result = ann.forward_propagate({ 1., 1. });
+		ann.back_propagate(Matrix<double>{ {0.} });
+		false_false_result = ann.forward_propagate({ 0., 0. });
+		ann.back_propagate(Matrix<double>{ {0.} });
+		false_true_result = ann.forward_propagate({ 0., 1. });
+		ann.back_propagate(Matrix<double>{ {1.} });
+		true_false_result = ann.forward_propagate({ 1., 0. });
+		ann.back_propagate(Matrix<double>{ {1.} });
+	}
+	double tolerence = 0.05;
+	EXPECT_NEAR(0., true_true_result[0], tolerence);
+	EXPECT_NEAR(0., false_false_result[0], tolerence);
+	EXPECT_NEAR(1., false_true_result[0], tolerence);
+	EXPECT_NEAR(1., true_false_result[0], tolerence);
+}
+
+TEST(Basics, XOR_SIGMOID)
+{
+	ANNBuilder<double> ann_builder;
+	auto ann = ann_builder.set_layer(0, 2)
+		.set_weights(0, {
+			{ 0.5, -0.7 },
+			{ -0.8, 0.6 }
+		})
+		.set_layer(1, 2)
+		.set_bias(1, { 0.01, -0.9 })
+		.set_weights(1, {
+			{ 2. }, //weights from the 0th neuron of the present layer
+			{ 3. },
+		})
+		.set_layer(2, 1)
+		.set_bias(2, { -0.8 })
+		.build();
+	
+
+	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
+	for (int i = 0; i < 100000; i++) {
 		true_true_result = ann.forward_propagate({ 1., 1. });
 		ann.back_propagate(Matrix<double>{ {0.} });
 		false_false_result = ann.forward_propagate({ 0., 0. });
