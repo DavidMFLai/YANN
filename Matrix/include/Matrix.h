@@ -64,6 +64,8 @@ class Matrix {
 		}
 
 		size_t operator()(size_t i, size_t j) const {
+			assert(i < dimensions[0]);
+			assert(j < dimensions[1]);
 			return i*dimensions[1] + j;
 		}
 

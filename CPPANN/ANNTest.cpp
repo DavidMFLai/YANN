@@ -16,7 +16,7 @@
 using namespace std;
 using namespace CPPANN;
 
-TEST(Basics, DISABLED_mattmazur)
+TEST(Basics, mattmazur)
 {
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 
@@ -36,21 +36,6 @@ TEST(Basics, DISABLED_mattmazur)
 			{ 0.45, 0.55 },
 		})
 		.build();
-
-	//ANN<double> ann;
-	//ann.add_layer(2); //2 neurons
-	//ann.add_weights({ 
-	//	{ 0.15, 0.25 }, 
-	//	{ 0.20, 0.30 },
-	//});
-	//ann.add_layer(2); //2 neurons
-	//ann.add_bias({ 0.35, 0.35 });
-	//ann.add_weights({
-	//	{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
-	//	{ 0.45, 0.55 },
-	//});
-	//ann.add_layer(2); //1 neuron
-	//ann.add_bias({ 0.60, 0.60 });
 
 	//Execute ANN
 	ann.forward_propagate({ 0.05, 0.10 });

@@ -129,7 +129,7 @@ namespace CPPANN {
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
-					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx + 1).getColumnCount(),  weights.at(idx).getRowCount() };
+					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getColumnCount(),  weights.at(idx).getRowCount() };
 				}
 				else {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
@@ -197,8 +197,7 @@ namespace CPPANN {
 
 			//compute dSnp1_dWn
 			for (auto i = 0; i < dSnp1_dWn.size(); ++i) {
-				auto dSnp1_dWn_single = compute_dSnp1_dWn(signal_nodes[i + 1], signal_nodes[i], neuron_type);
-				dSnp1_dWn[i] = std::move(dSnp1_dWn_single);
+				compute_dSnp1_dWn(dSnp1_dWn[i], signal_nodes[i + 1], signal_nodes[i], neuron_type);
 			}
 
 			//compute weight updates
@@ -225,8 +224,11 @@ namespace CPPANN {
 		}
 
 	private:
-		//returns retval(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
+		//returns output(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
 		static void compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
+			assert(output.getRowCount() == signal_layer_next.getColumnCount());
+			assert(output.getRowCount() == weights.getColumnCount());
+			assert(output.getColumnCount() == weights.getRowCount());
 			for (auto i = 0; i < output.getRowCount(); ++i) {
 				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
 				for (auto j = 0; j < output.getColumnCount(); ++j) {
@@ -237,36 +239,18 @@ namespace CPPANN {
 			}
 		}
 
-		//returns retval(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
-		static Matrix<T> deprecated_compute_dSnp1_dSn(const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
-			//output matrix has dimensions equal to weights transpose
-			Matrix<T> retval{ weights.getColumnCount(), weights.getRowCount() };
-
-			for (auto i = 0; i < retval.getRowCount(); ++i) {
+		//returns output(i,j) := d(signal_layer_next(0,i))/d(weights(j,i))
+		static void compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer, Neuron_Type neuron_type) {
+			assert(output.getRowCount() == signal_layer_next.getColumnCount());
+			assert(output.getColumnCount() == signal_layer.getColumnCount());
+			for (auto i = 0; i < output.getRowCount(); ++i) {
 				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
-				for (auto j = 0; j < retval.getColumnCount(); ++j) {
-					//Network to Signal layer
-					auto dNn_dSn = weights(j, i);
-
-					retval(i, j) = dSnp1_dNn * dNn_dSn;
-				}
-			}
-			return retval;
-		}
-
-		//returns retval(i,j) := d(signal_layer_next(0,i))/d(weights(j,i))
-		static Matrix<T> compute_dSnp1_dWn(const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer, Neuron_Type neuron_type) {
-			Matrix<T> retval{ signal_layer_next.getColumnCount(), signal_layer.getColumnCount() };
-
-			for (auto i = 0; i < retval.getRowCount(); ++i) {
-				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
-				for (auto j = 0; j < retval.getColumnCount(); ++j) {
+				for (auto j = 0; j < output.getColumnCount(); ++j) {
 					//Network to Weight layer
 					auto dNn_dWn = signal_layer(0, j);
-					retval(i, j) = dSnp1_dNn * dNn_dWn;
+					output(i, j) = dSnp1_dNn * dNn_dWn;
 				}
 			}
-			return retval;
 		}
 
 		//returns dSOutput[indexOfNodeInSOutput]/dWn(). Hence, e.g. retval[10](20,30) = dSOutput_indexOfNodeInSOutput/dW[10](30,20)
