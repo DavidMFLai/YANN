@@ -151,6 +151,20 @@ public:
 		return retval;
 	}
 
+	//Creates a new matrix of the same dimensions, with row columnToClone identical to *this, and zero elsewhere.
+	Matrix createColumnMatrix(size_t columnToClone) const {
+		Matrix retval{ getDimensions()[0], getDimensions()[1] };
+		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
+			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
+				if (j == columnToClone) {
+					retval(i, j) = this->operator()(i, j);
+				}
+				else {
+					retval(i, j) = 0;
+				}
+				return retval;
+	}
+
 	static void add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
 		//output = lhs + rhs;
 		assert(lhs.getDimensions() == rhs.getDimensions());
