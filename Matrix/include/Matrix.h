@@ -116,6 +116,15 @@ public:
 		return matrixAccessProperties.dimensions;
 	}
 
+	//Getting No. of rows
+	size_t getRowCount() const {
+		return matrixAccessProperties.dimensions[0];
+	}
+	//Getting No. of rows
+	size_t getColumnCount() const {
+		return matrixAccessProperties.dimensions[1];
+	}
+
 	//Getting element(i,j)
 	T& operator()(size_t i, size_t j) {
 		return elems[matrixAccessProperties(i, j)];
