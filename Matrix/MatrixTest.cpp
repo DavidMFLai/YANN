@@ -68,6 +68,26 @@ TEST(BasicOperations, Multiply) {
 	EXPECT_EQ(expected_result, result);
 }
 
+TEST(BasicOperations, MultiplyAssign) {
+	Matrix<double> m{
+		{ 111., 112. },
+		{ 121., 122. },
+		{ 131., 132. }
+	};
+
+	double n = 2.;
+
+	m*=n;
+
+	Matrix<double> expected_result{
+		{ 111.*2., 112.*2. },
+		{ 121.*2., 122.*2. },
+		{ 131.*2., 132.*2. }
+	};
+
+	EXPECT_EQ(expected_result, m);
+}
+
 TEST(BasicOperations, FunctionMultiply) {
 	Matrix<double> m{
 		{ 111., 112. },
@@ -234,6 +254,23 @@ TEST(BasicOperations, createRowMatrix) {
 	};
 
 	auto result = m.createRowMatrix(1);
+
+	EXPECT_EQ(expected, result);
+}
+
+
+TEST(BasicOperations, sumOfRows) {
+	Matrix<double> input{
+		{ 1., 2., 3. },
+		{ 4., 5., 6. },
+	};
+
+	Matrix<double> expected{
+		{ 1. + 4., 2. + 5., 3. + 6. },
+	};
+
+	Matrix<double> result{1, 3};
+	Matrix<double>::sum_of_rows(result, input);
 
 	EXPECT_EQ(expected, result);
 }

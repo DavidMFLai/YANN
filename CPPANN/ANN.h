@@ -1,6 +1,7 @@
 #pragma once
 #include "Matrix.h"
 #include <cmath>
+#include <cassert>
 
 namespace CPPANN {
 	template<typename T>
@@ -109,6 +110,7 @@ namespace CPPANN {
 			network_nodes.resize(layers_count - 1);
 			network_bias.resize(layers_count - 1);
 			weights.resize(layers_count - 1);
+			
 			for (size_t idx = 0; idx < layers_count; idx++) {
 				if (idx == 0) {
 					signal_nodes.at(idx) = Matrix<T>{1, signal_counts[idx]};
@@ -124,18 +126,26 @@ namespace CPPANN {
 			//Create additional matrices required by backward propagation
 			dSnp1_dBn.resize(layers_count - 1);
 			dSnp1_dWn.resize(layers_count - 1);
+			weight_updates.resize(layers_count - 1);
 			dSOutput_dSnp1.resize(layers_count - 2);
+			dError_dSnp1.resize(layers_count - 2);
 			dSnp2_dSnp1.resize(layers_count - 2);
+			dError_dSnp1_sum_rows.resize(layers_count - 2);
+
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(),  weights.at(idx).getColumnCount() };
+					weight_updates.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(), weights.at(idx).getColumnCount() };
 				}
 				else {
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(),  weights.at(idx).getColumnCount() };
-					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getColumnCount(), signal_nodes.at(idx - 1).getColumnCount()};
+					weight_updates.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(), weights.at(idx).getColumnCount() };
 					dSnp2_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.at(idx + 1).getColumnCount(), signal_nodes.at(idx).getColumnCount() };
+					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getColumnCount(), signal_nodes.at(idx - 1).getColumnCount()};
+					dError_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.back().getColumnCount(), signal_nodes.at(idx - 1).getColumnCount() };
+					dError_dSnp1_sum_rows.at(idx - 1) = Matrix<T>{ 1, signal_nodes.at(idx - 1).getColumnCount() };
 				}
 			}
 
@@ -177,7 +187,7 @@ namespace CPPANN {
 
 		void back_propagate(const Matrix<T> &expected) {
 			//speed
-			const double speed = 0.5;
+			const T speed = 0.5;
 
 			//compute error
 			error_vector = signal_nodes.back() - expected;
@@ -200,13 +210,23 @@ namespace CPPANN {
 				compute_dSnp1_dWn(dSnp1_dWn[i], signal_nodes[i + 1], signal_nodes[i], neuron_type);
 			}
 
-			//compute weight updates
-			for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getColumnCount(); indexOfNodeInSOutput++) {
-				std::vector<Matrix<T>> outputnode_contributions = compute_dSOutput_dWn(dSOutput_dSnp1, indexOfNodeInSOutput, dSnp1_dWn, error_vector(0, indexOfNodeInSOutput));
-				for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
-					weights[idx] -= (outputnode_contributions[idx] * speed);
+			//compute dSError_dSnp1
+			for (size_t idx = 0; idx < dError_dSnp1.size(); ++idx) {
+				for (size_t i = 0; i < dError_dSnp1[idx].getRowCount(); ++i) {
+					for (size_t j = 0; j < dError_dSnp1[idx].getColumnCount(); ++j)
+						dError_dSnp1[idx](i, j) = dSOutput_dSnp1[idx](i, j)*error_vector(0, i);
 				}
 			}
+
+			// compute weight updates and apply them
+			compute_dError_dSnp1_sum_rows(dError_dSnp1_sum_rows, dError_dSnp1);
+			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
+				compute_weight_update(weight_updates[idx], dError_dSnp1_sum_rows[idx], dSnp1_dWn[idx], error_vector, speed);
+				weights[idx] -= weight_updates[idx];
+			}
+			weight_updates.back() = dSnp1_dWn.back();
+			weight_updates.back() *= speed;
+			weights.back() -= weight_updates.back();
 
 			//compute dSnp1_dBn		
 			for (size_t i = 0; i < dSnp1_dBn.size(); ++i) {
@@ -253,18 +273,20 @@ namespace CPPANN {
 			}
 		}
 
-		//returns dSOutput[indexOfNodeInSOutput]/dWn(). Hence, e.g. retval[10](20,30) = dSOutput_indexOfNodeInSOutput/dW[10](30,20)
-		static std::vector<Matrix<T>> compute_dSOutput_dWn(const std::vector<Matrix<T>> &dSOutput_dSnp1, size_t indexOfNodeInSOutput, const std::vector<Matrix<T>> &dSnp1_dWn, double error) {
-			std::vector<Matrix<T>> retval;
-			for (size_t idx = 0; idx < dSnp1_dWn.size()-1; ++idx) {
-				Matrix<T> dSOutput_dWn_single{ dSnp1_dWn[idx].getRowCount(), dSnp1_dWn[idx].getColumnCount() };
-				for (size_t i = 0; i < dSOutput_dWn_single.getRowCount(); ++i)
-					for (size_t j = 0; j < dSOutput_dWn_single.getColumnCount(); ++j)
-						dSOutput_dWn_single(i, j) = dSOutput_dSnp1[idx](indexOfNodeInSOutput, j)*dSnp1_dWn[idx](i, j) * error;
-				retval.push_back(std::move(dSOutput_dWn_single));
+		static void compute_dError_dSnp1_sum_rows(std::vector<Matrix<T>> &dError_dSnp1_sum_rows, const std::vector<Matrix<T>> &dSOutput_dSnp1) {
+			assert(dError_dSnp1_sum_rows.size() == dSOutput_dSnp1.size());
+			for (size_t idx = 0; idx < dError_dSnp1_sum_rows.size(); ++idx) {
+				Matrix<T>::sum_of_rows(dError_dSnp1_sum_rows[idx], dSOutput_dSnp1[idx]);
 			}
-			retval.push_back(dSnp1_dWn[dSnp1_dWn.size() - 1].createColumnMatrix(indexOfNodeInSOutput) * error);
-			return retval;
+		}
+
+		static void compute_weight_update(Matrix<T> &weight_update, const Matrix<T> &dError_dSnp1_sum_rows, const Matrix<T> &dSnp1_dWn, const Matrix<T> &error_vector, T speed) {
+			assert(weight_update.getDimensions() == dSnp1_dWn.getDimensions());
+			assert(weight_update.getColumnCount() == dSnp1_dWn.getColumnCount());
+			for (size_t i = 0; i < weight_update.getRowCount(); i++) 
+				for (size_t j = 0; j < weight_update.getColumnCount(); j++) {
+					weight_update(i, j) = dSnp1_dWn(i, j) * dError_dSnp1_sum_rows(0, j) * speed;
+				}
 		}
 
 		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
@@ -303,8 +325,14 @@ namespace CPPANN {
 			//dSnp2_dSnp1[n](i,j) := d(signal_nodes[n+2](0,i))/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dSnp2_dSnp1;
 
-			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n](0,j))
+			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dSOutput_dSnp1;
+
+			//dSOutput_dSnp1[n](i,j) := d(error(0,i))/d(signal_nodes[n+1](0,j))
+			std::vector<Matrix<T>> dError_dSnp1;
+
+			//dError_dSnp1_sum_rows[n](0,j) := Sum of every row in dError_dSnp1
+			std::vector<Matrix<T>> dError_dSnp1_sum_rows;
 
 			//dSnp1_dWn[n](j,i) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
 			std::vector<Matrix<T>> dSnp1_dWn;

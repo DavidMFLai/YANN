@@ -137,6 +137,15 @@ public:
 		return elems[matrixAccessProperties(i, j)];
 	}
 
+	static void sum_of_rows(Matrix &output, const Matrix &input) {
+		assert(output.getColumnCount() == input.getColumnCount());
+		for (size_t i = 0; i < input.getColumnCount(); ++i) {
+			output(0, i) = 0;
+			for (size_t j = 0; j < input.getRowCount(); ++j)
+				output(0, i) += input(j, i);
+		}
+	}
+
 	//Creates a new matrix of the same dimensions, with row rowToClone identical to *this, and zero elsewhere.
 	Matrix createRowMatrix(size_t rowToClone) const{
 		Matrix retval{ getDimensions()[0], getDimensions()[1] };
@@ -218,6 +227,13 @@ public:
 		assert(this->getDimensions() == rhs.getDimensions());
 		for (size_t idx = 0; idx < elems.size(); ++idx) {
 			elems[idx] += rhs.elems[idx];
+		}
+		return *this;
+	}
+
+	Matrix &operator*=(T rhs) {
+		for (size_t idx = 0; idx < elems.size(); ++idx) {
+			elems[idx] *= rhs;
 		}
 		return *this;
 	}
