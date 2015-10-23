@@ -16,7 +16,7 @@
 using namespace std;
 using namespace CPPANN;
 
-TEST(Basics, DISABLED_mattmazur)
+TEST(Basics, mattmazur)
 {
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 

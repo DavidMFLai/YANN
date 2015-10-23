@@ -328,10 +328,10 @@ namespace CPPANN {
 			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dSOutput_dSnp1;
 
-			//dSOutput_dSnp1[n](i,j) := d(error(0,i))/d(signal_nodes[n+1](0,j))
+			//dError_dSnp1[n](i,j) := d(error(0,i))/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dError_dSnp1;
 
-			//dError_dSnp1_sum_rows[n](0,j) := Sum of every row in dError_dSnp1
+			//dError_dSnp1_sum_rows[n](0,j) := Sum of every row in dError_dSnp1. This is equal to d(TotalError)/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dError_dSnp1_sum_rows;
 
 			//dSnp1_dWn[n](j,i) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
