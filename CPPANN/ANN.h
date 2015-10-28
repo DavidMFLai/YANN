@@ -183,8 +183,8 @@ namespace CPPANN {
 
 			//compute dSOutput_dSnp1
 			compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_type);
-			if (dSOutput_dSnp1.size() > 1) {
-				for (size_t idx = dSOutput_dSnp1.size() - 2; idx >= 0; --idx) {
+			if (dSOutput_dSnp1.size() >= 2) {
+				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
 					Matrix<T>::multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
 				}
 			}
