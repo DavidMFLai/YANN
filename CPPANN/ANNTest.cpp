@@ -72,16 +72,28 @@ TEST(Basics, XOR_SIGMOID)
 		.set_bias(1, { -0.8 })
 		.build();
 
+	std::vector<double> true_true_input{ 1., 1. };
+	Matrix<double> true_true_expected_result{ {0.} };
+
+	std::vector<double> false_false_input{ 0., 0. };
+	Matrix<double> false_false_expected_result{ { 0. } };
+	
+	std::vector<double> false_true_input{ 0., 1. };
+	Matrix<double> false_true_expected_result{ { 1. } };
+
+	std::vector<double> true_false_input{ 1., 0. };
+	Matrix<double> true_false_expected_result{ { 1. } };
+
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
 	for (int i = 0; i < 1000000; i++) {
-		true_true_result = ann.forward_propagate({ 1., 1. });
-		ann.back_propagate(Matrix<double>{ {0.} });
-		false_false_result = ann.forward_propagate({ 0., 0. });
-		ann.back_propagate(Matrix<double>{ {0.} });
-		false_true_result = ann.forward_propagate({ 0., 1. });
-		ann.back_propagate(Matrix<double>{ {1.} });
-		true_false_result = ann.forward_propagate({ 1., 0. });
-		ann.back_propagate(Matrix<double>{ {1.} });
+		true_true_result = ann.forward_propagate(true_true_input);
+		ann.back_propagate(true_true_expected_result);
+		false_false_result = ann.forward_propagate(false_false_input);
+		ann.back_propagate(false_false_expected_result);
+		false_true_result = ann.forward_propagate(false_true_input);
+		ann.back_propagate(false_true_expected_result);
+		true_false_result = ann.forward_propagate(true_false_input);
+		ann.back_propagate(true_false_expected_result);
 	}
 	double tolerence = 0.05;
 	EXPECT_NEAR(0., true_true_result[0], tolerence);

@@ -209,6 +209,11 @@ public:
 			}
 	}
 
+	static void copy_from_vector(Matrix &output, const std::vector<T> &input) {
+		assert(output.getColumnCount()*output.getRowCount() == input.size());
+		std::copy(input.begin(), input.end(), output.elems.begin());
+	}
+
 	//transpose.. very inefficient
 	Matrix transpose() const{
 		Matrix retval{ getDimensions()[1], getDimensions()[0] };

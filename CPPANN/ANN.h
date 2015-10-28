@@ -156,8 +156,8 @@ namespace CPPANN {
 	public:
 		ANN() = default;
 
-		const std::vector<T> &forward_propagate(std::vector<T> &&input) {
-			signal_nodes[0] = std::move(input);
+		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
+			Matrix<T>::copy_from_vector(signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
 				Matrix<T>::multiply(network_nodes[i], signal_nodes[i], weights[i]);
 				Matrix<T>::add(network_nodes[i], network_nodes[i], biases[i]);
