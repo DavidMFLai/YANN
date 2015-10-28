@@ -7,9 +7,9 @@ namespace CPPANN {
 	template<typename T>
 	static void sigmoid(Matrix<T> &output, const Matrix<T> &x) {
 		assert(output.getDimensions() == x.getDimensions());
-		for (auto i = 0; i < output.getRowCount(); ++i)
-			for (auto j = 0; j < output.getColumnCount(); ++j)
-				output(i, j) = 1 / (1 + std::exp(-x(i,j)));
+		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
+			output.getElems()[idx] = 1 / (1 + std::exp(-x.getElems()[idx]));
+		}
 	};
 
 	template<typename T>
@@ -20,9 +20,9 @@ namespace CPPANN {
 	template<typename T>
 	static void tanh(Matrix<T> &output, const Matrix<T> &x) {
 		assert(output.getDimensions() == x.getDimensions());
-		for (auto i = 0; i < output.getRowCount(); ++i)
-			for (auto j = 0; j < output.getColumnCount(); ++j)
-				output(i, j) = std::tanh(x(i, j));
+		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
+			output.getElems()[idx] = std::tanh(x.getElems()[idx]);
+		}
 	};
 
 	template<typename T>
@@ -146,11 +146,14 @@ namespace CPPANN {
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(),  weights.at(idx).getColumnCount() };
 					weight_updates.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(), weights.at(idx).getColumnCount() };
 					bias_updates.at(idx) = Matrix<T>{ biases.at(idx).getRowCount(), biases.at(idx).getColumnCount() };
-					dSnp2_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.at(idx + 1).getColumnCount(), signal_nodes.at(idx).getColumnCount() };
-					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getColumnCount(), signal_nodes.at(idx - 1).getColumnCount()};
-					dError_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.back().getColumnCount(), signal_nodes.at(idx - 1).getColumnCount() };
-					dTotalError_dSnp1.at(idx - 1) = Matrix<T>{ 1, signal_nodes.at(idx - 1).getColumnCount() };
+					dSOutput_dSnp1.at(idx - 1) = Matrix<T>{signal_nodes.back().getColumnCount(), signal_nodes.at(idx).getColumnCount()};
+					dError_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.back().getColumnCount(), signal_nodes.at(idx).getColumnCount() };
+					dTotalError_dSnp1.at(idx - 1) = Matrix<T>{ 1, signal_nodes.at(idx).getColumnCount() };
 				}
+			}
+
+			for (size_t idx = 1; idx < layers_count - 2; idx++) {
+				dSnp2_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.at(idx + 1).getColumnCount(), signal_nodes.at(idx).getColumnCount() };
 			}
 		}
 	public:
@@ -174,12 +177,12 @@ namespace CPPANN {
 			Matrix<T>::minus(error_vector, signal_nodes.back(), expected);
 
 			//compute dSnp2_dSnp1
-			for (size_t idx = 0; idx < dSnp2_dSnp1.size(); ++idx) {
+			for (size_t idx = 0; idx < dSnp2_dSnp1.size() - 1; ++idx) {
 				compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_type);
 			}
 
 			//compute dSOutput_dSnp1
-			dSOutput_dSnp1.back() = dSnp2_dSnp1.back(); //Need to optimize...
+			compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_type);
 			if (dSOutput_dSnp1.size() > 1) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx >= 0; --idx) {
 					Matrix<T>::multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);

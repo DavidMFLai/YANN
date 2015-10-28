@@ -268,6 +268,10 @@ public:
 		return elems;
 	}
 
+	std::vector<T> &getElems() {
+		return elems;
+	}
+
 private:
 	MatrixAccessProperties matrixAccessProperties;
 	std::vector<T> elems;
