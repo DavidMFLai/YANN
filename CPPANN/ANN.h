@@ -132,6 +132,7 @@ namespace CPPANN {
 			dError_dSnp1.resize(layers_count - 2);
 			dSnp2_dSnp1.resize(layers_count - 2);
 			dTotalError_dSnp1.resize(layers_count - 2);
+			error_vector = Matrix<T>{ signal_nodes.back().getRowCount(), signal_nodes.back().getColumnCount() };
 
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
@@ -151,7 +152,6 @@ namespace CPPANN {
 					dTotalError_dSnp1.at(idx - 1) = Matrix<T>{ 1, signal_nodes.at(idx - 1).getColumnCount() };
 				}
 			}
-
 		}
 	public:
 		ANN() = default;
@@ -171,7 +171,7 @@ namespace CPPANN {
 			const T speed = 0.5;
 
 			//compute error
-			error_vector = signal_nodes.back() - expected;
+			Matrix<T>::minus(error_vector, signal_nodes.back(), expected);
 
 			//compute dSnp2_dSnp1
 			for (size_t idx = 0; idx < dSnp2_dSnp1.size(); ++idx) {

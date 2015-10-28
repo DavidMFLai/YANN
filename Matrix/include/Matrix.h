@@ -188,6 +188,14 @@ public:
 		}
 	}
 
+	static void minus(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+		//output = lhs - rhs;
+		assert(lhs.getDimensions() == rhs.getDimensions());
+		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
+			output.elems[idx] = lhs.elems[idx] - rhs.elems[idx];
+		}
+	}
+
 	static void multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
 		//output = lhs * rhs;
 		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
