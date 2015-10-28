@@ -221,13 +221,16 @@ namespace CPPANN {
 			// compute weight updates and apply them
 			compute_dError_dSnp1_sum_rows(dError_dSnp1_sum_rows, dError_dSnp1);
 			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
-				compute_weight_update(weight_updates[idx], dError_dSnp1_sum_rows[idx], dSnp1_dWn[idx], error_vector, speed);
+				compute_weight_update(weight_updates[idx], dError_dSnp1_sum_rows[idx], dSnp1_dWn[idx], speed);
 				weights[idx] -= weight_updates[idx];
 			}
+			compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speed);
+			weights.back() -= weight_updates.back();
+/*
 			weight_updates.back() = dSnp1_dWn.back();
 			weight_updates.back() *= speed;
 			weights.back() -= weight_updates.back();
-
+*/
 			//compute dSnp1_dBn		
 			for (size_t i = 0; i < dSnp1_dBn.size(); ++i) {
 				auto dSnp1_dBn_single = compute_dSnp1_dBn(signal_nodes[i+1], neuron_type);
@@ -280,12 +283,21 @@ namespace CPPANN {
 			}
 		}
 
-		static void compute_weight_update(Matrix<T> &weight_update, const Matrix<T> &dError_dSnp1_sum_rows, const Matrix<T> &dSnp1_dWn, const Matrix<T> &error_vector, T speed) {
+		static void compute_weight_update(Matrix<T> &weight_update, const Matrix<T> &dError_dSnp1_sum_rows, const Matrix<T> &dSnp1_dWn, T speed) {
 			assert(weight_update.getDimensions() == dSnp1_dWn.getDimensions());
 			assert(weight_update.getColumnCount() == dSnp1_dWn.getColumnCount());
 			for (size_t i = 0; i < weight_update.getRowCount(); i++) 
 				for (size_t j = 0; j < weight_update.getColumnCount(); j++) {
 					weight_update(i, j) = dSnp1_dWn(i, j) * dError_dSnp1_sum_rows(0, j) * speed;
+				}
+		}
+
+		//Weight update of the last neuron layer.
+		static void compute_final_weight_update(Matrix<T> &last_weight_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dWn, T speed) {
+			assert(last_weight_update.getDimensions() == last_dSnp1_dWn.getDimensions());
+			for (size_t i = 0; i < last_weight_update.getRowCount(); i++)
+				for (size_t j = 0; j < last_weight_update.getColumnCount(); j++) {
+					last_weight_update(i, j) = last_dSnp1_dWn(i, j) * error_vector(0, j) * speed;
 				}
 		}
 
