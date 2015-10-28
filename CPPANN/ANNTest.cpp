@@ -16,7 +16,7 @@
 using namespace std;
 using namespace CPPANN;
 
-TEST(Basics, DISABLED_mattmazur)
+TEST(Basics, mattmazur)
 {
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 
@@ -73,7 +73,7 @@ TEST(Basics, XOR_SIGMOID)
 		.build();
 
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 1000000; i++) {
 		true_true_result = ann.forward_propagate({ 1., 1. });
 		ann.back_propagate(Matrix<double>{ {0.} });
 		false_false_result = ann.forward_propagate({ 0., 0. });
