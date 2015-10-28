@@ -242,14 +242,6 @@ namespace CPPANN {
 			}
 			compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speed);
 			biases.back() -= bias_updates.back();
-
-			////compute bias updates
-			//for (size_t indexOfNodeInSOutput = 0; indexOfNodeInSOutput < signal_nodes.back().getColumnCount(); indexOfNodeInSOutput++) {
-			//	std::vector<Matrix<T>> outputnode_contributions = compute_dOutput_dBn(dSOutput_dSnp1, indexOfNodeInSOutput, dSnp1_dBn, error_vector(0, indexOfNodeInSOutput));
-			//	for (size_t idx = 0; idx < outputnode_contributions.size(); ++idx) {
-			//		biases[idx] -= outputnode_contributions[idx] * speed;
-			//	}
-			//}
 		}
 
 	private:

@@ -105,6 +105,12 @@ public:
 		elems = list;
 	}
 
+	//Constructor by r value vector (only for a 1-by-n Matrix)
+	Matrix(std::vector<T> &&list) {
+		matrixAccessProperties.setDimensions(1, list.size());
+		elems = std::move(list);
+	}
+
 	//Constructor by sub matrix reference 
 	Matrix(const Matrix_Ref<T> &matrix_ref)
 		:Matrix(matrix_ref.getDimensions()[0], matrix_ref.getDimensions()[1]) {
