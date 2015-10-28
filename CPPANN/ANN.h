@@ -22,7 +22,7 @@ namespace CPPANN {
 		assert(output.getDimensions() == x.getDimensions());
 		for (auto i = 0; i < output.getRowCount(); ++i)
 			for (auto j = 0; j < output.getColumnCount(); ++j)
-				output(i, j) = std::tanh(-x(i, j));
+				output(i, j) = std::tanh(x(i, j));
 	};
 
 	template<typename T>
