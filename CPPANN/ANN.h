@@ -233,8 +233,7 @@ namespace CPPANN {
 */
 			//compute dSnp1_dBn		
 			for (size_t i = 0; i < dSnp1_dBn.size(); ++i) {
-				auto dSnp1_dBn_single = compute_dSnp1_dBn(signal_nodes[i+1], neuron_type);
-				dSnp1_dBn[i] = std::move(dSnp1_dBn_single);
+				compute_dSnp1_dBn(dSnp1_dBn[i], signal_nodes[i+1], neuron_type);
 			}
 
 			//compute bias updates
@@ -301,10 +300,18 @@ namespace CPPANN {
 				}
 		}
 
-		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
-		static Matrix<T> compute_dSnp1_dBn(const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
-			Matrix<T> retval{ signal_layer_next.getRowCount(), signal_layer_next.getColumnCount() };
+		//returns output(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
+		static void compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
+			assert(output.getDimensions() == signal_layer_next.getDimensions());
+			for (auto i = 0; i < output.getColumnCount(); ++i) {
+				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
+				output(0, i) = dSnp1_dNn; //because dNn/dBn = 1
+			}
+		}
 
+		//returns retval(0,i) := d(signal_layer_next(0,i))/d(network_bias(0,j))
+		static Matrix<T> deprecated_compute_dSnp1_dBn(const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
+			Matrix<T> retval{ signal_layer_next.getRowCount(), signal_layer_next.getColumnCount() };
 			for (auto i = 0; i < retval.getColumnCount(); ++i) {
 				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
 				retval(0, i) = dSnp1_dNn; //because dNn/dBn = 1
