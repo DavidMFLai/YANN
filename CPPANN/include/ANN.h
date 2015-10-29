@@ -2,6 +2,7 @@
 #include "Matrix.h"
 #include <cmath>
 #include <cassert>
+#include <random>
 
 namespace CPPANN {
 	template<typename T>
@@ -85,14 +86,72 @@ namespace CPPANN {
 			return *this;
 		}
 		ANN<T> build() {
+			//Initialize Random number generator
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<double> uniform_dist(-1, 1);
+
+			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
+			make_random_biases_if_needed(biases_of_each_layer, neuron_counts, uniform_dist, gen);
+			make_random_weights_if_needed(weight_matrices, neuron_counts, uniform_dist, gen);
+
 			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices };
 			return retval;
 		}
 	private:
+		static bool Neuron_count_biases_count_mismatch(const std::vector<size_t> &neuron_counts, const std::vector<std::vector<T>> &biases_of_each_layer, size_t layer_idx) {
+			return neuron_counts.at(layer_idx + 1) != biases_of_each_layer.at(layer_idx).size();
+		}
+
+		static bool Neuron_count_weights_count_mismatch(const std::vector<size_t> &neuron_counts, const std::vector<Matrix<T>> &weight_matrices, size_t layer_idx) {
+			bool retval = false;
+			if (weight_matrices.at(layer_idx).getRowCount() != neuron_counts.at(layer_idx)) {
+				retval = true;
+			}
+			else if (weight_matrices.at(layer_idx).getColumnCount() != neuron_counts.at(layer_idx+1)) {
+				retval = true;
+			}
+			return retval;
+		}
+
+		static void make_random_biases_if_needed(std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<size_t> &neuron_counts, const std::uniform_real_distribution<double> &uniform_dist, std::mt19937 &gen) {
+			if (biases_of_each_layer.size() != neuron_counts.size() - 1) {
+				biases_of_each_layer.resize(neuron_counts.size() - 1);
+			}
+			for (size_t idx = 0; idx < biases_of_each_layer.size(); idx++) {
+				if (Neuron_count_biases_count_mismatch(neuron_counts, biases_of_each_layer, idx)) {
+					//create a new bias vector
+					std::vector<T> random_biases;
+					random_biases.resize(neuron_counts.at(idx));
+					for (size_t j = 0; j < neuron_counts.at(idx); ++j) {
+						random_biases.at(idx) = uniform_dist(gen);
+					}
+					biases_of_each_layer.at(idx) = random_biases;
+				}
+			}
+		}
+
+		static void make_random_weights_if_needed(std::vector<Matrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const std::uniform_real_distribution<double> &uniform_dist, std::mt19937 &gen) {
+			if (weight_matrices.size() != neuron_counts.size() - 1) {
+				weight_matrices.resize(neuron_counts.size() - 1);
+			}
+			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
+				if (Neuron_count_weights_count_mismatch(neuron_counts, weight_matrices, idx)) {
+					//create a new Matrix
+					Matrix<T> random_matrix { neuron_counts.at(idx), neuron_counts.at(idx+1) };
+					for (size_t i = 0; i < neuron_counts.at(idx); i++) {
+						for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
+							random_matrix(i, j) = uniform_dist(gen);
+						}
+					}
+					weight_matrices.at(idx) = random_matrix;
+				}
+			}
+		}
+
 		std::vector<size_t> neuron_counts;
 		std::vector<std::vector<T>> biases_of_each_layer;
 		std::vector<Matrix<T>> weight_matrices;
-
 	};
 
 	template<typename T>
