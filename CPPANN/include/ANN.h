@@ -122,8 +122,8 @@ namespace CPPANN {
 				if (Neuron_count_biases_count_mismatch(neuron_counts, biases_of_each_layer, idx)) {
 					//create a new bias vector
 					std::vector<T> random_biases;
-					random_biases.resize(neuron_counts.at(idx));
-					for (size_t j = 0; j < neuron_counts.at(idx); ++j) {
+					random_biases.resize(neuron_counts.at(idx + 1 ));
+					for (size_t j = 0; j < neuron_counts.at(idx + 1); ++j) {
 						random_biases.at(idx) = uniform_dist(gen);
 					}
 					biases_of_each_layer.at(idx) = random_biases;
