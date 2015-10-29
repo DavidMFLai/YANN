@@ -27,12 +27,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CharacterRecognitionTest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MinstDataTest.cpp" />
     <ClCompile Include="MinstData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MinstData.h" />
+    <ClInclude Include="MinstData2.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4618017C-3224-4453-976F-C11B63730D89}</ProjectGuid>

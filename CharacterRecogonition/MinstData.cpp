@@ -1,4 +1,4 @@
-#include "MinstData.h"
+#include "MinstData2.h"
 //code is adapted from: http://stackoverflow.com/questions/8286668/how-to-read-mnist-data-in-c
 
 using namespace std;
@@ -10,7 +10,7 @@ static auto reverseInt = [](uint32_t i) {
 };
 
 //Static function
-array<uint32_t, 2> MINSTData::Read_mnist_images(vector<vector<uchar>> &output, const string &full_path) {
+array<uint32_t, 2> MINSTData2::Read_mnist_images(vector<vector<uchar>> &output, const string &full_path) {
 	ifstream file(full_path, ios_base::binary);
 
 	if (file.is_open()) {
@@ -47,7 +47,7 @@ array<uint32_t, 2> MINSTData::Read_mnist_images(vector<vector<uchar>> &output, c
 }
 
 //Static function
-void MINSTData::Read_mnist_labels(vector<uchar> &output, const string &full_path) {
+void MINSTData2::Read_mnist_labels(vector<uchar> &output, const string &full_path) {
 	ifstream file(full_path, ios_base::binary);
 
 	if (file.is_open()) {
@@ -72,27 +72,27 @@ void MINSTData::Read_mnist_labels(vector<uchar> &output, const string &full_path
 	}
 }
 
-size_t MINSTData::get_number_of_images() const {
+size_t MINSTData2::get_number_of_images() const {
 	return images.size();
 };
 
-array<uint32_t, 2> MINSTData::get_image_dimensions() const {
+array<uint32_t, 2> MINSTData2::get_image_dimensions() const {
 	return image_dimensions;
 }
 
-vector<uchar> &MINSTData::get_image(size_t idx) {
+vector<uchar> &MINSTData2::get_image(size_t idx) {
 	return images.at(idx);
 }
 
-uchar MINSTData::get_label(size_t idx) const{
+uchar MINSTData2::get_label(size_t idx) const{
 	return labels.at(idx);
 }
 
-const vector<uchar> &MINSTData::get_image(size_t idx) const{
+const vector<uchar> &MINSTData2::get_image(size_t idx) const{
 	return images.at(idx);
 }
 
-void MINSTData::read_data(const string &image_path, const string &label_path) {
+void MINSTData2::read_data(const string &image_path, const string &label_path) {
 	image_dimensions = Read_mnist_images(images, image_path);
 	Read_mnist_labels(labels, label_path);
 	assert(labels.size() == images.size());

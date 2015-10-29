@@ -24,8 +24,14 @@
     <ClCompile Include="MinstData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CharacterRecognitionTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MinstData2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MinstData.h">
       <Filter>Header Files</Filter>
     </ClInclude>

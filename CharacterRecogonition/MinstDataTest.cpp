@@ -4,13 +4,13 @@
 #include "gtest\gtest.h"
 
 #include "ANN.h"
-#include "MinstData.h"
+#include "MinstData2.h"
 
 using namespace std;
 
 TEST(MINST, BasicChecks)
 {
-	MINSTData mINSTData;
+	MINSTData2 mINSTData;
 	mINSTData.read_data("./MINSTDataset/train-images.idx3-ubyte"s, "./MINSTDataset/train-labels.idx1-ubyte"s);
 	
 	//verify
