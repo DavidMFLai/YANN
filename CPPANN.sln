@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "googletest\msvc\gt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock", "googlemock\msvc\2010\gmock.vcxproj", "{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecogonition", "CharacterRecogonition\CharacterRecogonition.vcxproj", "{4618017C-3224-4453-976F-C11B63730D89}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -50,6 +52,14 @@ Global
 		{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}.Release|x64.ActiveCfg = Release|x64
 		{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}.Release|x64.Build.0 = Release|x64
 		{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}.Release|x86.ActiveCfg = Release|x64
+		{4618017C-3224-4453-976F-C11B63730D89}.Debug|x64.ActiveCfg = Debug|x64
+		{4618017C-3224-4453-976F-C11B63730D89}.Debug|x64.Build.0 = Debug|x64
+		{4618017C-3224-4453-976F-C11B63730D89}.Debug|x86.ActiveCfg = Debug|Win32
+		{4618017C-3224-4453-976F-C11B63730D89}.Debug|x86.Build.0 = Debug|Win32
+		{4618017C-3224-4453-976F-C11B63730D89}.Release|x64.ActiveCfg = Release|x64
+		{4618017C-3224-4453-976F-C11B63730D89}.Release|x64.Build.0 = Release|x64
+		{4618017C-3224-4453-976F-C11B63730D89}.Release|x86.ActiveCfg = Release|Win32
+		{4618017C-3224-4453-976F-C11B63730D89}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,13 +5,13 @@
 #include <vector>
 #include <cmath>
 #include <utility>
-#include "ANN.h"
 #include <vector>
 #include <tuple>
 #include <random>
+#include "ANN.h"
 
 #include "gmock\gmock.h"
-#include "gtest/gtest.h"
+#include "gtest\gtest.h"
 
 using namespace std;
 using namespace CPPANN;
