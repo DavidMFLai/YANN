@@ -319,8 +319,6 @@ namespace CPPANN {
 			}
 		}
 	public:
-		ANN() = default;
-
 		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
 			Matrix<T>::copy_from_vector(signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
@@ -332,9 +330,6 @@ namespace CPPANN {
 		}
 
 		void back_propagate(const Matrix<T> &expected) {
-			//speed
-			const T speed = 0.5;
-
 			//compute error
 			Matrix<T>::Minus(error_vector, signal_nodes.back(), expected);
 
@@ -367,10 +362,10 @@ namespace CPPANN {
 			// compute weight updates and apply them
 			Compute_dTotalError_dSnp1(dTotalError_dSnp1, dError_dSnp1);
 			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
-				Compute_weight_update(weight_updates[idx], dTotalError_dSnp1[idx], dSnp1_dWn[idx], speed);
+				Compute_weight_update(weight_updates[idx], dTotalError_dSnp1[idx], dSnp1_dWn[idx], speeds[idx]);
 				weights[idx] -= weight_updates[idx];
 			}
-			Compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speed);
+			Compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speeds.back());
 			weights.back() -= weight_updates.back();
 
 			//compute dSnp1_dBn		
@@ -380,10 +375,10 @@ namespace CPPANN {
 
 			//compute bias updates and apply them
 			for (size_t idx = 0; idx < bias_updates.size() - 1; ++idx) {
-				Compute_bias_update(bias_updates[idx], dTotalError_dSnp1[idx], dSnp1_dBn[idx], speed);
+				Compute_bias_update(bias_updates[idx], dTotalError_dSnp1[idx], dSnp1_dBn[idx], speeds[idx]);
 				biases[idx] -= bias_updates[idx];
 			}
-			Compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speed);
+			Compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speeds.back());
 			biases.back() -= bias_updates.back();
 		}
 
