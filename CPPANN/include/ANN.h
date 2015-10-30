@@ -109,12 +109,19 @@ namespace CPPANN {
 			}
 			neuron_types.at(hidden_layer_index) = type;
 
+			//setup speeds
+			if (speeds.size() <= hidden_layer_index) {
+				speeds.resize(hidden_layer_index + 1);
+			}
+			speeds.at(hidden_layer_index) = speed;
+
 			return *this;
 		}
 
 		ANNBuilder &set_output_layer(Neuron_Type type, T speed, uint64_t size) {
-			output_neuron_count = size;
 			output_neuron_type = type;
+			output_speed = speed;
+			output_neuron_count = size;
 			return *this;
 		}
 
@@ -142,12 +149,13 @@ namespace CPPANN {
 				throw runtime_error("output neuron has not been set");
 			}
 			neuron_types.push_back(output_neuron_type);
+			speeds.push_back(output_speed);
 
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
 			Make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
 			Make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
 
-			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices, neuron_types};
+			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices, neuron_types, speeds};
 			return retval;
 		}
 
@@ -165,6 +173,10 @@ namespace CPPANN {
 
 		const std::vector<Neuron_Type> &get_neuron_types() const {
 			return neuron_types;
+		}
+
+		const std::vector<T> &get_speeds() const {
+			return speeds;
 		}
 
 	private:
@@ -222,12 +234,15 @@ namespace CPPANN {
 
 		size_t output_neuron_count;
 		Neuron_Type output_neuron_type;
+		T output_speed;
+		
 		/*
 		Values to be given to the ANN
 		*/
 		Random_number_generator<T> random_number_generator;
 		std::vector<size_t> neuron_counts;
 		std::vector<Neuron_Type> neuron_types;
+		std::vector<T> speeds;
 		std::vector<std::vector<T>> biases_of_each_layer;
 		std::vector<Matrix<T>> weight_matrices;
 	};
@@ -236,13 +251,21 @@ namespace CPPANN {
 	class ANN {
 	private:
 		friend ANN<T> ANNBuilder<T>::build();
-		ANN(const std::vector<size_t> &signal_counts, const std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<Matrix<T>> &weight_matrices, const std::vector<Neuron_Type> &neuron_types) {
+		ANN(const std::vector<size_t> &signal_counts, 
+			const std::vector<std::vector<T>> &biases_of_each_layer, 
+			const std::vector<Matrix<T>> &weight_matrices, 
+			const std::vector<Neuron_Type> &neuron_types,
+			const std::vector<T> &speeds
+			) {
 
 			//Get number of layers
 			size_t layers_count = signal_counts.size();
 			
 			//set neuron types
 			this->neuron_types = neuron_types;
+
+			//set speeds
+			this->speeds = speeds;
 
 			//Create matrices required by forward propagation 
 			signal_nodes.resize(layers_count);
@@ -488,6 +511,8 @@ namespace CPPANN {
 			std::vector<Matrix<T>> biases;
 
 			std::vector<Neuron_Type> neuron_types;
+
+			std::vector<T> speeds;
 	
 	public:
 

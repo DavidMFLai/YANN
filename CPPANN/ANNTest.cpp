@@ -287,41 +287,6 @@ TEST(Basics, Accending_and_decending)
 	EXPECT_NEAR(0.01, high_to_low_output[1], tolerence);
 }
 
-TEST(ANNBuilder_Basics, ANNBuilder_Basics)
-{
-	ANNBuilder<double> ann_builder;
-	ann_builder.set_input_layer(5)
-		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
-		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.5, 3)
-		.set_output_layer(Neuron_Type::Tanh, 0.5, 2)
-		.build();
-
-	auto &biases = ann_builder.get_biases_of_each_layer();
-	auto &neuron_counts = ann_builder.get_neuron_counts();
-	auto &weight_matrices = ann_builder.get_weight_matrices();
-	auto &neuron_types = ann_builder.get_neuron_types();
-	
-	EXPECT_EQ(3, biases.size());
-	EXPECT_EQ(4, biases.at(0).size());
-	EXPECT_EQ(3, biases.at(1).size());
-	EXPECT_EQ(2, biases.at(2).size());
-
-	EXPECT_EQ(4, neuron_counts.size());
-
-	EXPECT_EQ(3, weight_matrices.size());
-	EXPECT_EQ(5, weight_matrices.at(0).getRowCount());
-	EXPECT_EQ(4, weight_matrices.at(0).getColumnCount());
-	EXPECT_EQ(4, weight_matrices.at(1).getRowCount());
-	EXPECT_EQ(3, weight_matrices.at(1).getColumnCount());
-	EXPECT_EQ(3, weight_matrices.at(2).getRowCount());
-	EXPECT_EQ(2, weight_matrices.at(2).getColumnCount());
-
-	EXPECT_EQ(3, neuron_types.size());
-	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(0));
-	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(1));
-	EXPECT_EQ(Neuron_Type::Tanh, neuron_types.at(2));
-}
-
 TEST(Basics, XOR_RANDOM_SIGMOID)
 {
 	ANNBuilder<double> ann_builder;
@@ -361,6 +326,48 @@ TEST(Basics, XOR_RANDOM_SIGMOID)
 	EXPECT_NEAR(1., true_false_result[0], tolerence);
 }
 
+
+TEST(ANNBuilder_Basics, ANNBuilder_Basics)
+{
+	ANNBuilder<double> ann_builder;
+	ann_builder.set_input_layer(5)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
+		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.4, 3)
+		.set_output_layer(Neuron_Type::Tanh, 0.3, 2)
+		.build();
+
+	auto &biases = ann_builder.get_biases_of_each_layer();
+	auto &neuron_counts = ann_builder.get_neuron_counts();
+	auto &weight_matrices = ann_builder.get_weight_matrices();
+	auto &neuron_types = ann_builder.get_neuron_types();
+	auto &speeds = ann_builder.get_speeds();
+
+	EXPECT_EQ(3, biases.size());
+	EXPECT_EQ(4, biases.at(0).size());
+	EXPECT_EQ(3, biases.at(1).size());
+	EXPECT_EQ(2, biases.at(2).size());
+
+	EXPECT_EQ(4, neuron_counts.size());
+
+	EXPECT_EQ(3, weight_matrices.size());
+	EXPECT_EQ(5, weight_matrices.at(0).getRowCount());
+	EXPECT_EQ(4, weight_matrices.at(0).getColumnCount());
+	EXPECT_EQ(4, weight_matrices.at(1).getRowCount());
+	EXPECT_EQ(3, weight_matrices.at(1).getColumnCount());
+	EXPECT_EQ(3, weight_matrices.at(2).getRowCount());
+	EXPECT_EQ(2, weight_matrices.at(2).getColumnCount());
+
+	EXPECT_EQ(3, neuron_types.size());
+	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(0));
+	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(1));
+	EXPECT_EQ(Neuron_Type::Tanh, neuron_types.at(2));
+
+	EXPECT_EQ(3, speeds.size());
+	double tolerance = 0.00000001;
+	EXPECT_NEAR(0.5, speeds.at(0), 0.00000001);
+	EXPECT_NEAR(0.4, speeds.at(1), 0.00000001);
+	EXPECT_NEAR(0.3, speeds.at(2), 0.00000001);
+}
 int main(int argc, char *argv[])
 {
 	::testing::InitGoogleMock(&argc, argv);
