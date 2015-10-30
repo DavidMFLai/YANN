@@ -140,6 +140,100 @@ TEST(Basics, CounterCheckInPython)
 	EXPECT_NEAR(0.48392732, biases[2](0, 1), tolerence);
 }
 
+
+TEST(Basics, CounterCheckInPythonTanhAndSigmoid)
+{
+	//Setup ANN
+	ANNBuilder<double> ann_builder;
+	auto ann = ann_builder.set_input_layer(5)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
+		.set_hidden_layer(1, Neuron_Type::Tanh, 0.5, 3)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
+
+		.set_weights(0, {
+			{ 0.01, 0.02, 0.03, 0.04 },
+			{ 0.05, 0.06, 0.07, 0.08 },
+			{ 0.09, 0.10, 0.11, 0.12 },
+			{ 0.13, 0.14, 0.15, 0.16 },
+			{ 0.17, 0.18, 0.19, 0.20 },
+		})
+		.set_weights(1, {
+			{ 0.25, 0.26, 0.27 },
+			{ 0.28, 0.29, 0.30 },
+			{ 0.31, 0.32, 0.33 },
+			{ 0.34, 0.35, 0.36 },
+		})
+		.set_weights(2, {
+			{ 0.40, 0.41 },
+			{ 0.42, 0.43 },
+			{ 0.44, 0.45 },
+		})
+		.set_bias(0, { 0.21, 0.22, 0.23, 0.24 })
+		.set_bias(1, { 0.37, 0.38, 0.39 })
+		.set_bias(2, { 0.46, 0.47 })
+		.build();
+
+	auto &output = ann.forward_propagate({ 0.18, 0.29, 0.40, 0.51, 0.62 });
+	ann.back_propagate(Matrix<double>{ { 0.01, 0.99 }});
+
+	//Verify
+	double tolerence = 0.00000001;
+	EXPECT_NEAR(0.81517039, output.at(0), tolerence);
+	EXPECT_NEAR(0.82029267, output.at(1), tolerence);
+
+	auto &weights = ann.getWeights();
+	EXPECT_NEAR(0.00977151, weights[0](0, 0), tolerence);
+	EXPECT_NEAR(0.01974683, weights[0](0, 1), tolerence);
+	EXPECT_NEAR(0.02972259, weights[0](0, 2), tolerence);
+	EXPECT_NEAR(0.03969884, weights[0](0, 3), tolerence);
+	EXPECT_NEAR(0.04963188, weights[0](1, 0), tolerence);
+	EXPECT_NEAR(0.05959211, weights[0](1, 1), tolerence);
+	EXPECT_NEAR(0.06955307, weights[0](1, 2), tolerence);
+	EXPECT_NEAR(0.0795148, weights[0](1, 3), tolerence);
+	EXPECT_NEAR(0.08949225, weights[0](2, 0), tolerence);
+	EXPECT_NEAR(0.09943739, weights[0](2, 1), tolerence);
+	EXPECT_NEAR(0.10938354, weights[0](2, 2), tolerence);
+	EXPECT_NEAR(0.11933076, weights[0](2, 3), tolerence);
+	EXPECT_NEAR(0.12935262, weights[0](3, 0), tolerence);
+	EXPECT_NEAR(0.13928268, weights[0](3, 1), tolerence);
+	EXPECT_NEAR(0.14921402, weights[0](3, 2), tolerence);
+	EXPECT_NEAR(0.15914672, weights[0](3, 3), tolerence);
+	EXPECT_NEAR(0.16921299, weights[0](4, 0), tolerence);
+	EXPECT_NEAR(0.17912796, weights[0](4, 1), tolerence);
+	EXPECT_NEAR(0.18904449, weights[0](4, 2), tolerence);
+	EXPECT_NEAR(0.19896268, weights[0](4, 3), tolerence);
+	EXPECT_NEAR(0.24582719, weights[1](0, 0), tolerence);
+	EXPECT_NEAR(0.25585576, weights[1](0, 1), tolerence);
+	EXPECT_NEAR(0.26589693, weights[1](0, 2), tolerence);
+	EXPECT_NEAR(0.27577813, weights[1](1, 0), tolerence);
+	EXPECT_NEAR(0.28580703, weights[1](1, 1), tolerence);
+	EXPECT_NEAR(0.2958487, weights[1](1, 2), tolerence);
+	EXPECT_NEAR(0.30572941, weights[1](2, 0), tolerence);
+	EXPECT_NEAR(0.31575864, weights[1](2, 1), tolerence);
+	EXPECT_NEAR(0.32580079, weights[1](2, 2), tolerence);
+	EXPECT_NEAR(0.33568104, weights[1](3, 0), tolerence);
+	EXPECT_NEAR(0.3457106, weights[1](3, 1), tolerence);
+	EXPECT_NEAR(0.35575322, weights[1](3, 2), tolerence);
+	EXPECT_NEAR(0.35145125, weights[2](0, 0), tolerence);
+	EXPECT_NEAR(0.42001165, weights[2](0, 1), tolerence);
+	EXPECT_NEAR(0.37071558, weights[2](1, 0), tolerence);
+	EXPECT_NEAR(0.44016336, weights[2](1, 1), tolerence);
+	EXPECT_NEAR(0.39002023, weights[2](2, 0), tolerence);
+	EXPECT_NEAR(0.46030675, weights[2](2, 1), tolerence);
+
+	auto &biases = ann.getBiases();
+	EXPECT_NEAR(0.20873063, biases[0](0, 0), tolerence);
+	EXPECT_NEAR(0.21859348, biases[0](0, 1), tolerence);
+	EXPECT_NEAR(0.22845886, biases[0](0, 2), tolerence);
+	EXPECT_NEAR(0.2383269, biases[0](0, 3), tolerence);
+	EXPECT_NEAR(0.36312358, biases[1](0, 0), tolerence);
+	EXPECT_NEAR(0.37317065, biases[1](0, 1), tolerence);
+	EXPECT_NEAR(0.38323851, biases[1](0, 2), tolerence);
+	EXPECT_NEAR(0.39934344, biases[2](0, 0), tolerence);
+	EXPECT_NEAR(0.4825085, biases[2](0, 1), tolerence);
+}
+
+
 TEST(Basics, Accending_and_decending)
 {
 	//Setup ANN
@@ -193,18 +287,19 @@ TEST(Basics, Accending_and_decending)
 	EXPECT_NEAR(0.01, high_to_low_output[1], tolerence);
 }
 
-TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
+TEST(ANNBuilder_Basics, ANNBuilder_Basics)
 {
 	ANNBuilder<double> ann_builder;
 	ann_builder.set_input_layer(5)
 		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
 		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.5, 3)
-		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
+		.set_output_layer(Neuron_Type::Tanh, 0.5, 2)
 		.build();
 
 	auto &biases = ann_builder.get_biases_of_each_layer();
 	auto &neuron_counts = ann_builder.get_neuron_counts();
 	auto &weight_matrices = ann_builder.get_weight_matrices();
+	auto &neuron_types = ann_builder.get_neuron_types();
 	
 	EXPECT_EQ(3, biases.size());
 	EXPECT_EQ(4, biases.at(0).size());
@@ -212,7 +307,7 @@ TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
 	EXPECT_EQ(2, biases.at(2).size());
 
 	EXPECT_EQ(4, neuron_counts.size());
-	
+
 	EXPECT_EQ(3, weight_matrices.size());
 	EXPECT_EQ(5, weight_matrices.at(0).getRowCount());
 	EXPECT_EQ(4, weight_matrices.at(0).getColumnCount());
@@ -220,6 +315,11 @@ TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
 	EXPECT_EQ(3, weight_matrices.at(1).getColumnCount());
 	EXPECT_EQ(3, weight_matrices.at(2).getRowCount());
 	EXPECT_EQ(2, weight_matrices.at(2).getColumnCount());
+
+	EXPECT_EQ(3, neuron_types.size());
+	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(0));
+	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(1));
+	EXPECT_EQ(Neuron_Type::Tanh, neuron_types.at(2));
 }
 
 TEST(Basics, XOR_RANDOM_SIGMOID)

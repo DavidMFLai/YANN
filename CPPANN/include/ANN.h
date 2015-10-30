@@ -95,20 +95,19 @@ namespace CPPANN {
 
 		//Hidden layer index is zero based
 		ANNBuilder &set_hidden_layer(size_t hidden_layer_index, Neuron_Type type, T speed, uint64_t size) {
+			//setup neuron_counts
 			//0th hidden layer is the 1st layer in the ANN. (0th layer in the ANN is the input layer)
 			size_t layer_index = hidden_layer_index + 1;
-			
-			//setup neuron_counts
 			if (neuron_counts.size() <= layer_index) {
 				neuron_counts.resize(layer_index + 1);
 			}
 			neuron_counts.at(layer_index) = size;
 
 			//setup neuron_types
-			if (neuron_types.size() <= layer_index) {
-				neuron_types.resize(layer_index + 1);
+			if (neuron_types.size() <= hidden_layer_index) {
+				neuron_types.resize(hidden_layer_index + 1);
 			}
-			neuron_types.at(layer_index) = type;
+			neuron_types.at(hidden_layer_index) = type;
 
 			return *this;
 		}
@@ -162,6 +161,10 @@ namespace CPPANN {
 
 		const std::vector<Matrix<T>> &get_weight_matrices() const {
 			return weight_matrices;
+		}
+
+		const std::vector<Neuron_Type> &get_neuron_types() const {
+			return neuron_types;
 		}
 
 	private:
