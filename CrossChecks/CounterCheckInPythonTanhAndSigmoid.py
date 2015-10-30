@@ -7,8 +7,17 @@ def sigmoid(x):
 def sigmoid_prime(sigmoid_value):
     return sigmoid_value*(1-sigmoid_value)  
     
+def tanh(x):
+    return math.tanh(x)
+    
+def tanh_prime(tanh_value):
+    return 1 - tanh_value * tanh_value
+    
 sigmoid_matrix = np.frompyfunc(sigmoid, 1, 1)    
 sigmoid_prime_matrix = np.frompyfunc(sigmoid_prime, 1, 1)
+
+tanh_matrix = np.frompyfunc(tanh, 1, 1)    
+tanh_prime_matrix = np.frompyfunc(tanh_prime, 1, 1)
     
 s0 = np.matrix([[0.18, 0.29, 0.40, 0.51, 0.62]])
 w0 = np.matrix([[0.01, 0.02, 0.03, 0.04],
@@ -29,7 +38,7 @@ b2 = np.matrix([ 0.46, 0.47])
 
 #forward
 s1 = sigmoid_matrix(s0*w0+b0)
-s2 = sigmoid_matrix(s1*w1+b1)
+s2 = tanh_matrix(s1*w1+b1)
 s3 = sigmoid_matrix(s2*w2+b2)
 
 print 'forward output =', s3
@@ -65,7 +74,7 @@ dN2_dS2 = w2.transpose()
 dETotal_dS2 = np.matrix(np.zeros(s2.shape))
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[0, :], dETotal_dN2[:, 0])
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[1, :], dETotal_dN2[:, 1])
-dS2_dN1 = sigmoid_prime_matrix(s2)
+dS2_dN1 = tanh_prime_matrix(s2)
 dN1_dB1 = np.ones(b1.shape)
 dETotal_dB1 = np.multiply(dETotal_dS2, dS2_dN1, dN1_dB1)
 b1_update = dETotal_dB1 * speed
@@ -79,7 +88,7 @@ dN2_dS2 = w2.transpose()
 dETotal_dS2 = np.matrix(np.zeros(s2.shape))
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[0, :], dETotal_dN2[:, 0])
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[1, :], dETotal_dN2[:, 1])
-dS2_dN1 = sigmoid_prime_matrix(s2)
+dS2_dN1 = tanh_prime_matrix(s2)
 dETotal_dN1 = np.multiply(dETotal_dS2, dS2_dN1)
 dN1_dW1 = np.concatenate((s1, s1, s1), 0).transpose()
 dETotal_dW1 = np.matrix(np.zeros(dN1_dW1.shape))
@@ -97,7 +106,7 @@ dN2_dS2 = w2.transpose()
 dETotal_dS2 = np.matrix(np.zeros(s2.shape))
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[0, :], dETotal_dN2[:, 0])
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[1, :], dETotal_dN2[:, 1])
-dS2_dN1 = sigmoid_prime_matrix(s2)
+dS2_dN1 = tanh_prime_matrix(s2)
 dETotal_dN1 = np.multiply(dETotal_dS2, dS2_dN1)
 dN1_dS1 = w1.transpose()
 dETotal_dS1 = np.matrix(np.zeros(s1.shape))
@@ -118,7 +127,7 @@ dN2_dS2 = w2.transpose()
 dETotal_dS2 = np.matrix(np.zeros(s2.shape))
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[0, :], dETotal_dN2[:, 0])
 dETotal_dS2 = dETotal_dS2 + np.multiply(dN2_dS2[1, :], dETotal_dN2[:, 1])
-dS2_dN1 = sigmoid_prime_matrix(s2)
+dS2_dN1 = tanh_prime_matrix(s2)
 dETotal_dN1 = np.multiply(dETotal_dS2, dS2_dN1)
 dN1_dS1 = w1.transpose()
 dETotal_dS1 = np.matrix(np.zeros(s1.shape))
@@ -149,3 +158,5 @@ b0 = b0 - b0_update
 print 'b0 =', b0
 w0 = w0 - w0_update
 print 'w0 =', w0
+# -*- coding: utf-8 -*-
+
