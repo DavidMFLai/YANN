@@ -102,7 +102,7 @@ TEST(BasicOperations, FunctionMultiply) {
 
 	Matrix<double> result(3, 3);
 
-	Matrix<double>::multiply(result, m, n);
+	Matrix<double>::Multiply(result, m, n);
 
 	Matrix<double> expected_result{
 		{ 111.*211. + 112.*221. , 111.*212. + 112.*222., 111.*213. + 112.*223. },
@@ -200,7 +200,7 @@ TEST(BasicOperations, FunctionAdd) {
 	};
 
 	Matrix<double> result(3, 2);
-	Matrix<double>::add(result, m, m2);
+	Matrix<double>::Add(result, m, m2);
 
 	EXPECT_EQ(expected_result, result);
 }
@@ -270,7 +270,7 @@ TEST(BasicOperations, sumOfRows) {
 	};
 
 	Matrix<double> result{1, 3};
-	Matrix<double>::sum_of_rows(result, input);
+	Matrix<double>::Sum_of_rows(result, input);
 
 	EXPECT_EQ(expected, result);
 }
