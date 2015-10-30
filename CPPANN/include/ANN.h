@@ -98,6 +98,19 @@ namespace CPPANN {
 			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices };
 			return retval;
 		}
+
+		const std::vector<size_t> &get_neuron_counts() const {
+			return neuron_counts;
+		}
+		 
+		const std::vector<std::vector<T>> &get_biases_of_each_layer() const {
+			return biases_of_each_layer;
+		}
+
+		const std::vector<Matrix<T>> &get_weight_matrices() const {
+			return weight_matrices;
+		}
+
 	private:
 		static bool Neuron_count_biases_count_mismatch(const std::vector<size_t> &neuron_counts, const std::vector<std::vector<T>> &biases_of_each_layer, size_t layer_idx) {
 			return neuron_counts.at(layer_idx + 1) != biases_of_each_layer.at(layer_idx).size();
@@ -120,12 +133,14 @@ namespace CPPANN {
 			}
 			for (size_t idx = 0; idx < biases_of_each_layer.size(); idx++) {
 				if (Neuron_count_biases_count_mismatch(neuron_counts, biases_of_each_layer, idx)) {
-					//create a new bias vector
+					//create a new bias vector of length == neuron_counts.at(idx + 1)
 					std::vector<T> random_biases;
 					random_biases.resize(neuron_counts.at(idx + 1 ));
-					for (size_t j = 0; j < neuron_counts.at(idx + 1); ++j) {
-						random_biases.at(idx) = uniform_dist(gen);
+					for (size_t j = 0; j < random_biases.size(); ++j) {
+						random_biases.at(j) = uniform_dist(gen);
 					}
+
+					//put the newly created vector into 
 					biases_of_each_layer.at(idx) = random_biases;
 				}
 			}

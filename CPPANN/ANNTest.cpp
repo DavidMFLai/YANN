@@ -195,52 +195,33 @@ TEST(Basics, Accending_and_decending)
 	EXPECT_NEAR(0.01, high_to_low_output[1], tolerence);
 }
 
-TEST(Basics, XOR_SIGMOID)
+TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
 {
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, 2)
-		.set_layer(1, 2)
-		.set_weights(0, {
-			{ 0.5, -0.7 },
-			{ -0.8, 0.6 }
-		})
-		.set_bias(0, { 0.01, -0.9 })
-		.set_weights(1, {
-			{ 2. }, //weights from the 0th neuron of the present layer
-			{ 3. },
-		})
-		.set_layer(2, 1)
-		.set_bias(1, { -0.8 })
+	ann_builder.set_layer(0, 5)
+		.set_layer(1, 4)
+		.set_layer(2, 3)
+		.set_layer(3, 2)
 		.build();
 
-	std::vector<double> true_true_input{ 1., 1. };
-	Matrix<double> true_true_expected_result{ {0.} };
-
-	std::vector<double> false_false_input{ 0., 0. };
-	Matrix<double> false_false_expected_result{ { 0. } };
+	auto &biases = ann_builder.get_biases_of_each_layer();
+	auto &neuron_counts = ann_builder.get_neuron_counts();
+	auto &weight_matrices = ann_builder.get_weight_matrices();
 	
-	std::vector<double> false_true_input{ 0., 1. };
-	Matrix<double> false_true_expected_result{ { 1. } };
+	EXPECT_EQ(3, biases.size());
+	EXPECT_EQ(4, biases.at(0).size());
+	EXPECT_EQ(3, biases.at(1).size());
+	EXPECT_EQ(2, biases.at(2).size());
 
-	std::vector<double> true_false_input{ 1., 0. };
-	Matrix<double> true_false_expected_result{ { 1. } };
-
-	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
-	for (int i = 0; i < 1000000; i++) {
-		true_true_result = ann.forward_propagate(true_true_input);
-		ann.back_propagate(true_true_expected_result);
-		false_false_result = ann.forward_propagate(false_false_input);
-		ann.back_propagate(false_false_expected_result);
-		false_true_result = ann.forward_propagate(false_true_input);
-		ann.back_propagate(false_true_expected_result);
-		true_false_result = ann.forward_propagate(true_false_input);
-		ann.back_propagate(true_false_expected_result);
-	}
-	double tolerence = 0.05;
-	EXPECT_NEAR(0., true_true_result[0], tolerence);
-	EXPECT_NEAR(0., false_false_result[0], tolerence);
-	EXPECT_NEAR(1., false_true_result[0], tolerence);
-	EXPECT_NEAR(1., true_false_result[0], tolerence);
+	EXPECT_EQ(4, neuron_counts.size());
+	
+	EXPECT_EQ(3, weight_matrices.size());
+	EXPECT_EQ(5, weight_matrices.at(0).getRowCount());
+	EXPECT_EQ(4, weight_matrices.at(0).getColumnCount());
+	EXPECT_EQ(4, weight_matrices.at(1).getRowCount());
+	EXPECT_EQ(3, weight_matrices.at(1).getColumnCount());
+	EXPECT_EQ(3, weight_matrices.at(2).getRowCount());
+	EXPECT_EQ(2, weight_matrices.at(2).getColumnCount());
 }
 
 TEST(Basics, XOR_RANDOM_SIGMOID)
