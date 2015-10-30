@@ -59,6 +59,23 @@ namespace CPPANN {
 	template<typename T>
 	class ANN;
 
+	template<typename T >
+	class Random_number_generator {
+	public:
+		Random_number_generator()
+			: gen{ rd() }, dist{ 0, 0.1 }
+		{}
+
+		T generate() const{
+			return dist(gen);
+		};
+
+	private:
+		std::random_device rd;
+		mutable std::mt19937 gen;
+		mutable std::normal_distribution<T> dist;
+	};
+
 	template<typename T>
 	class ANNBuilder {
 	public:
@@ -86,14 +103,9 @@ namespace CPPANN {
 			return *this;
 		}
 		ANN<T> build() {
-			//Initialize Random number generator
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_real_distribution<double> uniform_dist(-1, 1);
-
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
-			make_random_biases_if_needed(biases_of_each_layer, neuron_counts, uniform_dist, gen);
-			make_random_weights_if_needed(weight_matrices, neuron_counts, uniform_dist, gen);
+			make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
+			make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
 
 			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices };
 			return retval;
@@ -127,7 +139,7 @@ namespace CPPANN {
 			return retval;
 		}
 
-		static void make_random_biases_if_needed(std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<size_t> &neuron_counts, const std::uniform_real_distribution<double> &uniform_dist, std::mt19937 &gen) {
+		static void make_random_biases_if_needed(std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
 			if (biases_of_each_layer.size() != neuron_counts.size() - 1) {
 				biases_of_each_layer.resize(neuron_counts.size() - 1);
 			}
@@ -137,7 +149,7 @@ namespace CPPANN {
 					std::vector<T> random_biases;
 					random_biases.resize(neuron_counts.at(idx + 1 ));
 					for (size_t j = 0; j < random_biases.size(); ++j) {
-						random_biases.at(j) = uniform_dist(gen);
+						random_biases.at(j) = random_number_generator.generate();
 					}
 
 					//put the newly created vector into 
@@ -146,7 +158,7 @@ namespace CPPANN {
 			}
 		}
 
-		static void make_random_weights_if_needed(std::vector<Matrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const std::uniform_real_distribution<double> &uniform_dist, std::mt19937 &gen) {
+		static void make_random_weights_if_needed(std::vector<Matrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
 			if (weight_matrices.size() != neuron_counts.size() - 1) {
 				weight_matrices.resize(neuron_counts.size() - 1);
 			}
@@ -156,7 +168,7 @@ namespace CPPANN {
 					Matrix<T> random_matrix { neuron_counts.at(idx), neuron_counts.at(idx+1) };
 					for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 						for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
-							random_matrix(i, j) = uniform_dist(gen);
+							random_matrix(i, j) = random_number_generator.generate();
 						}
 					}
 					weight_matrices.at(idx) = random_matrix;
@@ -164,6 +176,7 @@ namespace CPPANN {
 			}
 		}
 
+		Random_number_generator<T> random_number_generator;
 		std::vector<size_t> neuron_counts;
 		std::vector<std::vector<T>> biases_of_each_layer;
 		std::vector<Matrix<T>> weight_matrices;
