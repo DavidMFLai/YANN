@@ -143,7 +143,7 @@ public:
 		return elems[matrixAccessProperties(i, j)];
 	}
 
-	static void sum_of_rows(Matrix &output, const Matrix &input) {
+	static void Sum_of_rows(Matrix &output, const Matrix &input) {
 		assert(output.getColumnCount() == input.getColumnCount());
 		for (size_t i = 0; i < input.getColumnCount(); ++i) {
 			output(0, i) = 0;
@@ -180,7 +180,7 @@ public:
 				return retval;
 	}
 
-	static void add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+	static void Add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
 		//output = lhs + rhs;
 		assert(lhs.getDimensions() == rhs.getDimensions());
 		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
@@ -188,7 +188,7 @@ public:
 		}
 	}
 
-	static void minus(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+	static void Minus(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
 		//output = lhs - rhs;
 		assert(lhs.getDimensions() == rhs.getDimensions());
 		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
@@ -196,7 +196,7 @@ public:
 		}
 	}
 
-	static void multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+	static void Multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
 		//output = lhs * rhs;
 		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);

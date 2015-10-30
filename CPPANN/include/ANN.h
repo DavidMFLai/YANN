@@ -6,7 +6,7 @@
 
 namespace CPPANN {
 	template<typename T>
-	static void sigmoid(Matrix<T> &output, const Matrix<T> &x) {
+	static void Sigmoid(Matrix<T> &output, const Matrix<T> &x) {
 		assert(output.getDimensions() == x.getDimensions());
 		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
 			output.getElems()[idx] = 1 / (1 + std::exp(-x.getElems()[idx]));
@@ -14,12 +14,12 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static T sigmoid_prime(T sigmoid_value) {
+	static T Sigmoid_prime(T sigmoid_value) {
 		return sigmoid_value * (1 - sigmoid_value);
 	};
 
 	template<typename T>
-	static void tanh(Matrix<T> &output, const Matrix<T> &x) {
+	static void Tanh(Matrix<T> &output, const Matrix<T> &x) {
 		assert(output.getDimensions() == x.getDimensions());
 		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
 			output.getElems()[idx] = std::tanh(x.getElems()[idx]);
@@ -27,7 +27,7 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static T tanh_prime(T tanh_value) {
+	static T Tanh_prime(T tanh_value) {
 		return 1 - tanh_value * tanh_value;
 	};
 
@@ -39,20 +39,20 @@ namespace CPPANN {
 	template<typename T>
 	static void evalute_perceptron(Matrix<T> &output, const Matrix<T> &input, Neuron_Type neuron_type) {
 		if (neuron_type == Neuron_Type::Sigmoid) {
-			CPPANN::sigmoid<T>(output, input);
+			CPPANN::Sigmoid<T>(output, input);
 		}
 		else {
-			CPPANN::tanh<T>(output, input);
+			CPPANN::Tanh<T>(output, input);
 		}	
 	}
 
 	template<typename T>
 	static T evalute_perceptron_prime(T x, Neuron_Type neuron_type) {
 		if (neuron_type == Neuron_Type::Sigmoid) {
-			return sigmoid_prime(x);
+			return Sigmoid_prime(x);
 		}
 		else {
-			return tanh_prime(x);
+			return Tanh_prime(x);
 		}
 	}
 
@@ -88,6 +88,7 @@ namespace CPPANN {
 			neuron_counts.at(layer_index) = size;
 			return *this;
 		}
+
 		ANNBuilder &set_bias(size_t layer_index, const std::vector<T> &input) {
 			if (biases_of_each_layer.size() <= layer_index) {
 				biases_of_each_layer.resize(layer_index + 1);
@@ -95,6 +96,7 @@ namespace CPPANN {
 			biases_of_each_layer.at(layer_index) = input;
 			return *this;
 		}
+
 		ANNBuilder &set_weights(size_t starting_layer_index, const Matrix<T> &matrix) {
 			if (weight_matrices.size() <= starting_layer_index) {
 				weight_matrices.resize(starting_layer_index + 1);
@@ -102,10 +104,11 @@ namespace CPPANN {
 			weight_matrices.at(starting_layer_index) = matrix;
 			return *this;
 		}
+
 		ANN<T> build() {
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
-			make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
-			make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
+			Make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
+			Make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
 
 			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices };
 			return retval;
@@ -139,7 +142,7 @@ namespace CPPANN {
 			return retval;
 		}
 
-		static void make_random_biases_if_needed(std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
+		static void Make_random_biases_if_needed(std::vector<std::vector<T>> &biases_of_each_layer, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
 			if (biases_of_each_layer.size() != neuron_counts.size() - 1) {
 				biases_of_each_layer.resize(neuron_counts.size() - 1);
 			}
@@ -158,7 +161,7 @@ namespace CPPANN {
 			}
 		}
 
-		static void make_random_weights_if_needed(std::vector<Matrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
+		static void Make_random_weights_if_needed(std::vector<Matrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
 			if (weight_matrices.size() != neuron_counts.size() - 1) {
 				weight_matrices.resize(neuron_counts.size() - 1);
 			}
@@ -249,8 +252,8 @@ namespace CPPANN {
 		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
 			Matrix<T>::copy_from_vector(signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
-				Matrix<T>::multiply(network_nodes[i], signal_nodes[i], weights[i]);
-				Matrix<T>::add(network_nodes[i], network_nodes[i], biases[i]);
+				Matrix<T>::Multiply(network_nodes[i], signal_nodes[i], weights[i]);
+				Matrix<T>::Add(network_nodes[i], network_nodes[i], biases[i]);
 				evalute_perceptron(signal_nodes[i + 1], network_nodes[i], this->neuron_type);
 			}
 			return signal_nodes.back().getElems();
@@ -261,7 +264,7 @@ namespace CPPANN {
 			const T speed = 0.5;
 
 			//compute error
-			Matrix<T>::minus(error_vector, signal_nodes.back(), expected);
+			Matrix<T>::Minus(error_vector, signal_nodes.back(), expected);
 
 			//compute dSnp2_dSnp1
 			for (size_t idx = 0; idx < dSnp2_dSnp1.size() - 1; ++idx) {
@@ -272,7 +275,7 @@ namespace CPPANN {
 			compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_type);
 			if (dSOutput_dSnp1.size() >= 2) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
-					Matrix<T>::multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
+					Matrix<T>::Multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
 				}
 			}
 
@@ -332,7 +335,7 @@ namespace CPPANN {
 		static void compute_dTotalError_dSnp1(std::vector<Matrix<T>> &dTotalError_dSnp1, const std::vector<Matrix<T>> &dSOutput_dSnp1) {
 			assert(dTotalError_dSnp1.size() == dSOutput_dSnp1.size());
 			for (size_t idx = 0; idx < dTotalError_dSnp1.size(); ++idx) {
-				Matrix<T>::sum_of_rows(dTotalError_dSnp1[idx], dSOutput_dSnp1[idx]);
+				Matrix<T>::Sum_of_rows(dTotalError_dSnp1[idx], dSOutput_dSnp1[idx]);
 			}
 		}
 

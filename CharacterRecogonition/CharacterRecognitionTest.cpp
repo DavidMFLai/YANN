@@ -11,7 +11,7 @@
 using namespace std;
 using namespace CPPANN;
 
-static void convert_labels_to_ANN_output_data(Matrix<double> & ann_output_data, uchar mINST_label) {
+static void Convert_label_to_ANN_output_data(Matrix<double> & ann_output_data, uchar mINST_label) {
 	ann_output_data.zero();
 	switch (mINST_label) {
 	case 0:
@@ -47,7 +47,7 @@ static void convert_labels_to_ANN_output_data(Matrix<double> & ann_output_data, 
 	}
 }
 
-static uchar convert_ANN_output_data_to_label(const std::vector<double>& ann_output_data) {
+static uchar Convert_ANN_output_data_to_label(const std::vector<double>& ann_output_data) {
 	uchar retval;
 	double max = std::numeric_limits<double>::lowest();
 	for (size_t idx = 0; idx < ann_output_data.size(); ++idx) {
@@ -78,7 +78,7 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 		for (size_t idx = 0; idx < 5000; idx++) {
 			auto &training_input_data = mINSTData.get_image(idx);
 			auto training_output_data_raw = mINSTData.get_label(idx);
-			convert_labels_to_ANN_output_data(training_output_data, training_output_data_raw);
+			Convert_label_to_ANN_output_data(training_output_data, training_output_data_raw);
 			ann.forward_propagate(training_input_data);
 			ann.back_propagate(training_output_data);
 		}
@@ -96,11 +96,11 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 	for (size_t idx = 0; idx < mINSTData_test.get_number_of_images(); idx++) {
 		auto &test_input_data = mINSTData_test.get_image(idx);
 		std::vector<double> ann_result = ann.forward_propagate(test_input_data);
-		uchar result = convert_ANN_output_data_to_label(ann_result);
+		uchar result = Convert_ANN_output_data_to_label(ann_result);
 
-		uchar test_output_data_raw = mINSTData_test.get_label(idx);
+		uchar label = mINSTData_test.get_label(idx);
 		
-		if (result == test_output_data_raw) {
+		if (result == label) {
 			correct_count++;
 		}
 		total_count++;
@@ -108,7 +108,5 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 		std::cout << "Correct Ratio = " << correct_count << '/' << total_count << std::endl;
 
 	}
-
-	
 
 }
