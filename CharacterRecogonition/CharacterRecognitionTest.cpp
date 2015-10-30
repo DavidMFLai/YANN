@@ -67,9 +67,9 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 
 	//Setup ANN
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, mINSTData.get_number_of_images())
-		.set_layer(1, 15)
-		.set_layer(2, 10)
+	auto ann = ann_builder.set_input_layer(mINSTData.get_number_of_images())
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 15)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 10)
 		.build();
 
 	//Train with first 5000 only

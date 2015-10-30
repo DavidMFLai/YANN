@@ -1,14 +1,11 @@
-// ANNTest.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
+#include "ANN.h"
 #include <vector>
 #include <cmath>
 #include <utility>
 #include <vector>
 #include <tuple>
 #include <random>
-#include "ANN.h"
 
 #include "gmock\gmock.h"
 #include "gtest\gtest.h"
