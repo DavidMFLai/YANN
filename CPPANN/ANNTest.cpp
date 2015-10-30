@@ -22,19 +22,19 @@ TEST(Basics, mattmazur)
 
 	//Setup ANN
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, 2)
-		.set_bias(0, { 0.35, 0.35 })
-		.set_layer(1, 2)
-		.set_bias(1, { 0.60, 0.60 })
+	auto ann = ann_builder.set_input_layer(2)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 2)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
 		.set_weights(0, {
 			{ 0.15, 0.25 },
 			{ 0.20, 0.30 },
 		})
-		.set_layer(2, 2)
 		.set_weights(1, {
 			{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
 			{ 0.45, 0.55 },
 		})
+		.set_bias(0, { 0.35, 0.35 })
+		.set_bias(1, { 0.60, 0.60 })
 		.build();
 
 	//Execute ANN
@@ -58,10 +58,11 @@ TEST(Basics, CounterCheckInPython)
 {
 	//Setup ANN
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, 5)
-		.set_layer(1, 4)
-		.set_layer(2, 3)
-		.set_layer(3, 2)
+	auto ann = ann_builder.set_input_layer(5)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
+		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.5, 3)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
+
 		.set_weights(0, {
 			{ 0.01, 0.02, 0.03, 0.04 },
 			{ 0.05, 0.06, 0.07, 0.08 },
@@ -146,10 +147,10 @@ TEST(Basics, Accending_and_decending)
 {
 	//Setup ANN
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, 5)
-		.set_layer(1, 4)
-		.set_layer(2, 3)
-		.set_layer(3, 2)
+	auto ann = ann_builder.set_input_layer(5)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
+		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.5, 3)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
 		.set_weights(0, {
 			{ 0.01, 0.02, 0.03, 0.04 },
 			{ 0.05, 0.06, 0.07, 0.08 },
@@ -198,10 +199,10 @@ TEST(Basics, Accending_and_decending)
 TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
 {
 	ANNBuilder<double> ann_builder;
-	ann_builder.set_layer(0, 5)
-		.set_layer(1, 4)
-		.set_layer(2, 3)
-		.set_layer(3, 2)
+	ann_builder.set_input_layer(5)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 4)
+		.set_hidden_layer(1, Neuron_Type::Sigmoid, 0.5, 3)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
 		.build();
 
 	auto &biases = ann_builder.get_biases_of_each_layer();
@@ -227,9 +228,10 @@ TEST(ANNBuilder_Basics, RANDOM_WEIGHTS_AND_BIASES_PROPERLY_INITIALIZED)
 TEST(Basics, XOR_RANDOM_SIGMOID)
 {
 	ANNBuilder<double> ann_builder;
-	auto ann = ann_builder.set_layer(0, 2)
-		.set_layer(1, 2)
-		.set_layer(2, 1)
+	auto ann = ann_builder
+		.set_input_layer(2)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 2)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 1)
 		.build();
 
 	std::vector<double> true_true_input{ 1., 1. };

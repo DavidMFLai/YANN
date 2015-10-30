@@ -3,7 +3,9 @@
 #include <cmath>
 #include <cassert>
 #include <random>
+#include <string>
 
+using std::string;
 namespace CPPANN {
 	template<typename T>
 	static void Sigmoid(Matrix<T> &output, const Matrix<T> &x) {
@@ -79,8 +81,36 @@ namespace CPPANN {
 	template<typename T>
 	class ANNBuilder {
 	public:
-		ANNBuilder() = default;
+		ANNBuilder()
+			: output_neuron_count{ 0 } 
+		{}
 
+		ANNBuilder &set_input_layer(uint64_t size) {
+			if (neuron_counts.size() == 0) {
+				neuron_counts.resize(1);
+			}
+			neuron_counts.at(0) = size;
+			return *this;
+		}
+
+		//Hidden layer index is zero based
+		ANNBuilder &set_hidden_layer(size_t hidden_layer_index, Neuron_Type type, T speed, uint64_t size) {
+			//0th hidden layer is the 1st layer in the ANN. (0th layer in the ANN is the input layer)
+			size_t layer_index = hidden_layer_index + 1;
+			
+			if (neuron_counts.size() <= layer_index) {
+				neuron_counts.resize(layer_index + 1);
+			}
+			neuron_counts.at(layer_index) = size;
+			return *this;
+		}
+
+		ANNBuilder &set_output_layer(Neuron_Type type, T speed, uint64_t size) {
+			output_neuron_count = size;
+			return *this;
+		}
+
+		//deprecated
 		ANNBuilder &set_layer(size_t layer_index, uint64_t size) {
 			if (neuron_counts.size() <= layer_index) {
 				neuron_counts.resize(layer_index + 1);
@@ -106,6 +136,10 @@ namespace CPPANN {
 		}
 
 		ANN<T> build() {
+			if (output_neuron_count != 0) {
+				neuron_counts.push_back(output_neuron_count);
+			}
+
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
 			Make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
 			Make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
@@ -181,6 +215,7 @@ namespace CPPANN {
 
 		Random_number_generator<T> random_number_generator;
 		std::vector<size_t> neuron_counts;
+		size_t output_neuron_count;
 		std::vector<std::vector<T>> biases_of_each_layer;
 		std::vector<Matrix<T>> weight_matrices;
 	};
@@ -268,11 +303,11 @@ namespace CPPANN {
 
 			//compute dSnp2_dSnp1
 			for (size_t idx = 0; idx < dSnp2_dSnp1.size() - 1; ++idx) {
-				compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_type);
+				Compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_type);
 			}
 
 			//compute dSOutput_dSnp1
-			compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_type);
+			Compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_type);
 			if (dSOutput_dSnp1.size() >= 2) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
 					Matrix<T>::Multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
@@ -281,7 +316,7 @@ namespace CPPANN {
 
 			//compute dSnp1_dWn
 			for (auto i = 0; i < dSnp1_dWn.size(); ++i) {
-				compute_dSnp1_dWn(dSnp1_dWn[i], signal_nodes[i + 1], signal_nodes[i], neuron_type);
+				Compute_dSnp1_dWn(dSnp1_dWn[i], signal_nodes[i + 1], signal_nodes[i], neuron_type);
 			}
 
 			//compute dSError_dSnp1
@@ -293,31 +328,31 @@ namespace CPPANN {
 			}
 
 			// compute weight updates and apply them
-			compute_dTotalError_dSnp1(dTotalError_dSnp1, dError_dSnp1);
+			Compute_dTotalError_dSnp1(dTotalError_dSnp1, dError_dSnp1);
 			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
-				compute_weight_update(weight_updates[idx], dTotalError_dSnp1[idx], dSnp1_dWn[idx], speed);
+				Compute_weight_update(weight_updates[idx], dTotalError_dSnp1[idx], dSnp1_dWn[idx], speed);
 				weights[idx] -= weight_updates[idx];
 			}
-			compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speed);
+			Compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speed);
 			weights.back() -= weight_updates.back();
 
 			//compute dSnp1_dBn		
 			for (size_t i = 0; i < dSnp1_dBn.size(); ++i) {
-				compute_dSnp1_dBn(dSnp1_dBn[i], signal_nodes[i+1], neuron_type);
+				Compute_dSnp1_dBn(dSnp1_dBn[i], signal_nodes[i+1], neuron_type);
 			}
 
 			//compute bias updates and apply them
 			for (size_t idx = 0; idx < bias_updates.size() - 1; ++idx) {
-				compute_bias_update(bias_updates[idx], dTotalError_dSnp1[idx], dSnp1_dBn[idx], speed);
+				Compute_bias_update(bias_updates[idx], dTotalError_dSnp1[idx], dSnp1_dBn[idx], speed);
 				biases[idx] -= bias_updates[idx];
 			}
-			compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speed);
+			Compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speed);
 			biases.back() -= bias_updates.back();
 		}
 
 	private:
 		//returns output(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
-		static void compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
+		static void Compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
 			assert(output.getRowCount() == signal_layer_next.getColumnCount());
 			assert(output.getRowCount() == weights.getColumnCount());
 			assert(output.getColumnCount() == weights.getRowCount());
@@ -332,7 +367,7 @@ namespace CPPANN {
 		}
 
 		//returns dTotalError_dSnp1(0,j) := d(sum(error_vector))/d(Snp1(0,j)) 
-		static void compute_dTotalError_dSnp1(std::vector<Matrix<T>> &dTotalError_dSnp1, const std::vector<Matrix<T>> &dSOutput_dSnp1) {
+		static void Compute_dTotalError_dSnp1(std::vector<Matrix<T>> &dTotalError_dSnp1, const std::vector<Matrix<T>> &dSOutput_dSnp1) {
 			assert(dTotalError_dSnp1.size() == dSOutput_dSnp1.size());
 			for (size_t idx = 0; idx < dTotalError_dSnp1.size(); ++idx) {
 				Matrix<T>::Sum_of_rows(dTotalError_dSnp1[idx], dSOutput_dSnp1[idx]);
@@ -340,7 +375,7 @@ namespace CPPANN {
 		}
 
 		//returns output(i,j) := d(signal_layer_next(0,j))/d(weights(i,j))
-		static void compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer, Neuron_Type neuron_type) {
+		static void Compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer, Neuron_Type neuron_type) {
 			assert(output.getRowCount() == signal_layer.getColumnCount());
 			assert(output.getColumnCount() == signal_layer_next.getColumnCount());
 			for (auto i = 0; i < output.getRowCount(); ++i) {
@@ -354,7 +389,7 @@ namespace CPPANN {
 		}
 
 		//returns the weight_update of the Nth layer
-		static void compute_weight_update(Matrix<T> &weight_update_n, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dWn, T speed) {
+		static void Compute_weight_update(Matrix<T> &weight_update_n, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dWn, T speed) {
 			assert(weight_update_n.getDimensions() == dSnp1_dWn.getDimensions());
 			assert(weight_update_n.getColumnCount() == dSnp1_dWn.getColumnCount());
 			for (size_t i = 0; i < weight_update_n.getRowCount(); i++) 
@@ -364,7 +399,7 @@ namespace CPPANN {
 		}
 
 		//Weight update of the last neuron layer.
-		static void compute_final_weight_update(Matrix<T> &last_weight_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dWn, T speed) {
+		static void Compute_final_weight_update(Matrix<T> &last_weight_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dWn, T speed) {
 			assert(last_weight_update.getDimensions() == last_dSnp1_dWn.getDimensions());
 			for (size_t i = 0; i < last_weight_update.getRowCount(); i++)
 				for (size_t j = 0; j < last_weight_update.getColumnCount(); j++) {
@@ -373,7 +408,7 @@ namespace CPPANN {
 		}
 
 		//returns output(0,i) := d(signal_layer_next(0,i))/d(biases(0,j))
-		static void compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
+		static void Compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
 			assert(output.getDimensions() == signal_layer_next.getDimensions());
 			for (auto i = 0; i < output.getColumnCount(); ++i) {
 				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
@@ -382,14 +417,14 @@ namespace CPPANN {
 		}
 
 		//returns the bias updates of the Nth layer
-		static void compute_bias_update(Matrix<T> &bias_update, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dBn, T speed) {
+		static void Compute_bias_update(Matrix<T> &bias_update, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dBn, T speed) {
 			for (size_t idx = 0; idx < bias_update.getColumnCount(); ++idx) {
 				bias_update(0, idx) = dTotalError_dSnp1(0, idx) * dSnp1_dBn(0, idx) * speed;
 			}
 		}
 		
 		//Bias update for the last neuron layer
-		static void compute_final_bias_update(Matrix<T> &last_bias_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dBn, T speed) {
+		static void Compute_final_bias_update(Matrix<T> &last_bias_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dBn, T speed) {
 			for (size_t idx = 0; idx < last_bias_update.getColumnCount(); ++idx) {
 				last_bias_update(0, idx) = last_dSnp1_dBn(0, idx) * error_vector(0, idx) * speed;
 			}
