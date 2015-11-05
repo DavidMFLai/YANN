@@ -3,7 +3,6 @@
 #include "gmock\gmock.h"
 #include "gtest\gtest.h"
 
-#include "ANN.h"
 #include "MinstData.h"
 
 using namespace std;
