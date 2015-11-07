@@ -9,15 +9,17 @@ template<typename T>
 class Matrix;
 
 template<typename T>
-void default_multiply_function(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs) {
-	for (size_t m = 0; m < lhs.getDimensions()[0]; m++) {
-		for (size_t n = 0; n < rhs.getDimensions()[1]; n++) {
-			output(m, n) = 0;
-			for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
-				output(m, n) += lhs(m, p)*rhs(p, n);
+void default_multiply_function(T *output, const T *lhs, const T *rhs, uint32_t m, uint32_t n, uint32_t p) {
+	for (uint32_t idx_m = 0; idx_m < m; idx_m++) {
+		for (uint32_t idx_p = 0; idx_p < p; idx_p++) {
+			output[idx_m*p + idx_p] = 0;
+			for (size_t idx_n = 0; idx_n < n; idx_n++)
+				output[idx_m*p + idx_p] += lhs[idx_m * n + idx_n] * rhs[idx_n * p + idx_p];
+
+				//output(m, p) += lhs(m, n)*rhs(n, p);
 		}
 	}
-};
+}
 
 template<typename T>
 class Matrix_Ref {
@@ -73,7 +75,7 @@ private:
 template<typename T>
 class Matrix {
 	template<typename T>
-	using Multiply_function_ptr = void(*)(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs);
+	using Multiply_function_ptr = void(*)(T *output, const T *lhs, const T *rhs, uint32_t m, uint32_t n, uint32_t p);
 
 	struct MatrixAccessProperties {
 		void setDimensions(size_t rowCount, size_t columnCount) {
@@ -224,7 +226,7 @@ public:
 		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
 		assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
-		multiply_func(output, lhs, rhs);
+		multiply_func(output.getElems().data(), lhs.getElems().data(), rhs.getElems().data(), static_cast<uint32_t>(output.getDimensions()[0]), static_cast<uint32_t>(lhs.getDimensions()[1]), static_cast<uint32_t>(output.getDimensions()[1]));
 	}
 
 	static void copy_from_vector(Matrix &output, const std::vector<T> &input) {
