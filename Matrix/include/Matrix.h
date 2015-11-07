@@ -6,6 +6,20 @@
 #include <cmath>
 
 template<typename T>
+class Matrix;
+
+template<typename T>
+void default_multiply_function(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs) {
+	for (size_t m = 0; m < lhs.getDimensions()[0]; m++) {
+		for (size_t n = 0; n < rhs.getDimensions()[1]; n++) {
+			output(m, n) = 0;
+			for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
+				output(m, n) += lhs(m, p)*rhs(p, n);
+		}
+	}
+};
+
+template<typename T>
 class Matrix_Ref {
 	struct MatrixAccessProperties {
 		void setDimensions(size_t rowCount, size_t columnCount, size_t stride) {
@@ -16,7 +30,7 @@ class Matrix_Ref {
 		size_t operator()(size_t i, size_t j) const {
 			return i*stride + j;
 		}
-
+		
 		size_t stride;
 		std::array<size_t, 2> dimensions;
 	};
@@ -58,6 +72,9 @@ private:
 
 template<typename T>
 class Matrix {
+	template<typename T>
+	using Multiply_function_ptr = void(*)(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs);
+
 	struct MatrixAccessProperties {
 		void setDimensions(size_t rowCount, size_t columnCount) {
 			dimensions = { rowCount, columnCount };
@@ -87,12 +104,14 @@ public:
 
 	//Constructor by row and column size
 	Matrix(size_t rowCount, size_t columnCount)
-		:elems(rowCount*columnCount) {
+		:elems(rowCount*columnCount),
+		multiply_function{ default_multiply_function } {
 		matrixAccessProperties.setDimensions(rowCount, columnCount);
 	};
 
 	//Constructor by initialization list
-	Matrix(std::initializer_list<std::initializer_list<T>> lists) {
+	Matrix(std::initializer_list<std::initializer_list<T>> lists) 
+		:multiply_function{ default_multiply_function } {
 		matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
 		for (std::initializer_list<T> list : lists) {
 			elems.insert(elems.end(), list);
@@ -155,29 +174,33 @@ public:
 	//Creates a new matrix of the same dimensions, with row rowToClone identical to *this, and zero elsewhere.
 	Matrix createRowMatrix(size_t rowToClone) const{
 		Matrix retval{ getDimensions()[0], getDimensions()[1] };
-		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
-			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
+		for (size_t i = 0; i < retval.getDimensions()[0]; ++i) {
+			for (size_t j = 0; j < retval.getDimensions()[1]; ++j) {
 				if (i == rowToClone) {
 					retval(i, j) = this->operator()(i, j);
 				}
 				else {
 					retval(i, j) = 0;
 				}
+			}
+		}
 		return retval;
 	}
 
 	//Creates a new matrix of the same dimensions, with row columnToClone identical to *this, and zero elsewhere.
 	Matrix createColumnMatrix(size_t columnToClone) const {
 		Matrix retval{ getDimensions()[0], getDimensions()[1] };
-		for (size_t i = 0; i < retval.getDimensions()[0]; ++i)
-			for (size_t j = 0; j < retval.getDimensions()[1]; ++j)
+		for (size_t i = 0; i < retval.getDimensions()[0]; ++i) {
+			for (size_t j = 0; j < retval.getDimensions()[1]; ++j) {
 				if (j == columnToClone) {
 					retval(i, j) = this->operator()(i, j);
 				}
 				else {
 					retval(i, j) = 0;
 				}
-				return retval;
+			}
+		}
+		return retval;
 	}
 
 	static void Add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
@@ -196,17 +219,12 @@ public:
 		}
 	}
 
-	static void Multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+	static void Multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs, Multiply_function_ptr<T> multiply_func) {
 		//output = lhs * rhs;
 		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
 		assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
-		for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
-			for (size_t n = 0; n < rhs.getDimensions()[1]; n++) {
-				output(m, n) = 0;
-				for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
-					output(m, n) += lhs(m, p)*rhs(p, n);
-			}
+		multiply_func(output, lhs, rhs);
 	}
 
 	static void copy_from_vector(Matrix &output, const std::vector<T> &input) {
@@ -263,6 +281,14 @@ public:
 		}
 	}
 
+	void set_multiply_function(Multiply_function_ptr<T> multiply_function) {
+		this->multiply_function = multiply_function;
+	}
+
+	Multiply_function_ptr<T> get_multiply_function() const {
+		return multiply_function;
+	}
+
 public:
 	const std::vector<T> &getElems() const{
 		return elems;
@@ -273,6 +299,7 @@ public:
 	}
 
 private:
+	Multiply_function_ptr<T> multiply_function;
 	MatrixAccessProperties matrixAccessProperties;
 	std::vector<T> elems;
 };
@@ -282,11 +309,7 @@ template<typename T>
 Matrix<T> operator*(const Matrix<T> &lhs, const Matrix<T> &rhs) {
 	assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 	Matrix<T> retval{ lhs.getDimensions()[0], rhs.getDimensions()[1] };
-	retval.zero();
-	for (size_t m = 0; m < lhs.getDimensions()[0]; m++)
-		for (size_t p = 0; p < lhs.getDimensions()[1]; p++)
-			for (size_t n = 0; n < rhs.getDimensions()[1]; n++)
-				retval(m, n) += lhs(m, p)*rhs(p, n);
+	Matrix<T>::Multiply(retval, lhs, rhs, lhs.get_multiply_function());
 	return retval;
 };
 

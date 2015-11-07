@@ -102,7 +102,7 @@ TEST(BasicOperations, FunctionMultiply) {
 
 	Matrix<double> result(3, 3);
 
-	Matrix<double>::Multiply(result, m, n);
+	Matrix<double>::Multiply(result, m, n, n.get_multiply_function());
 
 	Matrix<double> expected_result{
 		{ 111.*211. + 112.*221. , 111.*212. + 112.*222., 111.*213. + 112.*223. },
