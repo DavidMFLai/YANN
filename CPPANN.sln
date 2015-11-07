@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MINST", "Examples\common\MI
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecogonition", "Examples\CharacterRecogonition\CharacterRecogonition.vcxproj", "{4618017C-3224-4453-976F-C11B63730D89}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecognition_clBlas", "Examples\CharacterRecogonition\CharacterRecognition_clBlas.vcxproj", "{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -74,6 +76,14 @@ Global
 		{4618017C-3224-4453-976F-C11B63730D89}.Release|x64.Build.0 = Release|x64
 		{4618017C-3224-4453-976F-C11B63730D89}.Release|x86.ActiveCfg = Release|Win32
 		{4618017C-3224-4453-976F-C11B63730D89}.Release|x86.Build.0 = Release|Win32
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Debug|x64.ActiveCfg = Debug|x64
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Debug|x64.Build.0 = Debug|x64
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Debug|x86.ActiveCfg = Debug|Win32
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Debug|x86.Build.0 = Debug|Win32
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Release|x64.ActiveCfg = Release|x64
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Release|x64.Build.0 = Release|x64
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Release|x86.ActiveCfg = Release|Win32
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,5 +92,6 @@ Global
 		{09A6E521-6122-4120-9A0A-CBBDA8B1CAFD} = {BC8FBE68-9950-40C5-8837-4B765F5238DE}
 		{B372F479-835E-44E7-A1A2-D71F3EAE3537} = {09A6E521-6122-4120-9A0A-CBBDA8B1CAFD}
 		{4618017C-3224-4453-976F-C11B63730D89} = {BC8FBE68-9950-40C5-8837-4B765F5238DE}
+		{4FDC83D2-8ADF-47F7-B03D-54B778A8579D} = {BC8FBE68-9950-40C5-8837-4B765F5238DE}
 	EndGlobalSection
 EndGlobal

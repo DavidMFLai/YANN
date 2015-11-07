@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ANNToMINSTConverter.cpp" />
     <ClCompile Include="CharacterRecognitionTest.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -29,6 +30,9 @@
     <ProjectReference Include="..\..\googletest\msvc\gtest.vcxproj">
       <Project>{c8f6c172-56f2-4e76-b5fa-c3b423b31be7}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ANNToMINSTConverter.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4618017C-3224-4453-976F-C11B63730D89}</ProjectGuid>
