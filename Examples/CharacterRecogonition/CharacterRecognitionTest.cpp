@@ -15,10 +15,10 @@ using namespace Converter;
 
 TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 {
-	string train_images_full_path = "../common/MINST/MINSTDataset/train-images.idx3-ubyte";
-	string train_labels_full_path = "../common/MINST/MINSTDataset/train-labels.idx1-ubyte";
-	string test_images_full_path = "../common/MINST/MINSTDataset/t10k-images.idx3-ubyte";
-	string test_labels_full_path = "../common/MINST/MINSTDataset/t10k-labels.idx1-ubyte";
+	string train_images_full_path = "../../common/MINST/MINSTDataset/train-images.idx3-ubyte";
+	string train_labels_full_path = "../../common/MINST/MINSTDataset/train-labels.idx1-ubyte";
+	string test_images_full_path = "../../common/MINST/MINSTDataset/t10k-images.idx3-ubyte";
+	string test_labels_full_path = "../../common/MINST/MINSTDataset/t10k-labels.idx1-ubyte";
 
 
 	//read raw training material

@@ -21,9 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{09A6E5
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MINST", "Examples\common\MINST\MINST.vcxproj", "{B372F479-835E-44E7-A1A2-D71F3EAE3537}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecogonition", "Examples\CharacterRecogonition\CharacterRecogonition.vcxproj", "{4618017C-3224-4453-976F-C11B63730D89}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecogonition", "Examples\CharacterRecogonition\CharacterRecognition\CharacterRecogonition.vcxproj", "{4618017C-3224-4453-976F-C11B63730D89}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecognition_clBlas", "Examples\CharacterRecogonition\CharacterRecognition_clBlas.vcxproj", "{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CharacterRecognition_clBlas", "Examples\CharacterRecogonition\CharacterRecognition_clBlas\CharacterRecognition_clBlas.vcxproj", "{4FDC83D2-8ADF-47F7-B03D-54B778A8579D}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution
