@@ -235,6 +235,12 @@ public:
 		multiply_func(output.getElems().data(), lhs.getElems().data(), rhs.getElems().data(), static_cast<uint32_t>(output.getDimensions()[0]), static_cast<uint32_t>(lhs.getDimensions()[1]), static_cast<uint32_t>(output.getDimensions()[1]));
 	}
 
+	static void Per_Element_Apply_Function(Matrix &output, const Matrix &input, T(*func)(T)) {
+		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
+			output.getElems()[idx] = func(input.getElems()[idx]);
+		}
+	}
+
 	static void copy_from_vector(Matrix &output, const std::vector<T> &input) {
 		assert(output.getColumnCount()*output.getRowCount() == input.size());
 		std::copy(input.begin(), input.end(), output.elems.begin());

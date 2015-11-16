@@ -8,11 +8,9 @@
 using std::string;
 namespace CPPANN {
 	template<typename T>
-	static void Sigmoid(Matrix<T> &output, const Matrix<T> &x) {
-		assert(output.getDimensions() == x.getDimensions());
-		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
-			output.getElems()[idx] = 1 / (1 + std::exp(-x.getElems()[idx]));
-		}
+	static T Sigmoid(T input) {
+		T output = 1 / (1 + std::exp(-input));
+		return output;
 	};
 
 	template<typename T>
@@ -21,11 +19,9 @@ namespace CPPANN {
 	};
 
 	template<typename T>
-	static void Tanh(Matrix<T> &output, const Matrix<T> &x) {
-		assert(output.getDimensions() == x.getDimensions());
-		for (size_t idx = 0; idx < x.getElems().size(); ++idx) {
-			output.getElems()[idx] = std::tanh(x.getElems()[idx]);
-		}
+	static T Tanh(T input) {
+		T output = std::tanh(input);
+		return output;
 	};
 
 	template<typename T>
@@ -37,16 +33,6 @@ namespace CPPANN {
 		Sigmoid,
 		Tanh
 	};
-
-	template<typename T>
-	static void evalute_perceptron(Matrix<T> &output, const Matrix<T> &input, Neuron_Type neuron_type) {
-		if (neuron_type == Neuron_Type::Sigmoid) {
-			CPPANN::Sigmoid<T>(output, input);
-		}
-		else {
-			CPPANN::Tanh<T>(output, input);
-		}	
-	}
 
 	template<typename T>
 	static T evalute_perceptron_prime(T x, Neuron_Type neuron_type) {
@@ -327,7 +313,12 @@ namespace CPPANN {
 			for (int i = 0; i < weights.size(); i++) {
 				Matrix<T>::Multiply(network_nodes[i], signal_nodes[i], weights[i]);
 				Matrix<T>::Add(network_nodes[i], network_nodes[i], biases[i]);
-				evalute_perceptron(signal_nodes[i + 1], network_nodes[i], this->neuron_types.at(i));
+				if (neuron_types[i] == Neuron_Type::Sigmoid) {
+					Matrix<T>::Per_Element_Apply_Function(signal_nodes[i + 1], network_nodes[i], &Sigmoid);
+				}
+				else {
+					Matrix<T>::Per_Element_Apply_Function(signal_nodes[i + 1], network_nodes[i], &Tanh);
+				}
 			}
 			return signal_nodes.back().getElems();
 		}
