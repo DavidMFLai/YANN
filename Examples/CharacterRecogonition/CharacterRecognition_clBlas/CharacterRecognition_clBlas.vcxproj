@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)googletest/include;$(SolutionDir)googlemock/include;$(SolutionDir)Matrix/include;$(SolutionDir)CPPANN/include;$(SolutionDir)Examples/Common/MINST;C:\Program Files (x86)\AMD APP SDK\3.0\include;C:\Users\lai_m_000\Documents\Visual Studio 2015\Projects\clBLAS\src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)googletest/include;$(SolutionDir)googlemock/include;$(SolutionDir)Matrix/include;$(SolutionDir)CPPANN/include;$(SolutionDir)Examples/Common/MINST;C:\Program Files (x86)\AMD APP SDK\3.0\include;$(ProjectDir)compiled_clblas</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -140,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)googletest/include;$(SolutionDir)googlemock/include;$(SolutionDir)Matrix/include;$(SolutionDir)CPPANN/include;$(SolutionDir)Examples/Common/MINST;C:\Program Files (x86)\AMD APP SDK\3.0\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)googletest/include;$(SolutionDir)googlemock/include;$(SolutionDir)Matrix/include;$(SolutionDir)CPPANN/include;$(SolutionDir)Examples/Common/MINST;C:\Program Files (x86)\AMD APP SDK\3.0\include;$(ProjectDir)compiled_clblas</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -153,13 +153,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\ANNToMINSTConverter.h" />
-    <ClInclude Include="..\clBLAS-complex.h" />
-    <ClInclude Include="..\clBLAS.h" />
+    <ClInclude Include="ClBlasGPU.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ANNToMINSTConverter.cpp" />
     <ClCompile Include="..\CharacterRecognitionTest_clBlas.cpp" />
     <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="ClBlasGPU.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\googlemock\msvc\2010\gmock.vcxproj">

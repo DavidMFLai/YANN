@@ -82,7 +82,8 @@ namespace CPPANN {
 	class ANNBuilder {
 	public:
 		ANNBuilder()
-			: output_neuron_count{ 0 } 
+			: output_neuron_count{ 0 },
+			multiply_function{nullptr}
 		{}
 
 		ANNBuilder &set_input_layer(uint64_t size) {
@@ -141,6 +142,11 @@ namespace CPPANN {
 			return *this;
 		}
 
+		ANNBuilder &set_multiplication_function(Multiply_function_ptr<T> multiply_function) {
+			this->multiply_function = multiply_function;
+			return *this;
+		}
+
 		ANN<T> build() {
 			if (output_neuron_count != 0) {
 				neuron_counts.push_back(output_neuron_count);
@@ -155,7 +161,11 @@ namespace CPPANN {
 			Make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
 			Make_random_weights_if_needed(weight_matrices, neuron_counts, random_number_generator);
 
-			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices, neuron_types, speeds};
+			if (multiply_function == nullptr) {
+				multiply_function = default_multiply_function;
+			}
+
+			ANN<T> retval{ neuron_counts, biases_of_each_layer, weight_matrices, neuron_types, speeds, multiply_function};
 			return retval;
 		}
 
@@ -245,6 +255,7 @@ namespace CPPANN {
 		std::vector<T> speeds;
 		std::vector<std::vector<T>> biases_of_each_layer;
 		std::vector<Matrix<T>> weight_matrices;
+		Multiply_function_ptr<T> multiply_function;
 	};
 
 	template<typename T>
@@ -255,7 +266,8 @@ namespace CPPANN {
 			const std::vector<std::vector<T>> &biases_of_each_layer, 
 			const std::vector<Matrix<T>> &weight_matrices, 
 			const std::vector<Neuron_Type> &neuron_types,
-			const std::vector<T> &speeds
+			const std::vector<T> &speeds,
+			Multiply_function_ptr<T> multiply_function
 			) {
 
 			//Get number of layers
@@ -286,6 +298,7 @@ namespace CPPANN {
 			}
 
 			//Create additional matrices required by backward propagation
+			dSnp1_dNn.resize(layers_count - 1);
 			dSnp1_dBn.resize(layers_count - 1);
 			dSnp1_dWn.resize(layers_count - 1);
 			weight_updates.resize(layers_count - 1);
@@ -298,12 +311,14 @@ namespace CPPANN {
 
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
+					dSnp1_dNn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(),  weights.at(idx).getColumnCount() };
 					weight_updates.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(), weights.at(idx).getColumnCount() };
 					bias_updates.at(idx) = Matrix<T>{ biases.at(idx).getRowCount(), biases.at(idx).getColumnCount() };
 				}
 				else {
+					dSnp1_dNn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dBn.at(idx) = Matrix<T>{ 1, network_nodes.at(idx).getColumnCount() };
 					dSnp1_dWn.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(),  weights.at(idx).getColumnCount() };
 					weight_updates.at(idx) = Matrix<T>{ weights.at(idx).getRowCount(), weights.at(idx).getColumnCount() };
@@ -317,12 +332,14 @@ namespace CPPANN {
 			for (size_t idx = 1; idx < layers_count - 2; idx++) {
 				dSnp2_dSnp1.at(idx - 1) = Matrix<T>{ signal_nodes.at(idx + 1).getColumnCount(), signal_nodes.at(idx).getColumnCount() };
 			}
+
+			this->multiply_function = multiply_function;
 		}
 	public:
 		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
 			Matrix<T>::copy_from_vector(signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
-				Matrix<T>::Multiply(network_nodes[i], signal_nodes[i], weights[i]);
+				Matrix<T>::Multiply(network_nodes[i], signal_nodes[i], weights[i], multiply_function);
 				Matrix<T>::Add(network_nodes[i], network_nodes[i], biases[i]);
 				evalute_perceptron(signal_nodes[i + 1], network_nodes[i], this->neuron_types.at(i));
 			}
@@ -333,6 +350,11 @@ namespace CPPANN {
 			//compute error
 			Matrix<T>::Minus(error_vector, signal_nodes.back(), expected);
 
+			//compute dSnp1_dNn
+			for (size_t idx = 0; idx < dSnp1_dNn.size(); ++idx) {
+				Compute_dSnp1_dNn(dSnp1_dNn[idx], signal_nodes[idx + 1], network_nodes[idx], neuron_types[idx]);
+			}
+
 			//compute dSnp2_dSnp1
 			for (size_t idx = 0; idx < dSnp2_dSnp1.size() - 1; ++idx) {
 				Compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_types.at(idx+1));
@@ -342,7 +364,7 @@ namespace CPPANN {
 			Compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_types.back());
 			if (dSOutput_dSnp1.size() >= 2) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
-					Matrix<T>::Multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
+					Matrix<T>::Multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx], multiply_function);
 				}
 			}
 
@@ -383,11 +405,21 @@ namespace CPPANN {
 		}
 
 	private:
+		//retuns output(0, i) = d(signal_layer_next(0, i)/network_layer(0, i)
+		static void Compute_dSnp1_dNn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &network_layer, Neuron_Type neuron_type){
+			assert(output.getColumnCount() == signal_layer_next.getColumnCount());
+			assert(output.getColumnCount() == network_layer.getColumnCount());
+			for (size_t idx = 0; idx < network_layer.getColumnCount(); idx++) {
+				output(0, idx) = evalute_perceptron_prime(signal_layer_next(0, idx), neuron_type);
+			}
+		}
+
 		//returns output(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
 		static void Compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
 			assert(output.getRowCount() == signal_layer_next.getColumnCount());
 			assert(output.getRowCount() == weights.getColumnCount());
 			assert(output.getColumnCount() == weights.getRowCount());
+
 			for (auto i = 0; i < output.getRowCount(); ++i) {
 				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
 				for (auto j = 0; j < output.getColumnCount(); ++j) {
@@ -468,6 +500,9 @@ namespace CPPANN {
 		*/
 			Matrix<T> error_vector;
 
+			//dSnp1_dNn[n](0,i) := d(signal_nodes[n+1](0,i))/d(network_nodes[n](0,i))
+			std::vector<Matrix<T>> dSnp1_dNn;
+
 			//dSnp2_dSnp1[n](i,j) := d(signal_nodes[n+2](0,i))/d(signal_nodes[n+1](0,j))
 			std::vector<Matrix<T>> dSnp2_dSnp1;
 
@@ -509,6 +544,11 @@ namespace CPPANN {
 
 			std::vector<T> speeds;
 	
+		/*
+		Multiplication Method
+		*/
+			Multiply_function_ptr<T> multiply_function;
+
 	public:
 
 		const std::vector<Matrix<T>> &getWeights() const{

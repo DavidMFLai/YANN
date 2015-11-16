@@ -18,7 +18,6 @@ using namespace std;
 using namespace CPPANN;
 using namespace Converter;
 
-
 /* Include CLBLAS header. It automatically includes needed OpenCL header,
 * so we can drop out explicit inclusion of cl.h header.
 */

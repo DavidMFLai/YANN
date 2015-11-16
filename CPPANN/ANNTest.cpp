@@ -51,6 +51,53 @@ TEST(Basics, mattmazur)
 	EXPECT_NEAR(0.56137012, weights[1](1, 1), tolerence);
 }
 
+TEST(Basics, mattmazur_with_overriden_multiply)
+{
+	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/. But the guy didnt update the biases
+
+	//Setup ANN
+	ANNBuilder<double> ann_builder;
+	auto ann = ann_builder.set_input_layer(2)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 2)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 2)
+		.set_weights(0, {
+			{ 0.15, 0.25 },
+			{ 0.20, 0.30 },
+		})
+		.set_weights(1, {
+			{ 0.40, 0.50 }, //weights from the 0th neuron of the present layer
+			{ 0.45, 0.55 },
+		})
+		.set_bias(0, { 0.35, 0.35 })
+		.set_bias(1, { 0.60, 0.60 })
+		.set_multiplication_function([](double *output, const double *lhs, const double *rhs, uint32_t m, uint32_t n, uint32_t p) {
+			for (uint32_t idx_m = 0; idx_m < m; idx_m++) {
+				for (uint32_t idx_p = 0; idx_p < p; idx_p++) {
+					output[idx_m*p + idx_p] = 0;
+					for (size_t idx_n = 0; idx_n < n; idx_n++)
+						output[idx_m*p + idx_p] += lhs[idx_m * n + idx_n] * rhs[idx_n * p + idx_p];
+				}
+			}
+		})
+		.build();
+
+	//Execute ANN
+	ann.forward_propagate({ 0.05, 0.10 });
+	ann.back_propagate(Matrix<double>{ { 0.01, 0.99} });
+
+	//Verify
+	double tolerence = 0.00000001;
+	auto &weights = ann.getWeights();
+	EXPECT_NEAR(0.14978072, weights[0](0, 0), tolerence);
+	EXPECT_NEAR(0.24975114, weights[0](0, 1), tolerence);
+	EXPECT_NEAR(0.19956143, weights[0](1, 0), tolerence);
+	EXPECT_NEAR(0.29950229, weights[0](1, 1), tolerence);
+	EXPECT_NEAR(0.35891648, weights[1](0, 0), tolerence);
+	EXPECT_NEAR(0.51130127, weights[1](0, 1), tolerence);
+	EXPECT_NEAR(0.40866619, weights[1](1, 0), tolerence);
+	EXPECT_NEAR(0.56137012, weights[1](1, 1), tolerence);
+}
+
 TEST(Basics, CounterCheckInPython)
 {
 	//Setup ANN
@@ -326,8 +373,6 @@ TEST(Basics, CounterCheckInPythonTanhAndSigmoidWithDifferentSpeeds)
 	EXPECT_NEAR(0.4775051, biases[2](0, 1), tolerence);
 }
 
-
-
 TEST(Basics, Accending_and_decending)
 {
 	//Setup ANN
@@ -462,6 +507,7 @@ TEST(ANNBuilder_Basics, ANNBuilder_Basics)
 	EXPECT_NEAR(0.4, speeds.at(1), 0.00000001);
 	EXPECT_NEAR(0.3, speeds.at(2), 0.00000001);
 }
+
 int main(int argc, char *argv[])
 {
 	::testing::InitGoogleMock(&argc, argv);

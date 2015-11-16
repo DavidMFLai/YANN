@@ -113,6 +113,31 @@ TEST(BasicOperations, FunctionMultiply) {
 	EXPECT_EQ(expected_result, result);
 }
 
+TEST(BasicOperations, FunctionMultiplyDefault) {
+	Matrix<double> m{
+		{ 111., 112. },
+		{ 121., 122. },
+		{ 131., 132. }
+	};
+
+	Matrix<double> n{
+		{ 211., 212., 213. },
+		{ 221., 222., 223. },
+	};
+
+	Matrix<double> result(3, 3);
+
+	Matrix<double>::Multiply(result, m, n);
+
+	Matrix<double> expected_result{
+		{ 111.*211. + 112.*221. , 111.*212. + 112.*222., 111.*213. + 112.*223. },
+		{ 121.*211. + 122.*221. , 121.*212. + 122.*222., 121.*213. + 122.*223. },
+		{ 131.*211. + 132.*221. , 131.*212. + 132.*222., 131.*213. + 132.*223. },
+	};
+
+	EXPECT_EQ(expected_result, result);
+}
+
 TEST(BasicOperations, Multiply_Elementwise) {
 	Matrix<double> m{
 		{ 111., 112. },

@@ -9,14 +9,15 @@ template<typename T>
 class Matrix;
 
 template<typename T>
+using Multiply_function_ptr = void(*)(T *output, const T *lhs, const T *rhs, uint32_t m, uint32_t n, uint32_t p);
+
+template<typename T>
 void default_multiply_function(T *output, const T *lhs, const T *rhs, uint32_t m, uint32_t n, uint32_t p) {
 	for (uint32_t idx_m = 0; idx_m < m; idx_m++) {
 		for (uint32_t idx_p = 0; idx_p < p; idx_p++) {
 			output[idx_m*p + idx_p] = 0;
 			for (size_t idx_n = 0; idx_n < n; idx_n++)
 				output[idx_m*p + idx_p] += lhs[idx_m * n + idx_n] * rhs[idx_n * p + idx_p];
-
-				//output(m, p) += lhs(m, n)*rhs(n, p);
 		}
 	}
 }
@@ -74,9 +75,6 @@ private:
 
 template<typename T>
 class Matrix {
-	template<typename T>
-	using Multiply_function_ptr = void(*)(T *output, const T *lhs, const T *rhs, uint32_t m, uint32_t n, uint32_t p);
-
 	struct MatrixAccessProperties {
 		void setDimensions(size_t rowCount, size_t columnCount) {
 			dimensions = { rowCount, columnCount };
@@ -219,6 +217,14 @@ public:
 		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
 			output.elems[idx] = lhs.elems[idx] - rhs.elems[idx];
 		}
+	}
+
+	static void Multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs) {
+		//output = lhs * rhs;
+		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
+		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
+		assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
+		default_multiply_function(output.getElems().data(), lhs.getElems().data(), rhs.getElems().data(), static_cast<uint32_t>(output.getDimensions()[0]), static_cast<uint32_t>(lhs.getDimensions()[1]), static_cast<uint32_t>(output.getDimensions()[1]));
 	}
 
 	static void Multiply(Matrix &output, const Matrix &lhs, const Matrix &rhs, Multiply_function_ptr<T> multiply_func) {
