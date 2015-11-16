@@ -343,11 +343,11 @@ namespace CPPANN {
 
 			//compute dSnp2_dSnp1
 			for (size_t idx = 0; idx < dSnp2_dSnp1.size() - 1; ++idx) {
-				Compute_dSnp1_dSn(dSnp2_dSnp1[idx], signal_nodes[idx + 2], weights[idx + 1], neuron_types.at(idx+1));
+				Compute_dSnp1_dSn(dSnp2_dSnp1[idx], dSnp1_dNn[idx + 1], weights[idx + 1]);
 			}
 
 			//compute dSOutput_dSnp1
-			Compute_dSnp1_dSn(dSOutput_dSnp1.back(), signal_nodes.back(), weights.back(), neuron_types.back());
+			Compute_dSnp1_dSn(dSOutput_dSnp1.back(), dSnp1_dNn.back(), weights.back());
 			if (dSOutput_dSnp1.size() >= 2) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
 					Matrix<T>::Multiply(dSOutput_dSnp1[idx], dSOutput_dSnp1[idx + 1], dSnp2_dSnp1[idx]);
@@ -356,7 +356,7 @@ namespace CPPANN {
 
 			//compute dSnp1_dWn
 			for (auto idx = 0; idx < dSnp1_dWn.size(); ++idx) {
-				Compute_dSnp1_dWn(dSnp1_dWn[idx], signal_nodes[idx + 1], signal_nodes[idx], neuron_types.at(idx));
+				Compute_dSnp1_dWn(dSnp1_dWn[idx], dSnp1_dNn[idx], signal_nodes[idx]);
 			}
 
 			//compute dSError_dSnp1
@@ -378,7 +378,7 @@ namespace CPPANN {
 
 			//compute dSnp1_dBn		
 			for (size_t idx = 0; idx < dSnp1_dBn.size(); ++idx) {
-				Compute_dSnp1_dBn(dSnp1_dBn[idx], signal_nodes[idx+1], neuron_types.at(idx));
+				Compute_dSnp1_dBn(dSnp1_dBn[idx], dSnp1_dNn[idx]);
 			}
 
 			//compute bias updates and apply them
@@ -400,18 +400,16 @@ namespace CPPANN {
 			}
 		}
 
-		//returns output(i,j) = d(signal_layer_next(0,i))/d(signal_layer(0,j)).
-		static void Compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &weights, Neuron_Type neuron_type) {
-			assert(output.getRowCount() == signal_layer_next.getColumnCount());
+		static void Compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn, const Matrix<T> &weights) {
+			assert(output.getRowCount() == dSnp1_dNn.getColumnCount());
 			assert(output.getRowCount() == weights.getColumnCount());
 			assert(output.getColumnCount() == weights.getRowCount());
 
 			for (auto i = 0; i < output.getRowCount(); ++i) {
-				auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, i), neuron_type);
 				for (auto j = 0; j < output.getColumnCount(); ++j) {
 					//Network to Signal layer
 					auto dNn_dSn = weights(j, i);
-					output(i, j) = dSnp1_dNn * dNn_dSn;
+					output(i, j) = dSnp1_dNn(0, i) * dNn_dSn;
 				}
 			}
 		}
@@ -425,15 +423,14 @@ namespace CPPANN {
 		}
 
 		//returns output(i,j) := d(signal_layer_next(0,j))/d(weights(i,j))
-		static void Compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &signal_layer_next, const Matrix<T> &signal_layer, Neuron_Type neuron_type) {
+		static void Compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn, const Matrix<T> &signal_layer) {
 			assert(output.getRowCount() == signal_layer.getColumnCount());
 			assert(output.getColumnCount() == signal_layer_next.getColumnCount());
 			for (auto i = 0; i < output.getRowCount(); ++i) {
 				//Network to Weight layer
 				auto dNn_dWn = signal_layer(0, i);
 				for (auto j = 0; j < output.getColumnCount(); ++j) {
-					auto dSnp1_dNn = evalute_perceptron_prime(signal_layer_next(0, j), neuron_type);
-					output(i, j) = dSnp1_dNn * dNn_dWn;
+					output(i, j) = dSnp1_dNn(0, j) * dNn_dWn;
 				}
 			}
 		}
@@ -457,6 +454,14 @@ namespace CPPANN {
 				}
 		}
 
+		//returns output(0,i) := d(signal_layer_next(0,i))/d(biases(0,j))
+		static void Compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn) {
+			assert(output.getDimensions() == signal_layer_next.getDimensions());
+			for (auto i = 0; i < output.getColumnCount(); ++i) {
+				output(0, i) = dSnp1_dNn(0, i); //because dNn/dBn = 1
+			}
+		}
+		
 		//returns output(0,i) := d(signal_layer_next(0,i))/d(biases(0,j))
 		static void Compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &signal_layer_next, Neuron_Type neuron_type) {
 			assert(output.getDimensions() == signal_layer_next.getDimensions());
