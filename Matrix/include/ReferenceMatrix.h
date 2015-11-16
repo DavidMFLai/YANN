@@ -1,4 +1,7 @@
 #pragma once
+
+#include "Matrix.h"
+
 #include <vector>
 #include <array>
 #include <cassert>
@@ -6,21 +9,7 @@
 #include <cmath>
 
 template<typename T>
-class ReferenceMatrix {
-	struct MatrixAccessProperties {
-		void setDimensions(size_t rowCount, size_t columnCount) {
-			this->dimensions = { rowCount, columnCount };
-		}
-
-		size_t operator()(size_t i, size_t j) const {
-			assert(i < this->dimensions[0]);
-			assert(j < this->dimensions[1]);
-			return i*this->dimensions[1] + j;
-		}
-
-		std::array<size_t, 2> dimensions;
-	};
-
+class ReferenceMatrix : public Matrix{
 public:
 	//defaulted constructors and destructors
 	ReferenceMatrix() = default;
@@ -50,20 +39,6 @@ public:
 		this->elems = list;
 	}
 
-	//Getting dimensions
-	std::array<size_t, 2> getDimensions() const {
-		return this->matrixAccessProperties.dimensions;
-	}
-
-	//Getting No. of rows
-	size_t getRowCount() const {
-		return this->matrixAccessProperties.dimensions[0];
-	}
-	//Getting No. of rows
-	size_t getColumnCount() const {
-		return this->matrixAccessProperties.dimensions[1];
-	}
-
 	//Getting element(i,j)
 	T& operator()(size_t i, size_t j) {
 		return this->elems[matrixAccessProperties(i, j)];
@@ -84,6 +59,7 @@ public:
 
 	static void Sum_of_rows(ReferenceMatrix &output, const ReferenceMatrix &input) {
 		assert(output.getColumnCount() == input.getColumnCount());
+		assert(output.getRowCount() == 1);
 		for (size_t i = 0; i < input.getColumnCount(); ++i) {
 			output(0, i) = 0;
 			for (size_t j = 0; j < input.getRowCount(); ++j)
@@ -237,12 +213,6 @@ public:
 		std::copy(input.begin(), input.end(), output.elems.begin());
 	}
 
-	void zero() {
-		for (auto &elem : elems) {
-			elem = 0;
-		}
-	}
-
 public:
 	const std::vector<T> &getElems() const{
 		return elems;
@@ -253,7 +223,6 @@ public:
 	}
 
 private:
-	MatrixAccessProperties matrixAccessProperties;
 	std::vector<T> elems;
 };
 

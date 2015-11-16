@@ -103,6 +103,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Matrix.h" />
     <ClInclude Include="include\ReferenceMatrix.h" />
     <ClInclude Include="MatrixBuilder.h" />
     <ClInclude Include="ReferenceMatrixBuilder.h" />

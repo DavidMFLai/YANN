@@ -27,6 +27,9 @@
     <ClInclude Include="include\ReferenceMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MatrixTest.cpp">
