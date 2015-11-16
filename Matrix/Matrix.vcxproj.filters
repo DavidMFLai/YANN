@@ -18,7 +18,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Matrix.h">
+    <ClInclude Include="MatrixBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReferenceMatrixBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReferenceMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

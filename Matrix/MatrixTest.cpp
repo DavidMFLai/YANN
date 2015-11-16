@@ -5,24 +5,24 @@
 
 #include "gmock\gmock.h"
 #include "gtest/gtest.h"
-#include "Matrix.h"
+#include "ReferenceMatrix.h"
 
 TEST(BasicOperations, Default_Contruction) {
-	Matrix<double> m;
+	ReferenceMatrix<double> m;
 	const auto dimensions = m.getDimensions();
 	const std::array<size_t, 2> expectedDimensions{ 0, 0 };
 	EXPECT_EQ(dimensions, expectedDimensions);
 }
 
 TEST(BasicOperations, Contruction_With_Dimensions) {
-	Matrix<double> m{ 4,5 };
+	ReferenceMatrix<double> m{ 4,5 };
 	const auto dimensions = m.getDimensions();
 	const std::array<size_t, 2> expectedDimensions{ 4, 5 };
 	EXPECT_EQ(dimensions, expectedDimensions);
 }
 
 TEST(BasicOperations, Contruction_With_InitializationLists) {
-	Matrix<double> m{ 
+	ReferenceMatrix<double> m{
 		{ 1., 2. },
 		{ 3., 4. },
 		{ 5., 6. }
@@ -34,7 +34,7 @@ TEST(BasicOperations, Contruction_With_InitializationLists) {
 }
 
 TEST(BasicOperations, Copy_Contruction) {
-	Matrix<double> m{
+	ReferenceMatrix<double> m{
 		{ 1., 2. },
 		{ 3., 4. },
 		{ 5., 6. }
@@ -46,22 +46,22 @@ TEST(BasicOperations, Copy_Contruction) {
 }
 
 TEST(BasicOperations, FunctionMultiplyDefault) {
-	Matrix<double> m{
+	ReferenceMatrix<double> m{
 		{ 111., 112. },
 		{ 121., 122. },
 		{ 131., 132. }
 	};
 
-	Matrix<double> n{
+	ReferenceMatrix<double> n{
 		{ 211., 212., 213. },
 		{ 221., 222., 223. },
 	};
 
-	Matrix<double> result(3, 3);
+	ReferenceMatrix<double> result(3, 3);
 
-	Matrix<double>::Multiply(result, m, n);
+	ReferenceMatrix<double>::Multiply(result, m, n);
 
-	Matrix<double> expected_result{
+	ReferenceMatrix<double> expected_result{
 		{ 111.*211. + 112.*221. , 111.*212. + 112.*222., 111.*213. + 112.*223. },
 		{ 121.*211. + 122.*221. , 121.*212. + 122.*222., 121.*213. + 122.*223. },
 		{ 131.*211. + 132.*221. , 131.*212. + 132.*222., 131.*213. + 132.*223. },
@@ -71,17 +71,17 @@ TEST(BasicOperations, FunctionMultiplyDefault) {
 }
 
 TEST(BasicOperations, sumOfRows) {
-	Matrix<double> input{
+	ReferenceMatrix<double> input{
 		{ 1., 2., 3. },
 		{ 4., 5., 6. },
 	};
 
-	Matrix<double> expected{
+	ReferenceMatrix<double> expected{
 		{ 1. + 4., 2. + 5., 3. + 6. },
 	};
 
-	Matrix<double> result{1, 3};
-	Matrix<double>::Sum_of_rows(result, input);
+	ReferenceMatrix<double> result{1, 3};
+	ReferenceMatrix<double>::Sum_of_rows(result, input);
 
 	EXPECT_EQ(expected, result);
 }
