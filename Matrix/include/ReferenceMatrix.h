@@ -49,12 +49,11 @@ public:
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 
-	ReferenceMatrix &operator-=(const ReferenceMatrix<T> &rhs) {
-		assert(this->getDimensions() == rhs.getDimensions());
-		for (size_t idx = 0; idx < elems.size(); ++idx) {
-			this->elems[idx] -= rhs.elems[idx];
+	static void subtract_andThen_assign(ReferenceMatrix &output, const ReferenceMatrix &input) {
+		assert(output.getDimensions() == input.getDimensions());
+		for (size_t idx = 0; idx < output.getElems().size(); ++idx) {
+			output.elems[idx] -= input.elems[idx];
 		}
-		return *this;
 	}
 
 	static void Sum_of_rows(ReferenceMatrix &output, const ReferenceMatrix &input) {

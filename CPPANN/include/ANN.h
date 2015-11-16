@@ -340,10 +340,10 @@ namespace CPPANN {
 			Compute_dTotalError_dSnp1(dTotalError_dSnp1, dError_dSnp1);
 			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
 				Compute_weight_update(weight_updates[idx], dTotalError_dSnp1[idx], dSnp1_dWn[idx], speeds[idx]);
-				weights[idx] -= weight_updates[idx];
+				ReferenceMatrix<T>::subtract_andThen_assign(weights[idx], weight_updates[idx]);
 			}
 			Compute_final_weight_update(weight_updates.back(), error_vector, dSnp1_dWn.back(), speeds.back());
-			weights.back() -= weight_updates.back();
+			ReferenceMatrix<T>::subtract_andThen_assign(weights.back(), weight_updates.back());
 
 			//compute dSnp1_dBn		
 			for (size_t idx = 0; idx < dSnp1_dBn.size(); ++idx) {
@@ -353,10 +353,10 @@ namespace CPPANN {
 			//compute bias updates and apply them
 			for (size_t idx = 0; idx < bias_updates.size() - 1; ++idx) {
 				Compute_bias_update(bias_updates[idx], dTotalError_dSnp1[idx], dSnp1_dBn[idx], speeds[idx]);
-				biases[idx] -= bias_updates[idx];
+				ReferenceMatrix<T>::subtract_andThen_assign(biases[idx], bias_updates[idx]);
 			}
 			Compute_final_bias_update(bias_updates.back(), error_vector, dSnp1_dBn.back(), speeds.back());
-			biases.back() -= bias_updates.back();
+			ReferenceMatrix<T>::subtract_andThen_assign(biases.back(), bias_updates.back());
 		}
 
 	private:
