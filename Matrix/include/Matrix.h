@@ -9,13 +9,13 @@ template<typename T>
 class Matrix {
 	struct MatrixAccessProperties {
 		void setDimensions(size_t rowCount, size_t columnCount) {
-			dimensions = { rowCount, columnCount };
+			this->dimensions = { rowCount, columnCount };
 		}
 
 		size_t operator()(size_t i, size_t j) const {
-			assert(i < dimensions[0]);
-			assert(j < dimensions[1]);
-			return i*dimensions[1] + j;
+			assert(i < this->dimensions[0]);
+			assert(j < this->dimensions[1]);
+			return i*this->dimensions[1] + j;
 		}
 
 		std::array<size_t, 2> dimensions;
@@ -23,71 +23,61 @@ class Matrix {
 
 public:
 	//defaulted constructors and destructors
-	Matrix(Matrix &&) = default;
-	Matrix &operator=(Matrix &&) = default;
+	Matrix() = default;
+ 	Matrix(Matrix &&) = default;
 	Matrix(const Matrix &) = default;
+	Matrix &operator=(Matrix &&) = default;
 	Matrix &operator=(const Matrix &) = default;
 	~Matrix() = default;
-
-	//default constructor
-	Matrix()
-		: Matrix(0, 0)
-	{};
 
 	//Constructor by row and column size
 	Matrix(size_t rowCount, size_t columnCount)
 		:elems(rowCount*columnCount) {
-		matrixAccessProperties.setDimensions(rowCount, columnCount);
-	};
+		this->matrixAccessProperties.setDimensions(rowCount, columnCount);
+	}
 
 	//Constructor by initialization list
 	Matrix(std::initializer_list<std::initializer_list<T>> lists) {
-		matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
+		this->matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
 		for (std::initializer_list<T> list : lists) {
-			elems.insert(elems.end(), list);
+			this->elems.insert(elems.end(), list);
 		}
 	}
 
 	//Constructor by vector (only for a 1-by-n Matrix)
 	Matrix(const std::vector<T> &list) {
-		matrixAccessProperties.setDimensions(1, list.size());
-		elems = list;
-	}
-
-	//Constructor by r value vector (only for a 1-by-n Matrix)
-	Matrix(std::vector<T> &&list) {
-		matrixAccessProperties.setDimensions(1, list.size());
-		elems = std::move(list);
+		this->matrixAccessProperties.setDimensions(1, list.size());
+		this->elems = list;
 	}
 
 	//Getting dimensions
 	std::array<size_t, 2> getDimensions() const {
-		return matrixAccessProperties.dimensions;
+		return this->matrixAccessProperties.dimensions;
 	}
 
 	//Getting No. of rows
 	size_t getRowCount() const {
-		return matrixAccessProperties.dimensions[0];
+		return this->matrixAccessProperties.dimensions[0];
 	}
 	//Getting No. of rows
 	size_t getColumnCount() const {
-		return matrixAccessProperties.dimensions[1];
+		return this->matrixAccessProperties.dimensions[1];
 	}
 
 	//Getting element(i,j)
 	T& operator()(size_t i, size_t j) {
-		return elems[matrixAccessProperties(i, j)];
+		return this->elems[matrixAccessProperties(i, j)];
 	}
 
 	//Getting element(i,j), const version
 	const T& operator()(size_t i, size_t j) const {
-		return elems[matrixAccessProperties(i, j)];
+		return this->elems[matrixAccessProperties(i, j)];
 	}
 
 	Matrix &operator-=(const Matrix<T> &rhs) {
 		assert(this->getDimensions() == rhs.getDimensions());
 		for (size_t idx = 0; idx < elems.size(); ++idx) {
-			elems[idx] -= rhs.elems[idx];
+			this->elems[idx] -= rhs.elems[idx];
 		}
 		return *this;
 	}

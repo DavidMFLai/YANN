@@ -36,7 +36,7 @@ TEST(Basics, mattmazur)
 
 	//Execute ANN
 	ann.forward_propagate({ 0.05, 0.10 });
-	ann.back_propagate(Matrix<double>{ { 0.01, 0.99} });
+	ann.back_propagate({ 0.01, 0.99});
 
 	//Verify
 	double tolerence = 0.00000001;
@@ -84,7 +84,7 @@ TEST(Basics, CounterCheckInPython)
 		.build();
 
 	ann.forward_propagate({ 0.18, 0.29, 0.40, 0.51, 0.62 });
-	ann.back_propagate(Matrix<double>{ { 0.01, 0.99 }});
+	ann.back_propagate({ 0.01, 0.99 });
 
 	//Verify
 	double tolerence = 0.00000001;
@@ -174,7 +174,7 @@ TEST(Basics, CounterCheckInPythonTanhAndSigmoid)
 		.build();
 
 	auto &output = ann.forward_propagate({ 0.18, 0.29, 0.40, 0.51, 0.62 });
-	ann.back_propagate(Matrix<double>{ { 0.01, 0.99 }});
+	ann.back_propagate({ 0.01, 0.99 });
 
 	//Verify
 	double tolerence = 0.00000001;
@@ -267,7 +267,7 @@ TEST(Basics, CounterCheckInPythonTanhAndSigmoidWithDifferentSpeeds)
 		.build();
 
 	auto &output = ann.forward_propagate({ 0.18, 0.29, 0.40, 0.51, 0.62 });
-	ann.back_propagate(Matrix<double>{ { 0.01, 0.99 }});
+	ann.back_propagate({ 0.01, 0.99 });
 
 	//Verify
 	double tolerence = 0.00000001;
@@ -389,16 +389,16 @@ TEST(Basics, XOR_RANDOM_SIGMOID)
 		.build();
 
 	std::vector<double> true_true_input{ 1., 1. };
-	Matrix<double> true_true_expected_result{ { 0. } };
+	std::vector<double> true_true_expected_result{ 0. };
 
 	std::vector<double> false_false_input{ 0., 0. };
-	Matrix<double> false_false_expected_result{ { 0. } };
+	std::vector<double> false_false_expected_result{ 0. };
 
 	std::vector<double> false_true_input{ 0., 1. };
-	Matrix<double> false_true_expected_result{ { 1. } };
+	std::vector<double> false_true_expected_result{ 1. };
 
 	std::vector<double> true_false_input{ 1., 0. };
-	Matrix<double> true_false_expected_result{ { 1. } };
+	std::vector<double> true_false_expected_result{ 1. };
 
 	std::vector<double> true_true_result, false_true_result, true_false_result, false_false_result;
 	for (int i = 0; i < 1000000; i++) {

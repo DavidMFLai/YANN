@@ -97,11 +97,11 @@ namespace CPPANN {
 			return *this;
 		}
 
-		ANNBuilder &set_weights(size_t starting_layer_index, const Matrix<T> &matrix) {
+		ANNBuilder &set_weights(size_t starting_layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_list) {
 			if (weight_matrices.size() <= starting_layer_index) {
 				weight_matrices.resize(starting_layer_index + 1);
 			}
-			weight_matrices.at(starting_layer_index) = matrix;
+			weight_matrices.at(starting_layer_index) = Matrix<T> { matrix_initializer_list };
 			return *this;
 		}
 
@@ -301,7 +301,10 @@ namespace CPPANN {
 			return signal_nodes.back().getElems();
 		}
 
-		void back_propagate(const Matrix<T> &expected) {
+		void back_propagate(const std::vector<T> &expected_as_vector) {
+			
+			Matrix<T> expected{ expected_as_vector };
+			
 			//compute error
 			Matrix<T>::Minus(error_vector, signal_nodes.back(), expected);
 
