@@ -235,13 +235,117 @@ public:
 		multiply_func(output.getElems().data(), lhs.getElems().data(), rhs.getElems().data(), static_cast<uint32_t>(output.getDimensions()[0]), static_cast<uint32_t>(lhs.getDimensions()[1]), static_cast<uint32_t>(output.getDimensions()[1]));
 	}
 
-	static void Per_Element_Apply_Function(Matrix &output, const Matrix &input, T(*func)(T)) {
+	static void Per_Element_Sigmoid(Matrix &output, const Matrix &input) {
+		assert(output.getElems().size() == input.getElems().size());
 		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
-			output.getElems()[idx] = func(input.getElems()[idx]);
+			output.getElems()[idx] = 1 / (1 + std::exp(-input.getElems()[idx]));
 		}
 	}
 
-	static void copy_from_vector(Matrix &output, const std::vector<T> &input) {
+	static void Per_Element_Sigmoid_Prime(Matrix &output, const Matrix &sigmoid_value) {
+		assert(output.getElems().size() == sigmoid_value.getElems().size());
+		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
+			output.getElems()[idx] = sigmoid_value.getElems()[idx] * (1 - sigmoid_value.getElems()[idx]);
+		}
+	}
+
+	static void Per_Element_Tanh(Matrix &output, const Matrix &input) {
+		assert(output.getElems().size() == input.getElems().size());
+		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
+			output.getElems()[idx] = std::tanh(input.getElems()[idx]);
+		}
+	}
+
+	static void Per_Element_Tanh_Prime(Matrix &output, const Matrix &tanh_value) {
+		assert(output.getElems().size() == tanh_value.getElems().size());
+		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
+			output.getElems()[idx] = 1 - (tanh_value.getElems()[idx] * tanh_value.getElems()[idx]);
+		}
+	}
+
+	/*
+	1. For each column i in multiplicand, multiply by multipliers(0,i)
+	2. Assign output to the transpose of the result of (1)
+	*/
+	static void Per_Column_Multiply_AndThen_Transpose(Matrix &output, const Matrix &multipliers, const Matrix &multiplicand) {
+		assert(multipliers.getRowCount() == 1);
+		assert(output.getColumnCount() == multiplicand.getRowCount());
+		assert(output.getRowCount() == multiplicand.getColumnCount());
+
+		for (size_t i = 0; i < output.getRowCount(); i++) {
+			for (size_t j = 0; j < output.getColumnCount(); j++) {
+				output(i, j) = multipliers(0, i) * multiplicand(j, i);
+			}
+		}
+	}
+
+	/*
+	1. For each column i in multiplicand, multiply by multipliers(0,i)
+	2. Multiply each value in (1) by scale
+	3. Assign output to the value in (2)
+	*/
+	static void Per_Column_Multiply_AndThen_Scale(Matrix &output, const Matrix &multipliers, const Matrix &multiplicand, T scale) {
+		assert(multipliers.getRowCount() == 1);
+		assert(output.getColumnCount() == multiplicand.getRowCount());
+		assert(output.getRowCount() == multiplicand.getColumnCount());
+
+		for (size_t i = 0; i < output.getRowCount(); i++) {
+			for (size_t j = 0; j < output.getColumnCount(); j++) {
+				output(i, j) = multipliers(0, j) * multiplicand(i, j) * scale;
+			}
+		}
+	}
+
+	/*
+	1. For each row i in multiplicand, multiply by multipliers(0,i)
+	2. Assign output to the value in (2)
+	*/
+	static void Per_Row_Multiply(Matrix &output, const Matrix &multipliers, const Matrix &multiplicand) {
+		assert(multipliers.getRowCount() == 1);
+		assert(output.getColumnCount() == multiplicand.getRowCount());
+		assert(output.getRowCount() == multiplicand.getColumnCount());
+
+		for (size_t i = 0; i < output.getRowCount(); i++) {
+			for (size_t j = 0; j < output.getColumnCount(); j++) {
+				output(i, j) = multipliers(0, i) * multiplicand(i, j);
+			}
+		}
+	}
+
+	static void Row_Vectors_Per_Element_Multiply_AndThen_Scale(Matrix &output, const Matrix &row_vector_1, const Matrix &row_vector_2, T scale) {
+		assert(row_vector_1.getRowCount() == 1);
+		assert(row_vector_2.getRowCount() == 1);
+		assert(output.getRowCount() == 1);
+		assert(output.getColumnCount() == row_vector_1.getColumnCount());
+		assert(output.getColumnCount() == row_vector_2.getColumnCount());
+
+		for (size_t i = 0; i < output.getColumnCount(); i++) {
+			output(0, i) = row_vector_1(0, i) * row_vector_2(0, i) * scale;
+		}
+	}
+
+	static void copy(Matrix &output, const Matrix &input) {
+		assert(output.getDimensions() == input.getDimensions());
+
+		for (size_t i = 0; i < output.getRowCount(); i++) {
+			for (size_t j = 0; j < output.getColumnCount(); j++) {
+				output(i, j) = input(i, j);
+			}
+		}
+	}
+
+	static void Outer_product(Matrix &output, const Matrix &input1, const Matrix &input2) {
+		assert(input1.getRowCount() == 1);
+		assert(input2.getRowCount() == 1);
+
+		for (size_t i = 0; i < output.getRowCount(); i++) {
+			for (size_t j = 0; j < output.getColumnCount(); j++) {
+				output(i, j) = input1(0, i) * input2(0, j);
+			}
+		}
+	}
+
+	static void Copy_from_vector(Matrix &output, const std::vector<T> &input) {
 		assert(output.getColumnCount()*output.getRowCount() == input.size());
 		std::copy(input.begin(), input.end(), output.elems.begin());
 	}
