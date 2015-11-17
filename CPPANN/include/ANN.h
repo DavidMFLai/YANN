@@ -46,7 +46,7 @@ namespace CPPANN {
 	class ANNBuilder {
 	public:
 		ANNBuilder()
-			: output_neuron_count{ 0 }
+			: settings_output_neuron_count{ 0 }
 		{}
 
 		ANNBuilder &set_input_layer(uint64_t size) {
@@ -83,9 +83,9 @@ namespace CPPANN {
 		}
 
 		ANNBuilder &set_output_layer(Neuron_Type type, T speed, uint64_t size) {
-			output_neuron_type = type;
-			output_speed = speed;
-			output_neuron_count = size;
+			settings_output_neuron_type = type;
+			settings_output_speed = speed;
+			settings_output_neuron_count = size;
 			return *this;
 		}
 
@@ -98,29 +98,29 @@ namespace CPPANN {
 		}
 
 		ANNBuilder &set_weights(size_t starting_layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_lists) {
-			if (weight_matrices_values.size() <= starting_layer_index) {
-				weight_matrices_values.resize(starting_layer_index + 1);
+			if (settings_weight_matrices_values.size() <= starting_layer_index) {
+				settings_weight_matrices_values.resize(starting_layer_index + 1);
 			}
 
 			for (auto matrix_initializer_list : matrix_initializer_lists) {
-				weight_matrices_values.at(starting_layer_index).push_back(std::vector<T>{matrix_initializer_list});
+				settings_weight_matrices_values.at(starting_layer_index).push_back(std::vector<T>{matrix_initializer_list});
 			}
 			return *this;
 		}
 
 		ANN<T> build() {
-			if (output_neuron_count != 0) {
-				neuron_counts.push_back(output_neuron_count);
+			if (settings_output_neuron_count != 0) {
+				neuron_counts.push_back(settings_output_neuron_count);
 			}
 			else {
 				throw runtime_error("output neuron has not been set");
 			}
-			neuron_types.push_back(output_neuron_type);
-			speeds.push_back(output_speed);
+			neuron_types.push_back(settings_output_neuron_type);
+			speeds.push_back(settings_output_speed);
 
 			//construct weight matrices
-			for (size_t idx = 0; idx < weight_matrices_values.size(); idx++ ) {
-				weight_matrices.push_back(ReferenceMatrix<T>{weight_matrices_values.at(idx)});
+			for (size_t idx = 0; idx < settings_weight_matrices_values.size(); idx++ ) {
+				weight_matrices.push_back(ReferenceMatrix<T>{settings_weight_matrices_values.at(idx)});
 			}
 
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
@@ -204,10 +204,18 @@ namespace CPPANN {
 			}
 		}
 
-		size_t output_neuron_count;
-		Neuron_Type output_neuron_type;
-		T output_speed;
-		
+		/*
+		Output Layer settings
+		*/
+		size_t settings_output_neuron_count;
+		Neuron_Type settings_output_neuron_type;
+		T settings_output_speed;
+
+		/*
+		Weight settings
+		*/
+		std::vector<std::vector<std::vector<T>>> settings_weight_matrices_values; //if settings_weight_matrices_values[0][1][2] == 0th Weight Matrix's value at (1,2);
+
 		/*
 		Values to be given to the ANN
 		*/
@@ -216,7 +224,6 @@ namespace CPPANN {
 		std::vector<Neuron_Type> neuron_types;
 		std::vector<T> speeds;
 		std::vector<std::vector<T>> biases_of_each_layer;
-		std::vector<std::vector<std::vector<T>>> weight_matrices_values; //if weight_matrices_values[0][1][2] == 0th Weight Matrix's value at (1,2)
 		std::vector<ReferenceMatrix<T>> weight_matrices;
 	};
 
