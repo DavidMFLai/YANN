@@ -6,6 +6,7 @@
 #include "gmock\gmock.h"
 #include "gtest/gtest.h"
 #include "ReferenceMatrix.h"
+#include "ReferenceMatrixBuilder.h"
 
 TEST(BasicOperations, Default_Contruction) {
 	ReferenceMatrix<double> m;
@@ -84,6 +85,27 @@ TEST(BasicOperations, sumOfRows) {
 	ReferenceMatrix<double>::Sum_of_rows(result, input);
 
 	EXPECT_EQ(expected, result);
+}
+
+TEST(ReferenceMatrixBuilder, buildBySettingDimensions) {
+	ReferenceMatrixBuilder<double> ref_matrix_builder;
+	auto created_matrix = ref_matrix_builder.setDimensions(1, 2)
+		.build();
+
+	EXPECT_EQ(1, created_matrix->getRowCount());
+	EXPECT_EQ(2, created_matrix->getColumnCount());
+}
+
+TEST(ReferenceMatrixBuilder, buildBySettingValues) {
+	ReferenceMatrixBuilder<double> ref_matrix_builder;
+	auto created_matrix = ref_matrix_builder.setValues({
+			{ 1, 2, 3},
+			{ 4, 5, 6}
+		})
+		.build();
+
+	EXPECT_EQ(2, created_matrix->getRowCount());
+	EXPECT_EQ(3, created_matrix->getColumnCount());
 }
 
 int main(int argc, char *argv[])

@@ -9,10 +9,13 @@
 #include <cmath>
 
 template<typename T>
-class ReferenceMatrix : public Matrix{
+class ReferenceMatrix : public Matrix {
 public:
 	//defaulted constructors and destructors
-	ReferenceMatrix() = default;
+	ReferenceMatrix() 
+		: ReferenceMatrix(0, 0) 
+	{};
+
  	ReferenceMatrix(ReferenceMatrix &&) = default;
 	ReferenceMatrix(const ReferenceMatrix &) = default;
 	ReferenceMatrix &operator=(ReferenceMatrix &&) = default;
@@ -30,6 +33,14 @@ public:
 		this->matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
 		for (std::initializer_list<T> list : lists) {
 			this->elems.insert(elems.end(), list);
+		}
+	}
+
+	//Constructor by vector of vectors
+	ReferenceMatrix(std::vector<std::vector<T>> lists) {
+		this->matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
+		for (std::vector<T> list : lists) {
+			this->elems.insert(elems.end(), list.begin(), list.end());
 		}
 	}
 
@@ -148,8 +159,8 @@ public:
 	*/
 	static void Per_Column_Multiply_AndThen_Scale(ReferenceMatrix &output, const ReferenceMatrix &multipliers, const ReferenceMatrix &multiplicand, T scale) {
 		assert(multipliers.getRowCount() == 1);
-		assert(output.getColumnCount() == multiplicand.getRowCount());
-		assert(output.getRowCount() == multiplicand.getColumnCount());
+		assert(output.getRowCount() == multiplicand.getRowCount());
+		assert(output.getColumnCount() == multiplicand.getColumnCount());
 
 		for (size_t i = 0; i < output.getRowCount(); i++) {
 			for (size_t j = 0; j < output.getColumnCount(); j++) {
@@ -164,8 +175,8 @@ public:
 	*/
 	static void Per_Row_Multiply(ReferenceMatrix &output, const ReferenceMatrix &multipliers, const ReferenceMatrix &multiplicand) {
 		assert(multipliers.getRowCount() == 1);
-		assert(output.getColumnCount() == multiplicand.getRowCount());
-		assert(output.getRowCount() == multiplicand.getColumnCount());
+		assert(output.getRowCount() == multiplicand.getRowCount());
+		assert(output.getColumnCount() == multiplicand.getColumnCount());
 
 		for (size_t i = 0; i < output.getRowCount(); i++) {
 			for (size_t j = 0; j < output.getColumnCount(); j++) {
