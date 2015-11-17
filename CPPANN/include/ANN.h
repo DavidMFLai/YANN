@@ -97,11 +97,14 @@ namespace CPPANN {
 			return *this;
 		}
 
-		ANNBuilder &set_weights(size_t starting_layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_list) {
-			if (weight_matrices.size() <= starting_layer_index) {
-				weight_matrices.resize(starting_layer_index + 1);
+		ANNBuilder &set_weights(size_t starting_layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_lists) {
+			if (weight_matrices_values.size() <= starting_layer_index) {
+				weight_matrices_values.resize(starting_layer_index + 1);
 			}
-			weight_matrices.at(starting_layer_index) = ReferenceMatrix<T> { matrix_initializer_list };
+
+			for (auto matrix_initializer_list : matrix_initializer_lists) {
+				weight_matrices_values.at(starting_layer_index).push_back(std::vector<T>{matrix_initializer_list});
+			}
 			return *this;
 		}
 
@@ -114,6 +117,11 @@ namespace CPPANN {
 			}
 			neuron_types.push_back(output_neuron_type);
 			speeds.push_back(output_speed);
+
+			//construct weight matrices
+			for (size_t idx = 0; idx < weight_matrices_values.size(); idx++ ) {
+				weight_matrices.push_back(ReferenceMatrix<T>{weight_matrices_values.at(idx)});
+			}
 
 			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
 			Make_random_biases_if_needed(biases_of_each_layer, neuron_counts, random_number_generator);
@@ -208,6 +216,7 @@ namespace CPPANN {
 		std::vector<Neuron_Type> neuron_types;
 		std::vector<T> speeds;
 		std::vector<std::vector<T>> biases_of_each_layer;
+		std::vector<std::vector<std::vector<T>>> weight_matrices_values; //if weight_matrices_values[0][1][2] == 0th Weight Matrix's value at (1,2)
 		std::vector<ReferenceMatrix<T>> weight_matrices;
 	};
 
