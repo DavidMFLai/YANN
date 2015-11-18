@@ -8,7 +8,7 @@ class ReferenceMatrixBuilder : public MatrixBuilder<T> {
 public:
 	ReferenceMatrixBuilder<T>()
 	{}
-	
+
 	std::unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
 		std::vector<std::vector<T>> data(rowCount);
 		for (auto &data_row : data) {
@@ -32,4 +32,9 @@ public:
 		return retval;
 	};
 
+	std::unique_ptr<Matrix<T>> create(const std::vector<T> &t) override {
+		std::vector<std::vector<T>> data{t};
+		std::unique_ptr<Matrix<T>> retval{ new ReferenceMatrix<T>{ data } };
+		return retval;
+	}
 };

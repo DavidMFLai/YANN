@@ -231,12 +231,12 @@ namespace CPPANN {
 			
 			for (size_t idx = 0; idx < layers_count; idx++) {
 				if (idx == 0) {
-					signal_nodes.at(idx) = std::make_unique<ReferenceMatrix<T>>(1, signal_counts[idx]);
+					signal_nodes.at(idx) = matrix_builder->create(1, signal_counts[idx]);
 				}
 				else {
-					signal_nodes.at(idx) = std::make_unique<ReferenceMatrix<T>>(1, signal_counts[idx]);
-					network_nodes.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(1, signal_counts[idx]);
-					biases.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(settings_biases.at(idx - 1));
+					signal_nodes.at(idx) = matrix_builder->create(1, signal_counts[idx]);
+					network_nodes.at(idx - 1) = matrix_builder->create(1, signal_counts[idx]);
+					biases.at(idx - 1) = matrix_builder->create(settings_biases.at(idx - 1));
 					weights.at(idx - 1) = std::move(weight_matrices.at(idx - 1));
 				}
 			}
@@ -251,30 +251,31 @@ namespace CPPANN {
 			dError_dSnp1.resize(layers_count - 2);
 			dSnp2_dSnp1.resize(layers_count - 2);
 			dTotalError_dSnp1.resize(layers_count - 2);
-			error_vector = std::make_unique<ReferenceMatrix<T>>( signal_nodes.back()->getRowCount(), signal_nodes.back()->getColumnCount() );
+			error_vector = matrix_builder->create( signal_nodes.back()->getRowCount(), signal_nodes.back()->getColumnCount() );
+			expected_vector = matrix_builder->create(signal_nodes.back()->getRowCount(), signal_nodes.back()->getColumnCount());
 
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
-					dSnp1_dNn.at(idx) = std::make_unique<ReferenceMatrix<T>>(1, network_nodes.at(idx)->getColumnCount());
-					dSnp1_dBn.at(idx) = std::make_unique<ReferenceMatrix<T>>( 1, network_nodes.at(idx)->getColumnCount() );
-					dSnp1_dWn.at(idx) = std::make_unique<ReferenceMatrix<T>>( weights.at(idx)->getRowCount(),  weights.at(idx)->getColumnCount() );
-					weight_updates.at(idx) = std::make_unique<ReferenceMatrix<T>>( weights.at(idx)->getRowCount(), weights.at(idx)->getColumnCount() );
-					bias_updates.at(idx) = std::make_unique<ReferenceMatrix<T>>( biases.at(idx)->getRowCount(), biases.at(idx)->getColumnCount() );
+					dSnp1_dNn.at(idx) = matrix_builder->create(1, network_nodes.at(idx)->getColumnCount());
+					dSnp1_dBn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getColumnCount() );
+					dSnp1_dWn.at(idx) = matrix_builder->create( weights.at(idx)->getRowCount(),  weights.at(idx)->getColumnCount() );
+					weight_updates.at(idx) = matrix_builder->create( weights.at(idx)->getRowCount(), weights.at(idx)->getColumnCount() );
+					bias_updates.at(idx) = matrix_builder->create( biases.at(idx)->getRowCount(), biases.at(idx)->getColumnCount() );
 				}
 				else {
-					dSnp1_dNn.at(idx) = std::make_unique<ReferenceMatrix<T>>( 1, network_nodes.at(idx)->getColumnCount() );
-					dSnp1_dBn.at(idx) = std::make_unique<ReferenceMatrix<T>>( 1, network_nodes.at(idx)->getColumnCount() );
-					dSnp1_dWn.at(idx) = std::make_unique<ReferenceMatrix<T>>( weights.at(idx)->getRowCount(),  weights.at(idx)->getColumnCount() );
-					weight_updates.at(idx) = std::make_unique<ReferenceMatrix<T>>( weights.at(idx)->getRowCount(), weights.at(idx)->getColumnCount() );
-					bias_updates.at(idx) = std::make_unique<ReferenceMatrix<T>>( biases.at(idx)->getRowCount(), biases.at(idx)->getColumnCount() );
-					dSOutput_dSnp1.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(signal_nodes.back()->getColumnCount(), signal_nodes.at(idx)->getColumnCount());
-					dError_dSnp1.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>( signal_nodes.back()->getColumnCount(), signal_nodes.at(idx)->getColumnCount() );
-					dTotalError_dSnp1.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>( 1, signal_nodes.at(idx)->getColumnCount() );
+					dSnp1_dNn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getColumnCount() );
+					dSnp1_dBn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getColumnCount() );
+					dSnp1_dWn.at(idx) = matrix_builder->create( weights.at(idx)->getRowCount(),  weights.at(idx)->getColumnCount() );
+					weight_updates.at(idx) = matrix_builder->create( weights.at(idx)->getRowCount(), weights.at(idx)->getColumnCount() );
+					bias_updates.at(idx) = matrix_builder->create( biases.at(idx)->getRowCount(), biases.at(idx)->getColumnCount() );
+					dSOutput_dSnp1.at(idx - 1) = matrix_builder->create(signal_nodes.back()->getColumnCount(), signal_nodes.at(idx)->getColumnCount());
+					dError_dSnp1.at(idx - 1) = matrix_builder->create( signal_nodes.back()->getColumnCount(), signal_nodes.at(idx)->getColumnCount() );
+					dTotalError_dSnp1.at(idx - 1) = matrix_builder->create( 1, signal_nodes.at(idx)->getColumnCount() );
 				}
 			}
 
 			for (size_t idx = 1; idx < layers_count - 2; idx++) {
-				dSnp2_dSnp1.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>( signal_nodes.at(idx + 1)->getColumnCount(), signal_nodes.at(idx)->getColumnCount() );
+				dSnp2_dSnp1.at(idx - 1) = matrix_builder->create( signal_nodes.at(idx + 1)->getColumnCount(), signal_nodes.at(idx)->getColumnCount() );
 			}
 		}
 	public:
@@ -294,11 +295,10 @@ namespace CPPANN {
 		}
 
 		void back_propagate(const std::vector<T> &expected_as_vector) {
-			
-			ReferenceMatrix<T> expected{ expected_as_vector };
-			
+			Matrix<T>::Copy_from_vector(*expected_vector, expected_as_vector);
+
 			//compute error
-			Matrix<T>::Minus(*error_vector, *signal_nodes.back(), expected);
+			Matrix<T>::Minus(*error_vector, *signal_nodes.back(), *expected_vector);
 
 			//compute dSnp1_dNn
 			for (size_t idx = 0; idx < dSnp1_dNn.size(); ++idx) {
@@ -418,7 +418,7 @@ namespace CPPANN {
 		/*
 		Back propagation variables:
 		*/
-			std::unique_ptr<Matrix<T>> error_vector;
+			std::unique_ptr<Matrix<T>> error_vector, expected_vector;
 
 			//dSnp1_dNn[n](0,i) := d(signal_nodes[n+1](0,i))/d(network_nodes[n](0,i))
 			std::vector<std::unique_ptr<Matrix<T>>> dSnp1_dNn;

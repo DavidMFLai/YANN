@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Matrix.h"
+#include "ReferenceMatrixBuilder.h"
 
 #include <vector>
 #include <array>
@@ -10,31 +11,8 @@
 
 template<typename T>
 class ReferenceMatrix : public Matrix<T> {
-public:
-	//defaulted constructors and destructors
-	ReferenceMatrix() 
-		: ReferenceMatrix(0, 0) 
-	{};
-
- 	ReferenceMatrix(ReferenceMatrix &&) = default;
-	ReferenceMatrix(const ReferenceMatrix &) = default;
-	ReferenceMatrix &operator=(ReferenceMatrix &&) = default;
-	ReferenceMatrix &operator=(const ReferenceMatrix &) = default;
-	~ReferenceMatrix() = default;
-
-	//Constructor by row and column size
-	ReferenceMatrix(size_t rowCount, size_t columnCount)
-		:elems(rowCount*columnCount) {
-		this->matrixAccessProperties.setDimensions(rowCount, columnCount);
-	}
-
-	//Constructor by initialization list
-	ReferenceMatrix(std::initializer_list<std::initializer_list<T>> lists) {
-		this->matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
-		for (std::initializer_list<T> list : lists) {
-			this->elems.insert(elems.end(), list);
-		}
-	}
+private:
+	friend class ReferenceMatrixBuilder<T>;
 
 	//Constructor by vector of vectors
 	ReferenceMatrix(std::vector<std::vector<T>> lists) {
@@ -44,12 +22,14 @@ public:
 		}
 	}
 
-	//Constructor by vector (only for a 1-by-n Matrix)
-	ReferenceMatrix(const std::vector<T> &list) {
-		this->matrixAccessProperties.setDimensions(1, list.size());
-		this->elems = list;
-	}
+	//deleted default, copy, move, copy assignment, and move assignment
+	ReferenceMatrix() = delete;
+ 	ReferenceMatrix(ReferenceMatrix &&) = delete;
+	ReferenceMatrix(const ReferenceMatrix &) = delete;
+	ReferenceMatrix &operator=(ReferenceMatrix &&) = delete;
+	ReferenceMatrix &operator=(const ReferenceMatrix &) = delete;
 
+public:
 	//Getting element(i,j)
 	T& at(size_t i, size_t j) override{
 		return this->elems[matrixAccessProperties(i, j)];
