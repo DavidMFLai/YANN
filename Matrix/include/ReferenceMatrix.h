@@ -70,142 +70,123 @@ public:
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 
-	static void subtract_andThen_assign(ReferenceMatrix &output, const ReferenceMatrix &input) {
-		assert(output.getDimensions() == input.getDimensions());
-		for (size_t idx = 0; idx < output.getElems().size(); ++idx) {
-			output.elems[idx] -= input.elems[idx];
+private:
+	void subtract_andThen_assign(const Matrix<T> &input) override {
+		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
+		for (size_t idx = 0; idx < this->getElems().size(); ++idx) {
+			this->elems[idx] -= input_as_reference_matrix.elems[idx];
 		}
 	}
 
-	static void Sum_of_rows(ReferenceMatrix &output, const ReferenceMatrix &input) {
-		assert(output.getColumnCount() == input.getColumnCount());
-		assert(output.getRowCount() == 1);
-		for (size_t i = 0; i < input.getColumnCount(); ++i) {
-			output(0, i) = 0;
-			for (size_t j = 0; j < input.getRowCount(); ++j)
-				output(0, i) += input(j, i);
+	void sum_of_rows(const Matrix<T> &input) override {
+		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
+		for (size_t i = 0; i < input_as_reference_matrix.getColumnCount(); ++i) {
+			this->at(0, i) = 0;
+			for (size_t j = 0; j < input_as_reference_matrix.getRowCount(); ++j)
+				this->at(0, i) += input_as_reference_matrix(j, i);
 		}
 	}
 
-	static void Add(ReferenceMatrix &output, const ReferenceMatrix &lhs, const ReferenceMatrix &rhs) {
-		//output = lhs + rhs;
-		assert(lhs.getDimensions() == rhs.getDimensions());
-		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
-			output.elems[idx] = lhs.elems[idx] + rhs.elems[idx];
+	void add(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
+		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
+		
+		for (size_t idx = 0; idx < lhs_rm.elems.size(); ++idx) {
+			this->elems[idx] = lhs_rm.elems[idx] + rhs_rm.elems[idx];
 		}
 	}
 
-	static void Minus(ReferenceMatrix &output, const ReferenceMatrix &lhs, const ReferenceMatrix &rhs) {
-		//output = lhs - rhs;
-		assert(lhs.getDimensions() == rhs.getDimensions());
-		for (size_t idx = 0; idx < lhs.elems.size(); ++idx) {
-			output.elems[idx] = lhs.elems[idx] - rhs.elems[idx];
+	void minus(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
+		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
+		for (size_t idx = 0; idx < lhs_rm.elems.size(); ++idx) {
+			this->elems[idx] = lhs_rm.elems[idx] - rhs_rm.elems[idx];
 		}
 	}
 
-	static void Multiply(ReferenceMatrix &output, const ReferenceMatrix &lhs, const ReferenceMatrix &rhs) {
-		//output = lhs * rhs;
-		assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
-		assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
-		assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
-		for (size_t m = 0; m < lhs.getDimensions()[0]; m++) {
-			for (size_t n = 0; n < rhs.getDimensions()[1]; n++) {
-				output(m, n) = 0;
-				for (size_t p = 0; p < lhs.getDimensions()[1]; p++) {
-					output(m, n) += lhs(m, p)*rhs(p, n);
+	void multiply(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
+		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
+		for (size_t m = 0; m < lhs_rm.getDimensions()[0]; m++) {
+			for (size_t n = 0; n < rhs_rm.getDimensions()[1]; n++) {
+				this->at(m, n) = 0;
+				for (size_t p = 0; p < lhs_rm.getDimensions()[1]; p++) {
+					this->at(m, n) += lhs_rm(m, p)*rhs_rm(p, n);
 				}
 			}
 		}
 	}
 
-	static void Per_Element_Sigmoid(ReferenceMatrix &output, const ReferenceMatrix &input) {
-		assert(output.getElems().size() == input.getElems().size());
-		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
-			output.getElems()[idx] = 1 / (1 + std::exp(-input.getElems()[idx]));
+	void per_Element_Sigmoid(const Matrix<T> &input) override {
+		const ReferenceMatrix<T> &input_rm = static_cast<const ReferenceMatrix<T> &>(input);
+		for (size_t idx = 0; idx < this->getElems().size(); idx++) {
+			this->getElems()[idx] = 1 / (1 + std::exp(-input_rm.getElems()[idx]));
 		}
 	}
 
-	static void Per_Element_Sigmoid_Prime(ReferenceMatrix &output, const ReferenceMatrix &sigmoid_value) {
-		assert(output.getElems().size() == sigmoid_value.getElems().size());
-		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
-			output.getElems()[idx] = sigmoid_value.getElems()[idx] * (1 - sigmoid_value.getElems()[idx]);
+	void per_Element_Sigmoid_Prime(const Matrix<T> &sigmoid_value) override {
+		const ReferenceMatrix<T> &sigmoid_value_rm = static_cast<const ReferenceMatrix<T> &>(sigmoid_value);
+		for (size_t idx = 0; idx < this->getElems().size(); idx++) {
+			this->getElems()[idx] = sigmoid_value_rm.getElems()[idx] * (1 - sigmoid_value_rm.getElems()[idx]);
 		}
 	}
 
-	static void Per_Element_Tanh(ReferenceMatrix &output, const ReferenceMatrix &input) {
-		assert(output.getElems().size() == input.getElems().size());
-		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
-			output.getElems()[idx] = std::tanh(input.getElems()[idx]);
+	void per_Element_Tanh(const Matrix<T> &input) override {
+		const ReferenceMatrix<T> &input_rm = static_cast<const ReferenceMatrix<T> &>(input);
+		for (size_t idx = 0; idx < this->getElems().size(); idx++) {
+			this->getElems()[idx] = std::tanh(input_rm.getElems()[idx]);
 		}
 	}
 
-	static void Per_Element_Tanh_Prime(ReferenceMatrix &output, const ReferenceMatrix &tanh_value) {
-		assert(output.getElems().size() == tanh_value.getElems().size());
-		for (size_t idx = 0; idx < output.getElems().size(); idx++) {
-			output.getElems()[idx] = 1 - (tanh_value.getElems()[idx] * tanh_value.getElems()[idx]);
+	void per_Element_Tanh_Prime(const Matrix<T> &tanh_value) override {
+		const ReferenceMatrix<T> &tanh_value_rm = static_cast<const ReferenceMatrix<T> &>(tanh_value);
+		for (size_t idx = 0; idx < this->getElems().size(); idx++) {
+			this->getElems()[idx] = 1 - (tanh_value_rm.getElems()[idx] * tanh_value_rm.getElems()[idx]);
 		}
-	}
+	};
 
-	/*
-	1. For each column i in multiplicand, multiply by multipliers(0,i)
-	2. Assign output to the transpose of the result of (1)
-	*/
-	static void Per_Column_Multiply_AndThen_Transpose(ReferenceMatrix &output, const ReferenceMatrix &multipliers, const ReferenceMatrix &multiplicand) {
-		assert(multipliers.getRowCount() == 1);
-		assert(output.getColumnCount() == multiplicand.getRowCount());
-		assert(output.getRowCount() == multiplicand.getColumnCount());
+	void per_Column_Multiply_AndThen_Transpose(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) {
+		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
+		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
 
-		for (size_t i = 0; i < output.getRowCount(); i++) {
-			for (size_t j = 0; j < output.getColumnCount(); j++) {
-				output(i, j) = multipliers(0, i) * multiplicand(j, i);
+		for (size_t i = 0; i < this->getRowCount(); i++) {
+			for (size_t j = 0; j < this->getColumnCount(); j++) {
+				this->at(i, j) = multipliers_rm.at(0, i) * multiplicand_rm.at(j, i);
 			}
 		}
 	}
 
-	/*
-	1. For each column i in multiplicand, multiply by multipliers(0,i)
-	2. Multiply each value in (1) by scale
-	3. Assign output to the value in (2)
-	*/
-	static void Per_Column_Multiply_AndThen_Scale(ReferenceMatrix &output, const ReferenceMatrix &multipliers, const ReferenceMatrix &multiplicand, T scale) {
-		assert(multipliers.getRowCount() == 1);
-		assert(output.getRowCount() == multiplicand.getRowCount());
-		assert(output.getColumnCount() == multiplicand.getColumnCount());
-
-		for (size_t i = 0; i < output.getRowCount(); i++) {
-			for (size_t j = 0; j < output.getColumnCount(); j++) {
-				output(i, j) = multipliers(0, j) * multiplicand(i, j) * scale;
+	void per_Column_Multiply_AndThen_Scale(const Matrix<T> &multipliers, const Matrix<T> &multiplicand, T scale) {
+		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
+		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
+		for (size_t i = 0; i < this->getRowCount(); i++) {
+			for (size_t j = 0; j < this->getColumnCount(); j++) {
+				this->at(i, j) = multipliers_rm(0, j) * multiplicand_rm(i, j) * scale;
 			}
 		}
 	}
 
-	/*
-	1. For each row i in multiplicand, multiply by multipliers(0,i)
-	2. Assign output to the value in (2)
-	*/
-	static void Per_Row_Multiply(ReferenceMatrix &output, const ReferenceMatrix &multipliers, const ReferenceMatrix &multiplicand) {
-		assert(multipliers.getRowCount() == 1);
-		assert(output.getRowCount() == multiplicand.getRowCount());
-		assert(output.getColumnCount() == multiplicand.getColumnCount());
-
-		for (size_t i = 0; i < output.getRowCount(); i++) {
-			for (size_t j = 0; j < output.getColumnCount(); j++) {
-				output(i, j) = multipliers(0, i) * multiplicand(i, j);
+	void per_Row_Multiply(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) {
+		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
+		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
+		for (size_t i = 0; i < this->getRowCount(); i++) {
+			for (size_t j = 0; j < this->getColumnCount(); j++) {
+				this->at(i, j) = multipliers_rm(0, i) * multiplicand_rm(i, j);
 			}
 		}
 	}
 
-	static void Row_Vectors_Per_Element_Multiply_AndThen_Scale(ReferenceMatrix &output, const ReferenceMatrix &row_vector_1, const ReferenceMatrix &row_vector_2, T scale) {
-		assert(row_vector_1.getRowCount() == 1);
-		assert(row_vector_2.getRowCount() == 1);
-		assert(output.getRowCount() == 1);
-		assert(output.getColumnCount() == row_vector_1.getColumnCount());
-		assert(output.getColumnCount() == row_vector_2.getColumnCount());
+	void row_Vectors_Per_Element_Multiply_AndThen_Scale(const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) {
+		const ReferenceMatrix<T> &row_vector_1_rm = static_cast<const ReferenceMatrix<T> &>(row_vector_1);
+		const ReferenceMatrix<T> &row_vector_2_rm = static_cast<const ReferenceMatrix<T> &>(row_vector_2);
 
-		for (size_t i = 0; i < output.getColumnCount(); i++) {
-			output(0, i) = row_vector_1(0, i) * row_vector_2(0, i) * scale;
+		for (size_t i = 0; i < this->getColumnCount(); i++) {
+			this->at(0, i) = row_vector_1_rm(0, i) * row_vector_2_rm(0, i) * scale;
 		}
 	}
+
+
+public:
 
 	static void copy(ReferenceMatrix &output, const ReferenceMatrix &input) {
 		assert(output.getDimensions() == input.getDimensions());
