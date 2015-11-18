@@ -9,7 +9,7 @@
 #include <cmath>
 
 template<typename T>
-class ReferenceMatrix : public Matrix {
+class ReferenceMatrix : public Matrix<T> {
 public:
 	//defaulted constructors and destructors
 	ReferenceMatrix() 
@@ -57,6 +57,16 @@ public:
 
 	//Getting element(i,j), const version
 	const T& operator()(size_t i, size_t j) const {
+		return this->elems[matrixAccessProperties(i, j)];
+	}
+
+	//Getting element(i,j)
+	T& at(size_t i, size_t j) {
+		return this->elems[matrixAccessProperties(i, j)];
+	}
+
+	//Getting element(i,j), function form, const version
+	const T& at(size_t i, size_t j) const {
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 

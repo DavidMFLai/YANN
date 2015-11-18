@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 
+template <typename T>
 class Matrix {
 public:
 	//Getting dimensions
