@@ -38,7 +38,7 @@ namespace CPPANN {
 			return dist(gen);
 		};
 
-		std::vector<T> generate_vector(size_t size) {
+		std::vector<T> generate_vector(size_t size) const{
 			std::vector<T> retval(size);
 			for (auto &val : retval) {
 				val = dist(gen);
@@ -70,7 +70,7 @@ namespace CPPANN {
 			//0th hidden layer is the 1st layer in the ANN. (0th layer in the ANN is the input layer)
 			size_t layer_index = hidden_layer_index + 1;
 			layer_idx_to_neuron_count.insert({ layer_index, size });
-						
+
 			//setup neuron_types
 			layer_idx_to_neuron_type.insert({ hidden_layer_index, type });
 
@@ -91,7 +91,7 @@ namespace CPPANN {
 			return *this;
 		}
 
-		ANNBuilder &set_weights(size_t layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_lists) {		
+		ANNBuilder &set_weights(size_t layer_index, std::initializer_list<std::initializer_list<T>> matrix_initializer_lists) {
 			//construct vector of vectors from matrix_initializer_lists
 			std::vector<std::vector<T>> matrix_values;
 			for (auto matrix_initializer_list : matrix_initializer_lists) {
@@ -102,41 +102,48 @@ namespace CPPANN {
 			return *this;
 		}
 
-		ANN<T> build() {
-			//todo: check if settings are correct
-			
-			//setup neuron counts
+	private:
+		static std::vector<uint64_t> Create_neuron_counts(const std::map<size_t, uint64_t> &layer_idx_to_neuron_count, size_t output_neuron_count) {
 			std::vector<uint64_t> neuron_counts;
-			for (auto layer_idx_neuron_count_pair : this->layer_idx_to_neuron_count) {
+			for (auto layer_idx_neuron_count_pair : layer_idx_to_neuron_count) {
 				neuron_counts.push_back(layer_idx_neuron_count_pair.second);
 			}
 			neuron_counts.push_back(output_neuron_count);
+			return neuron_counts;
+		}
 
-			//setup neuron types
+		static std::vector<Neuron_Type> Create_neuron_types(const std::map<size_t, Neuron_Type> &layer_idx_to_neuron_type, Neuron_Type output_neuron_type) {
 			std::vector<Neuron_Type> neuron_types;
-			for (auto layer_idx_neuron_type_pair : this->layer_idx_to_neuron_type) {
+			for (auto layer_idx_neuron_type_pair : layer_idx_to_neuron_type) {
 				neuron_types.push_back(layer_idx_neuron_type_pair.second);
 			}
 			neuron_types.push_back(output_neuron_type);
+			return neuron_types;
+		}
 
-			//setup speeds
+		static std::vector<T> Create_speeds(const std::map<size_t, T> &layer_idx_to_speeds, T output_speed) {
 			std::vector<T> speeds;
-			for (auto layer_idx_speed_pair : this->layer_idx_to_speeds) {
+			for (auto layer_idx_speed_pair : layer_idx_to_speeds) {
 				speeds.push_back(layer_idx_speed_pair.second);
 			}
 			speeds.push_back(output_speed);
+			return speeds;
+		}
 
-			//setup biases. Not every input and hidden layer might have biases set. So we will have to handle that
-			std::vector<std::vector<T>> biases(neuron_counts.size()-1);
+		static std::vector<std::vector<T>> Create_biases(const std::map<size_t, std::vector<T>> &layer_idx_to_biases, const Random_number_generator<T> &gen, std::vector<uint64_t> neuron_counts) {
+			std::vector<std::vector<T>> biases(neuron_counts.size() - 1);
 			for (size_t idx = 0; idx < biases.size(); idx++) {
 				//create a new random bias vector of length == neuron_counts.at(idx + 1)
-				biases.at(idx) = random_number_generator.generate_vector(neuron_counts.at(idx + 1));
+				biases.at(idx) = gen.generate_vector(neuron_counts.at(idx + 1));
 			}
 			//overwrite the random values with values from the settings
-			for (auto layer_idx_biases_pair : this->layer_idx_to_biases) {
+			for (auto layer_idx_biases_pair : layer_idx_to_biases) {
 				biases.at(layer_idx_biases_pair.first) = layer_idx_biases_pair.second;
 			}
+			return biases;
+		}
 
+		static std::vector<ReferenceMatrix<T>> Create_weight_matrices(std::map<size_t, std::vector<std::vector<T>>> layer_idx_to_weight_matrix_values, const Random_number_generator<T> &gen, std::vector<uint64_t> neuron_counts) {
 			//setup weight matrices
 			std::vector<ReferenceMatrix<T>> weight_matrices(neuron_counts.size() - 1);
 			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
@@ -144,15 +151,28 @@ namespace CPPANN {
 				ReferenceMatrix<T> random_matrix{ neuron_counts.at(idx), neuron_counts.at(idx + 1) };
 				for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 					for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
-						random_matrix.at(i, j) = random_number_generator.generate();
+						random_matrix.at(i, j) = gen.generate();
 					}
 				}
 				weight_matrices.at(idx) = random_matrix;
 			}
 			//overwrite the random values with values from the settings
-			for (auto layer_idx_weight_matrix_pair : this->layer_idx_to_weight_matrix_values) {
+			for (auto layer_idx_weight_matrix_pair : layer_idx_to_weight_matrix_values) {
 				weight_matrices.at(layer_idx_weight_matrix_pair.first) = layer_idx_weight_matrix_pair.second;
 			}
+			return weight_matrices;
+		}
+
+	public:
+
+		ANN<T> build() {
+			//todo: check if the user has set the ANN properly
+			
+			auto neuron_counts = Create_neuron_counts(this->layer_idx_to_neuron_count, this->output_neuron_count);
+			auto neuron_types = Create_neuron_types(this->layer_idx_to_neuron_type, this->output_neuron_type);
+			auto speeds = Create_speeds(this->layer_idx_to_speeds, output_speed);
+			auto biases = Create_biases(this->layer_idx_to_biases, this->random_number_generator, neuron_counts);
+			auto weight_matrices = Create_weight_matrices(this->layer_idx_to_weight_matrix_values, this->random_number_generator, neuron_counts);
 
 			ANN<T> retval{ neuron_counts, biases, weight_matrices, neuron_types, speeds };
 			return retval;
