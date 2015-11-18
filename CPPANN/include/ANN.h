@@ -149,79 +149,16 @@ namespace CPPANN {
 				}
 				weight_matrices.at(idx) = random_matrix;
 			}
-
 			//overwrite the random values with values from the settings
 			for (auto layer_idx_weight_matrix_pair : this->layer_idx_to_weight_matrix_values) {
 				weight_matrices.at(layer_idx_weight_matrix_pair.first) = layer_idx_weight_matrix_pair.second;
 			}
-
-			////construct weight matrices from setters
-			//std::vector<ReferenceMatrix<T>> weight_matrices;
-			//for (size_t idx = 0; idx < this->layer_idx_to_weight_matrix_values.size(); idx++ ) {
-			//	weight_matrices.push_back(ReferenceMatrix<T>{this->layer_idx_to_weight_matrix_values.at(idx)});
-			//}
-
-			//fix biases and weights. this is needed because the user might not have correctly input the biases and weights
-			//Make_random_biases_if_needed(ann_biases, settings_neuron_counts, random_number_generator);
-			//Make_random_weights_if_needed(weight_matrices, settings_neuron_counts, random_number_generator);
 
 			ANN<T> retval{ neuron_counts, biases, weight_matrices, neuron_types, speeds };
 			return retval;
 		}
 
 	private:
-		static bool Neuron_count_biases_count_mismatch(const std::vector<size_t> &neuron_counts, const std::vector<std::vector<T>> &settings_biases, size_t layer_idx) {
-			return neuron_counts.at(layer_idx + 1) != settings_biases.at(layer_idx).size();
-		}
-
-		static bool Neuron_count_weights_count_mismatch(const std::vector<size_t> &neuron_counts, const std::vector<ReferenceMatrix<T>> &weight_matrices, size_t layer_idx) {
-			bool retval = false;
-			if (weight_matrices.at(layer_idx).getRowCount() != neuron_counts.at(layer_idx)) {
-				retval = true;
-			}
-			else if (weight_matrices.at(layer_idx).getColumnCount() != neuron_counts.at(layer_idx+1)) {
-				retval = true;
-			}
-			return retval;
-		}
-
-		static void Make_random_biases_if_needed(std::vector<std::vector<T>> &settings_biases, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
-			if (settings_biases.size() != neuron_counts.size() - 1) {
-				settings_biases.resize(neuron_counts.size() - 1);
-			}
-			for (size_t idx = 0; idx < settings_biases.size(); idx++) {
-				if (Neuron_count_biases_count_mismatch(neuron_counts, settings_biases, idx)) {
-					//create a new bias vector of length == neuron_counts.at(idx + 1)
-					std::vector<T> random_biases;
-					random_biases.resize(neuron_counts.at(idx + 1 ));
-					for (size_t j = 0; j < random_biases.size(); ++j) {
-						random_biases.at(j) = random_number_generator.generate();
-					}
-
-					//put the newly created vector into 
-					settings_biases.at(idx) = random_biases;
-				}
-			}
-		}
-
-		static void Make_random_weights_if_needed(std::vector<ReferenceMatrix<T>> &weight_matrices, const std::vector<size_t> &neuron_counts, const Random_number_generator<T> &random_number_generator) {
-			if (weight_matrices.size() != neuron_counts.size() - 1) {
-				weight_matrices.resize(neuron_counts.size() - 1);
-			}
-			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
-				if (Neuron_count_weights_count_mismatch(neuron_counts, weight_matrices, idx)) {
-					//create a new Matrix
-					ReferenceMatrix<T> random_matrix { neuron_counts.at(idx), neuron_counts.at(idx+1) };
-					for (size_t i = 0; i < neuron_counts.at(idx); i++) {
-						for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
-							random_matrix(i, j) = random_number_generator.generate();
-						}
-					}
-					weight_matrices.at(idx) = random_matrix;
-				}
-			}
-		}
-
 		/*
 		Input settings
 		*/
@@ -235,13 +172,9 @@ namespace CPPANN {
 		std::map<size_t, T> layer_idx_to_speeds;
 
 		/*
-		Values to be given to the ANN
-		*/
+		Others
+		*/		
 		Random_number_generator<T> random_number_generator;
-		//std::vector<size_t> settings_neuron_counts;
-		
-		
-
 	};
 
 	template<typename T>
@@ -515,5 +448,16 @@ namespace CPPANN {
 			return biases;
 		};
 
+		const std::vector<T> &getSpeeds() const {
+			return speeds;
+		};
+
+		const std::vector<Neuron_Type> &getNeuronTypes() const {
+			return neuron_types;
+		};
+
+		const std::vector<ReferenceMatrix<T>> &get_signal_nodes() const {
+			return signal_nodes;
+		};
 	};
 }
