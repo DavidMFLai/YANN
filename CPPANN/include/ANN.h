@@ -148,7 +148,7 @@ namespace CPPANN {
 			std::vector<std::unique_ptr<Matrix<T>>> weight_matrices(neuron_counts.size() - 1);
 			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
 				//create a new random bias vector of length == neuron_counts.at(idx + 1)
-				auto random_matrix = matrix_builder->setDimensions(neuron_counts.at(idx), neuron_counts.at(idx + 1)).build();
+				auto random_matrix = matrix_builder->create(neuron_counts.at(idx), neuron_counts.at(idx + 1));
 				for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 					for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
 						random_matrix->at(i, j) = gen.generate();
@@ -158,7 +158,7 @@ namespace CPPANN {
 			}
 			//overwrite the random values with values from the settings
 			for (auto layer_idx_weight_matrix_pair : layer_idx_to_weight_matrix_values) {
-				auto random_matrix = matrix_builder->setValues(layer_idx_weight_matrix_pair.second).build();
+				auto random_matrix = matrix_builder->create(layer_idx_weight_matrix_pair.second);
 				weight_matrices.at(layer_idx_weight_matrix_pair.first) = std::move(random_matrix);
 			}
 			return weight_matrices;
