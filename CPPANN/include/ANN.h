@@ -144,7 +144,7 @@ namespace CPPANN {
 				ReferenceMatrix<T> random_matrix{ neuron_counts.at(idx), neuron_counts.at(idx + 1) };
 				for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 					for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
-						random_matrix(i, j) = random_number_generator.generate();
+						random_matrix.at(i, j) = random_number_generator.generate();
 					}
 				}
 				weight_matrices.at(idx) = random_matrix;
@@ -253,15 +253,15 @@ namespace CPPANN {
 		}
 	public:
 		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
-			ReferenceMatrix<T>::Copy_from_vector(*signal_nodes[0], input);
+			Matrix<T>::Copy_from_vector(*signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
-				ReferenceMatrix<T>::Multiply(*network_nodes[i], *signal_nodes[i], *weights[i]);
-				ReferenceMatrix<T>::Add(*network_nodes[i], *network_nodes[i], *biases[i]);
+				Matrix<T>::Multiply(*network_nodes[i], *signal_nodes[i], *weights[i]);
+				Matrix<T>::Add(*network_nodes[i], *network_nodes[i], *biases[i]);
 				if (neuron_types[i] == Neuron_Type::Sigmoid) {
-					ReferenceMatrix<T>::Per_Element_Sigmoid(*signal_nodes[i + 1], *network_nodes[i]);
+					Matrix<T>::Per_Element_Sigmoid(*signal_nodes[i + 1], *network_nodes[i]);
 				}
 				else {
-					ReferenceMatrix<T>::Per_Element_Tanh(*signal_nodes[i + 1], *network_nodes[i]);
+					Matrix<T>::Per_Element_Tanh(*signal_nodes[i + 1], *network_nodes[i]);
 				}
 			}
 			return signal_nodes.back()->getElems();
@@ -272,7 +272,7 @@ namespace CPPANN {
 			ReferenceMatrix<T> expected{ expected_as_vector };
 			
 			//compute error
-			ReferenceMatrix<T>::Minus(*error_vector, *signal_nodes.back(), expected);
+			Matrix<T>::Minus(*error_vector, *signal_nodes.back(), expected);
 
 			//compute dSnp1_dNn
 			for (size_t idx = 0; idx < dSnp1_dNn.size(); ++idx) {
@@ -288,7 +288,7 @@ namespace CPPANN {
 			Compute_dSnp1_dSn(*dSOutput_dSnp1.back(), *dSnp1_dNn.back(), *weights.back());
 			if (dSOutput_dSnp1.size() >= 2) {
 				for (size_t idx = dSOutput_dSnp1.size() - 2; idx != std::numeric_limits<size_t>::max(); --idx) {
-					ReferenceMatrix<T>::Multiply(*dSOutput_dSnp1[idx], *dSOutput_dSnp1[idx + 1], *dSnp2_dSnp1[idx]);
+					Matrix<T>::Multiply(*dSOutput_dSnp1[idx], *dSOutput_dSnp1[idx + 1], *dSnp2_dSnp1[idx]);
 				}
 			}
 
@@ -299,7 +299,7 @@ namespace CPPANN {
 
 			//compute dSError_dSnp1
 			for (size_t idx = 0; idx < dError_dSnp1.size(); ++idx) {
-				ReferenceMatrix<T>::Per_Row_Multiply(*dError_dSnp1[idx], *error_vector, *dSOutput_dSnp1[idx]);
+				Matrix<T>::Per_Row_Multiply(*dError_dSnp1[idx], *error_vector, *dSOutput_dSnp1[idx]);
 			}
 
 			// compute weight updates and apply them
@@ -327,112 +327,112 @@ namespace CPPANN {
 
 	private:
 		//retuns output(0, i) = d(signal_layer_next(0, i)/network_layer(0, i)
-		static void Compute_dSnp1_dNn(ReferenceMatrix<T> &output, const ReferenceMatrix<T> &signal_layer_next, Neuron_Type neuron_type){
+		static void Compute_dSnp1_dNn(Matrix<T> &output, const Matrix<T> &signal_layer_next, Neuron_Type neuron_type){
 			assert(output.getColumnCount() == signal_layer_next.getColumnCount());
 			if (neuron_type == Neuron_Type::Sigmoid) {
-				ReferenceMatrix<T>::Per_Element_Sigmoid_Prime(output, signal_layer_next);
+				Matrix<T>::Per_Element_Sigmoid_Prime(output, signal_layer_next);
 			}
 			else {
-				ReferenceMatrix<T>::Per_Element_Tanh_Prime(output, signal_layer_next);
+				Matrix<T>::Per_Element_Tanh_Prime(output, signal_layer_next);
 			}
 		}
 
-		static void Compute_dSnp1_dSn(ReferenceMatrix<T> &output, const ReferenceMatrix<T> &dSnp1_dNn, const ReferenceMatrix<T> &weights) {
+		static void Compute_dSnp1_dSn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn, const Matrix<T> &weights) {
 			assert(output.getRowCount() == dSnp1_dNn.getColumnCount());
 			assert(output.getRowCount() == weights.getColumnCount());
 			assert(output.getColumnCount() == weights.getRowCount());
-			ReferenceMatrix<T>::Per_Column_Multiply_AndThen_Transpose(output, dSnp1_dNn, weights);
+			Matrix<T>::Per_Column_Multiply_AndThen_Transpose(output, dSnp1_dNn, weights);
 		}
 
 		//returns dTotalError_dSnp1(0,j) := d(sum(error_vector))/d(Snp1(0,j)) 
-		static void Compute_dTotalError_dSnp1(std::vector<std::unique_ptr<ReferenceMatrix<T>>> &dTotalError_dSnp1, const std::vector<std::unique_ptr<ReferenceMatrix<T>>> &dSOutput_dSnp1) {
+		static void Compute_dTotalError_dSnp1(std::vector<std::unique_ptr<Matrix<T>>> &dTotalError_dSnp1, const std::vector<std::unique_ptr<Matrix<T>>> &dSOutput_dSnp1) {
 			assert(dTotalError_dSnp1.size() == dSOutput_dSnp1.size());
 			for (size_t idx = 0; idx < dTotalError_dSnp1.size(); ++idx) {
-				ReferenceMatrix<T>::Sum_of_rows(*dTotalError_dSnp1[idx], *dSOutput_dSnp1[idx]);
+				Matrix<T>::Sum_of_rows(*dTotalError_dSnp1[idx], *dSOutput_dSnp1[idx]);
 			}
 		}
 
 		//returns output(i,j) := d(signal_layer_next(0,j))/d(weights(i,j))
-		static void Compute_dSnp1_dWn(ReferenceMatrix<T> &output, const ReferenceMatrix<T> &dSnp1_dNn, const ReferenceMatrix<T> &signal_layer) {
+		static void Compute_dSnp1_dWn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn, const Matrix<T> &signal_layer) {
 			assert(output.getRowCount() == signal_layer.getColumnCount());
 			assert(output.getColumnCount() == dSnp1_dNn.getColumnCount());
-			ReferenceMatrix<T>::Outer_product(output, signal_layer, dSnp1_dNn);
+			Matrix<T>::Outer_product(output, signal_layer, dSnp1_dNn);
 		}
 
 		//returns the weight_update of the Nth layer
-		static void Compute_weight_update(ReferenceMatrix<T> &weight_update_n, const ReferenceMatrix<T> &dTotalError_dSnp1, const ReferenceMatrix<T> &dSnp1_dWn, T speed) {
+		static void Compute_weight_update(Matrix<T> &weight_update_n, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dWn, T speed) {
 			assert(weight_update_n.getDimensions() == dSnp1_dWn.getDimensions());
 			assert(weight_update_n.getColumnCount() == dSnp1_dWn.getColumnCount());
-			ReferenceMatrix<T>::Per_Column_Multiply_AndThen_Scale(weight_update_n, dTotalError_dSnp1, dSnp1_dWn, speed);
+			Matrix<T>::Per_Column_Multiply_AndThen_Scale(weight_update_n, dTotalError_dSnp1, dSnp1_dWn, speed);
 		}
 
 		//Weight update of the last neuron layer.
-		static void Compute_final_weight_update(ReferenceMatrix<T> &last_weight_update, const ReferenceMatrix<T> &error_vector, const ReferenceMatrix<T> &last_dSnp1_dWn, T speed) {
+		static void Compute_final_weight_update(Matrix<T> &last_weight_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dWn, T speed) {
 			assert(last_weight_update.getDimensions() == last_dSnp1_dWn.getDimensions());
-			ReferenceMatrix<T>::Per_Column_Multiply_AndThen_Scale(last_weight_update, error_vector, last_dSnp1_dWn, speed);
+			Matrix<T>::Per_Column_Multiply_AndThen_Scale(last_weight_update, error_vector, last_dSnp1_dWn, speed);
 		}
 
 		//returns output(0,i) := d(signal_layer_next(0,i))/d(biases(0,j))
-		static void Compute_dSnp1_dBn(ReferenceMatrix<T> &output, const ReferenceMatrix<T> &dSnp1_dNn) {
+		static void Compute_dSnp1_dBn(Matrix<T> &output, const Matrix<T> &dSnp1_dNn) {
 			assert(output.getDimensions() == dSnp1_dNn.getDimensions());
-			ReferenceMatrix<T>::Copy(output, dSnp1_dNn);
+			Matrix<T>::Copy(output, dSnp1_dNn);
 		}
 
 		//returns the bias updates of the Nth layer
-		static void Compute_bias_update(ReferenceMatrix<T> &bias_update, const ReferenceMatrix<T> &dTotalError_dSnp1, const ReferenceMatrix<T> &dSnp1_dBn, T speed) {
-			ReferenceMatrix<T>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(bias_update, dTotalError_dSnp1, dSnp1_dBn, speed);
+		static void Compute_bias_update(Matrix<T> &bias_update, const Matrix<T> &dTotalError_dSnp1, const Matrix<T> &dSnp1_dBn, T speed) {
+			Matrix<T>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(bias_update, dTotalError_dSnp1, dSnp1_dBn, speed);
 		}
 		
 		//Bias update for the last neuron layer
-		static void Compute_final_bias_update(ReferenceMatrix<T> &last_bias_update, const ReferenceMatrix<T> &error_vector, const ReferenceMatrix<T> &last_dSnp1_dBn, T speed) {
-			ReferenceMatrix<T>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(last_bias_update, error_vector, last_dSnp1_dBn, speed);
+		static void Compute_final_bias_update(Matrix<T> &last_bias_update, const Matrix<T> &error_vector, const Matrix<T> &last_dSnp1_dBn, T speed) {
+			Matrix<T>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(last_bias_update, error_vector, last_dSnp1_dBn, speed);
 		}
 
 	private:
 		/*
 		Back propagation variables:
 		*/
-			std::unique_ptr<ReferenceMatrix<T>> error_vector;
+			std::unique_ptr<Matrix<T>> error_vector;
 
 			//dSnp1_dNn[n](0,i) := d(signal_nodes[n+1](0,i))/d(network_nodes[n](0,i))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dSnp1_dNn;
+			std::vector<std::unique_ptr<Matrix<T>>> dSnp1_dNn;
 
 			//dSnp2_dSnp1[n](i,j) := d(signal_nodes[n+2](0,i))/d(signal_nodes[n+1](0,j))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dSnp2_dSnp1;
+			std::vector<std::unique_ptr<Matrix<T>>> dSnp2_dSnp1;
 
 			//dSOutput_dSnp1[n](i,j) := d(signal_nodes[last](0,i))/d(signal_nodes[n+1](0,j))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dSOutput_dSnp1;
+			std::vector<std::unique_ptr<Matrix<T>>> dSOutput_dSnp1;
 
 			//dError_dSnp1[n](i,j) := d(error(0,i))/d(signal_nodes[n+1](0,j))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dError_dSnp1;
+			std::vector<std::unique_ptr<Matrix<T>>> dError_dSnp1;
 
 			//dTotalError_dSnp1[n](0,j) := d(TotalError)/d(signal_nodes[n+1](0,j)), thios is equal to sum of every row in dError_dSnp1.
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dTotalError_dSnp1;
+			std::vector<std::unique_ptr<Matrix<T>>> dTotalError_dSnp1;
 
 			//dSnp1_dWn[n](j,i) := d(signal_nodes[n+1](0,i))/d(weights[n](j,i))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dSnp1_dWn;
+			std::vector<std::unique_ptr<Matrix<T>>> dSnp1_dWn;
 
 			//dSnp1_dBn[n](i,j) := d(signal_nodes[n+1](0,i))/d(biases[n](0,j))
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> dSnp1_dBn;
+			std::vector<std::unique_ptr<Matrix<T>>> dSnp1_dBn;
 
 			//Resultant updates
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> weight_updates;
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> bias_updates;
+			std::vector<std::unique_ptr<Matrix<T>>> weight_updates;
+			std::vector<std::unique_ptr<Matrix<T>>> bias_updates;
 		
 		/*
 		Forward propagation variables:
 		*/
 			//Every signal_nodes[i], i!=0, represents a layer of neuron output values. signal_nodes[0] := input. All signal_nodes are row vectors
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> signal_nodes;
+			std::vector<std::unique_ptr<Matrix<T>>> signal_nodes;
 
 			//weights[m](i,j) := Weight from signal_nodes[m](0,i) to network_nodes[m](0,j). 
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> weights;
+			std::vector<std::unique_ptr<Matrix<T>>> weights;
 
 			//network_nodes[i] := signal_nodes[i] * weights[i]. All network_nodes are row vectors
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> network_nodes;
+			std::vector<std::unique_ptr<Matrix<T>>> network_nodes;
 
 			//biases[i] := bias values on the neurons
-			std::vector<std::unique_ptr<ReferenceMatrix<T>>> biases;
+			std::vector<std::unique_ptr<Matrix<T>>> biases;
 
 			std::vector<Neuron_Type> neuron_types;
 
@@ -440,11 +440,11 @@ namespace CPPANN {
 	
 	public:
 
-		const std::vector<std::unique_ptr<ReferenceMatrix<T>>> &getWeights() const{
+		const std::vector<std::unique_ptr<Matrix<T>>> &getWeights() const{
 			return weights;
 		};
 
-		const std::vector<std::unique_ptr<ReferenceMatrix<T>>> &getBiases() const{
+		const std::vector<std::unique_ptr<Matrix<T>>> &getBiases() const{
 			return biases;
 		};
 
@@ -456,7 +456,7 @@ namespace CPPANN {
 			return neuron_types;
 		};
 
-		const std::vector<std::unique_ptr<ReferenceMatrix<T>>> &get_signal_nodes() const {
+		const std::vector<std::unique_ptr<Matrix<T>>> &get_signal_nodes() const {
 			return signal_nodes;
 		};
 	};

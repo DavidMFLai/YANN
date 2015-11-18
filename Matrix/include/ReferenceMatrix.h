@@ -51,22 +51,12 @@ public:
 	}
 
 	//Getting element(i,j)
-	T& operator()(size_t i, size_t j) {
-		return this->elems[matrixAccessProperties(i, j)];
-	}
-
-	//Getting element(i,j), const version
-	const T& operator()(size_t i, size_t j) const {
-		return this->elems[matrixAccessProperties(i, j)];
-	}
-
-	//Getting element(i,j)
-	T& at(size_t i, size_t j) {
+	T& at(size_t i, size_t j) override{
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 
 	//Getting element(i,j), function form, const version
-	const T& at(size_t i, size_t j) const {
+	const T& at(size_t i, size_t j) const override {
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 
@@ -83,7 +73,7 @@ private:
 		for (size_t i = 0; i < input_as_reference_matrix.getColumnCount(); ++i) {
 			this->at(0, i) = 0;
 			for (size_t j = 0; j < input_as_reference_matrix.getRowCount(); ++j)
-				this->at(0, i) += input_as_reference_matrix(j, i);
+				this->at(0, i) += input_as_reference_matrix.at(j, i);
 		}
 	}
 
@@ -111,7 +101,7 @@ private:
 			for (size_t n = 0; n < rhs_rm.getDimensions()[1]; n++) {
 				this->at(m, n) = 0;
 				for (size_t p = 0; p < lhs_rm.getDimensions()[1]; p++) {
-					this->at(m, n) += lhs_rm(m, p)*rhs_rm(p, n);
+					this->at(m, n) += lhs_rm.at(m, p)*rhs_rm.at(p, n);
 				}
 			}
 		}
@@ -161,7 +151,7 @@ private:
 		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
 		for (size_t i = 0; i < this->getRowCount(); i++) {
 			for (size_t j = 0; j < this->getColumnCount(); j++) {
-				this->at(i, j) = multipliers_rm(0, j) * multiplicand_rm(i, j) * scale;
+				this->at(i, j) = multipliers_rm.at(0, j) * multiplicand_rm.at(i, j) * scale;
 			}
 		}
 	}
@@ -171,7 +161,7 @@ private:
 		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
 		for (size_t i = 0; i < this->getRowCount(); i++) {
 			for (size_t j = 0; j < this->getColumnCount(); j++) {
-				this->at(i, j) = multipliers_rm(0, i) * multiplicand_rm(i, j);
+				this->at(i, j) = multipliers_rm.at(0, i) * multiplicand_rm.at(i, j);
 			}
 		}
 	}
@@ -181,7 +171,7 @@ private:
 		const ReferenceMatrix<T> &row_vector_2_rm = static_cast<const ReferenceMatrix<T> &>(row_vector_2);
 
 		for (size_t i = 0; i < this->getColumnCount(); i++) {
-			this->at(0, i) = row_vector_1_rm(0, i) * row_vector_2_rm(0, i) * scale;
+			this->at(0, i) = row_vector_1_rm.at(0, i) * row_vector_2_rm.at(0, i) * scale;
 		}
 	}
 
@@ -189,7 +179,7 @@ private:
 		const ReferenceMatrix<T> &input_rm = static_cast<const ReferenceMatrix<T> &>(input);
 		for (size_t i = 0; i < this->getRowCount(); i++) {
 			for (size_t j = 0; j < this->getColumnCount(); j++) {
-				this->at(i, j) = input_rm(i, j);
+				this->at(i, j) = input_rm.at(i, j);
 			}
 		}
 	}
@@ -200,7 +190,7 @@ private:
 
 		for (size_t i = 0; i < this->getRowCount(); i++) {
 			for (size_t j = 0; j < this->getColumnCount(); j++) {
-				this->at(i, j) = input1_rm(0, i) * input2_rm(0, j);
+				this->at(i, j) = input1_rm.at(0, i) * input2_rm.at(0, j);
 			}
 		}
 	}
@@ -210,11 +200,11 @@ private:
 	}
 
 public:
-	const std::vector<T> &getElems() const{
+	const std::vector<T> &getElems() const override{
 		return elems;
 	}
 
-	std::vector<T> &getElems() {
+	std::vector<T> &getElems() override {
 		return elems;
 	}
 
@@ -233,7 +223,7 @@ bool operator==(const ReferenceMatrix<T> &lhs, const ReferenceMatrix<T> &rhs) {
 
 	for (size_t i = 0; i < lhs.getDimensions()[0]; i++)
 		for (size_t j = 0; j < lhs.getDimensions()[1]; j++)
-			if (abs(lhs(i, j) - rhs(i, j)) > tolerance)
+			if (abs(lhs.at(i, j) - rhs.at(i, j)) > tolerance)
 				return false;
 
 	return true;
