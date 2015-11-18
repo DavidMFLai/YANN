@@ -1,5 +1,6 @@
 #pragma once
 #include "ReferenceMatrix.h"
+#include "ReferenceMatrixBuilder.h"
 #include <cmath>
 #include <cassert>
 #include <random>
@@ -56,7 +57,7 @@ namespace CPPANN {
 	class ANNBuilder {
 	public:
 		ANNBuilder()
-			: output_neuron_count{ 0 }
+			: output_neuron_count{ 0 }, matrix_builder{nullptr}
 		{}
 
 		ANNBuilder &set_input_layer(uint64_t size) {
@@ -143,22 +144,22 @@ namespace CPPANN {
 			return biases;
 		}
 
-		static std::vector<ReferenceMatrix<T>> Create_weight_matrices(std::map<size_t, std::vector<std::vector<T>>> layer_idx_to_weight_matrix_values, const Random_number_generator<T> &gen, std::vector<uint64_t> neuron_counts) {
-			//setup weight matrices
-			std::vector<ReferenceMatrix<T>> weight_matrices(neuron_counts.size() - 1);
+		static std::vector<std::unique_ptr<Matrix<T>>> Create_weight_matrices(const std::map<size_t, std::vector<std::vector<T>>> &layer_idx_to_weight_matrix_values, const Random_number_generator<T> &gen, std::vector<uint64_t> neuron_counts, MatrixBuilder<T> *matrix_builder) {
+			std::vector<std::unique_ptr<Matrix<T>>> weight_matrices(neuron_counts.size() - 1);
 			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
 				//create a new random bias vector of length == neuron_counts.at(idx + 1)
-				ReferenceMatrix<T> random_matrix{ neuron_counts.at(idx), neuron_counts.at(idx + 1) };
+				auto random_matrix = matrix_builder->setDimensions(neuron_counts.at(idx), neuron_counts.at(idx + 1)).build();
 				for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 					for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
-						random_matrix.at(i, j) = gen.generate();
+						random_matrix->at(i, j) = gen.generate();
 					}
 				}
-				weight_matrices.at(idx) = random_matrix;
+				weight_matrices.at(idx) = std::move(random_matrix);
 			}
 			//overwrite the random values with values from the settings
 			for (auto layer_idx_weight_matrix_pair : layer_idx_to_weight_matrix_values) {
-				weight_matrices.at(layer_idx_weight_matrix_pair.first) = layer_idx_weight_matrix_pair.second;
+				auto random_matrix = matrix_builder->setValues(layer_idx_weight_matrix_pair.second).build();
+				weight_matrices.at(layer_idx_weight_matrix_pair.first) = std::move(random_matrix);
 			}
 			return weight_matrices;
 		}
@@ -167,20 +168,23 @@ namespace CPPANN {
 
 		ANN<T> build() {
 			//todo: check if the user has set the ANN properly
+			if (matrix_builder.get() == nullptr) {
+				matrix_builder.reset(new ReferenceMatrixBuilder<T>);
+			}
 			
 			auto neuron_counts = Create_neuron_counts(this->layer_idx_to_neuron_count, this->output_neuron_count);
+			auto biases = Create_biases(this->layer_idx_to_biases, this->random_number_generator, neuron_counts);
+			auto weight_matrices = Create_weight_matrices(this->layer_idx_to_weight_matrix_values, this->random_number_generator, neuron_counts, this->matrix_builder.get());
 			auto neuron_types = Create_neuron_types(this->layer_idx_to_neuron_type, this->output_neuron_type);
 			auto speeds = Create_speeds(this->layer_idx_to_speeds, output_speed);
-			auto biases = Create_biases(this->layer_idx_to_biases, this->random_number_generator, neuron_counts);
-			auto weight_matrices = Create_weight_matrices(this->layer_idx_to_weight_matrix_values, this->random_number_generator, neuron_counts);
 
-			ANN<T> retval{ neuron_counts, biases, weight_matrices, neuron_types, speeds };
+			ANN<T> retval{ neuron_counts, biases, weight_matrices, neuron_types, speeds, this->matrix_builder.get() };
 			return retval;
 		}
 
 	private:
 		/*
-		Input settings
+		Input ANN settings
 		*/
 		size_t output_neuron_count;
 		Neuron_Type output_neuron_type;
@@ -195,6 +199,7 @@ namespace CPPANN {
 		Others
 		*/		
 		Random_number_generator<T> random_number_generator;
+		std::unique_ptr<MatrixBuilder<T>> matrix_builder;
 	};
 
 	template<typename T>
@@ -203,9 +208,10 @@ namespace CPPANN {
 		friend ANN<T> ANNBuilder<T>::build();
 		ANN(const std::vector<size_t> &signal_counts, 
 			const std::vector<std::vector<T>> &settings_biases, 
-			const std::vector<ReferenceMatrix<T>> &weight_matrices, 
+			std::vector<std::unique_ptr<Matrix<T>>> &weight_matrices, 
 			const std::vector<Neuron_Type> &neuron_types,
-			const std::vector<T> &speeds
+			const std::vector<T> &speeds,
+			MatrixBuilder<T> *matrix_builder
 			) {
 
 			//Get number of layers
@@ -231,7 +237,7 @@ namespace CPPANN {
 					signal_nodes.at(idx) = std::make_unique<ReferenceMatrix<T>>(1, signal_counts[idx]);
 					network_nodes.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(1, signal_counts[idx]);
 					biases.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(settings_biases.at(idx - 1));
-					weights.at(idx - 1) = std::make_unique<ReferenceMatrix<T>>(weight_matrices.at(idx - 1));
+					weights.at(idx - 1) = std::move(weight_matrices.at(idx - 1));
 				}
 			}
 

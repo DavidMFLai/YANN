@@ -33,7 +33,7 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 		.build();
 
 	//Train with first 5000 only
-	Matrix<double> training_output_data{ 1, 10 };
+	std::vector<double> training_output_data(10);
 	for (size_t j = 0; j < 10; j++) {
 		for (size_t idx = 0; idx < 5000; idx++) {
 			auto &training_input_data = mINSTData.get_image(idx);
@@ -52,7 +52,7 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 	//Test
 	size_t correct_count = 0;
 	size_t total_count = 0;
-	Matrix<double> testing_output_data{ 1, 10 };
+	std::vector<double> testing_output_data(10);
 	for (size_t idx = 0; idx < mINSTData_test.get_number_of_images(); idx++) {
 		auto &test_input_data = mINSTData_test.get_image(idx);
 		std::vector<double> ann_result = ann.forward_propagate(test_input_data);

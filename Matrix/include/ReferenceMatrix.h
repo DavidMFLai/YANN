@@ -60,6 +60,10 @@ public:
 		return this->elems[matrixAccessProperties(i, j)];
 	}
 
+	void zero() override {
+		std::fill(elems.begin(), elems.end(), 0);
+	}
+
 private:
 	void subtract_andThen_assign(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);

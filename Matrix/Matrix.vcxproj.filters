@@ -18,16 +18,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MatrixBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ReferenceMatrixBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\ReferenceMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MatrixBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReferenceMatrixBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

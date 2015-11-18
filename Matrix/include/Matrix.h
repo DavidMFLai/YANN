@@ -63,6 +63,7 @@ public:
 	virtual const T &at(size_t i, size_t j) const = 0;
 	virtual std::vector<T> &getElems() = 0;
 	virtual const std::vector<T> &getElems() const = 0;
+	virtual void zero() = 0;
 
 public:
 	static void subtract_andThen_assign(Matrix<T> &output, const Matrix<T> &input) {

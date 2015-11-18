@@ -104,9 +104,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Matrix.h" />
+    <ClInclude Include="include\MatrixBuilder.h" />
     <ClInclude Include="include\ReferenceMatrix.h" />
-    <ClInclude Include="MatrixBuilder.h" />
-    <ClInclude Include="ReferenceMatrixBuilder.h" />
+    <ClInclude Include="include\ReferenceMatrixBuilder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

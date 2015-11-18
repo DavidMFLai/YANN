@@ -1,7 +1,6 @@
 #pragma once
-
-#include "MatrixBuilder.h"
 #include "ReferenceMatrix.h"
+#include "MatrixBuilder.h"
 #include <vector>
 
 template <typename T>
@@ -25,8 +24,13 @@ public:
 		return *this;
 	};
 
-	std::unique_ptr<Matrix> build() override {
-		std::unique_ptr<Matrix> retval{ new ReferenceMatrix<T>{ data } };
+	ReferenceMatrixBuilder<T> &setValues(const std::vector<std::vector<T>> &v) override {
+		data = v;
+		return *this;
+	};
+
+	std::unique_ptr<Matrix<T>> build() override {
+		std::unique_ptr<Matrix<T>> retval{ new ReferenceMatrix<T>{ data } };
 		return retval;
 	}
 
