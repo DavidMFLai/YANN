@@ -375,7 +375,7 @@ namespace CPPANN {
 		//returns output(0,i) := d(signal_layer_next(0,i))/d(biases(0,j))
 		static void Compute_dSnp1_dBn(ReferenceMatrix<T> &output, const ReferenceMatrix<T> &dSnp1_dNn) {
 			assert(output.getDimensions() == dSnp1_dNn.getDimensions());
-			ReferenceMatrix<T>::copy(output, dSnp1_dNn);
+			ReferenceMatrix<T>::Copy(output, dSnp1_dNn);
 		}
 
 		//returns the bias updates of the Nth layer

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <vector>
 
 template <typename T>
 class Matrix {
@@ -49,13 +50,13 @@ private:
 	virtual void per_Element_Sigmoid_Prime(const Matrix<T> &sigmoid_value) = 0;
 	virtual void per_Element_Tanh(const Matrix<T> &input) = 0;
 	virtual void per_Element_Tanh_Prime(const Matrix<T> &tanh_value) = 0;
-
-
-
 	virtual void per_Column_Multiply_AndThen_Transpose(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) = 0;
 	virtual void per_Column_Multiply_AndThen_Scale(const Matrix<T> &multipliers, const Matrix<T> &multiplicand, T scale) = 0;
 	virtual void per_Row_Multiply(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) = 0;
 	virtual void row_Vectors_Per_Element_Multiply_AndThen_Scale(const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) = 0;
+	virtual void copy(const Matrix<T> &input) = 0;
+	virtual void outer_product(const Matrix<T> &input1, const Matrix<T> &input2) = 0;
+	virtual void copy_from_vector(const std::vector<T> &input) = 0;
 
 public:
 	static void subtract_andThen_assign(Matrix<T> &output, const Matrix<T> &input) {
@@ -118,21 +119,6 @@ public:
 		output.per_Element_Tanh_Prime(tanh_value);
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	/*
 	1. For each column i in multiplicand, multiply by multipliers(0,i)
 	2. Assign output to the transpose of the result of (1)
@@ -144,12 +130,6 @@ public:
 		assert(output.getColumnCount() == multiplicand.getRowCount());
 		assert(output.getRowCount() == multiplicand.getColumnCount());
 		output.per_Column_Multiply_AndThen_Transpose(multipliers, multiplicand);
-
-		//for (size_t i = 0; i < output.getRowCount(); i++) {
-		//	for (size_t j = 0; j < output.getColumnCount(); j++) {
-		//		output(i, j) = multipliers(0, i) * multiplicand(j, i);
-		//	}
-		//}
 	}
 
 	/*
@@ -164,12 +144,6 @@ public:
 		assert(output.getRowCount() == multiplicand.getRowCount());
 		assert(output.getColumnCount() == multiplicand.getColumnCount());
 		output.per_Column_Multiply_AndThen_Scale(multipliers, multiplicand, scale);
-
-		//for (size_t i = 0; i < output.getrowcount(); i++) {
-		//	for (size_t j = 0; j < output.getcolumncount(); j++) {
-		//		output(i, j) = multipliers(0, j) * multiplicand(i, j) * scale;
-		//	}
-		//}
 	}
 
 	/*
@@ -183,12 +157,6 @@ public:
 		assert(output.getRowCount() == multiplicand.getRowCount());
 		assert(output.getColumnCount() == multiplicand.getColumnCount());
 		output.per_Row_Multiply(multipliers, multiplicand);
-
-		//for (size_t i = 0; i < output.getRowCount(); i++) {
-		//	for (size_t j = 0; j < output.getColumnCount(); j++) {
-		//		output(i, j) = multipliers(0, i) * multiplicand(i, j);
-		//	}
-		//}
 	}
 
 	static void Row_Vectors_Per_Element_Multiply_AndThen_Scale(Matrix<T> &output, const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) {
@@ -200,10 +168,24 @@ public:
 		assert(output.getColumnCount() == row_vector_1.getColumnCount());
 		assert(output.getColumnCount() == row_vector_2.getColumnCount());
 		output.row_Vectors_Per_Element_Multiply_AndThen_Scale(row_vector_1, row_vector_2, scale);
+	}
 
+	static void Copy(Matrix<T> &output, const Matrix<T> &input) {
+		assert(typeid(output) == typeid(input));
+		assert(output.getDimensions() == input.getDimensions());
+		output.copy(input);
+	}
 
-		//for (size_t i = 0; i < output.getColumnCount(); i++) {
-		//	output(0, i) = row_vector_1(0, i) * row_vector_2(0, i) * scale;
-		//}
+	static void Outer_product(Matrix<T> &output, const Matrix<T> &input1, const Matrix<T> &input2) {
+		assert(typeid(output) == typeid(input1));
+		assert(typeid(output) == typeid(input2));
+		assert(input1.getRowCount() == 1);
+		assert(input2.getRowCount() == 1);
+		output.outer_product(input1, input2);
+	}
+
+	static void Copy_from_vector(Matrix<T> &output, const std::vector<T> &input) {
+		assert(output.getColumnCount()*output.getRowCount() == input.size());
+		output.copy_from_vector(input);
 	}
 };

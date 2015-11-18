@@ -185,33 +185,28 @@ private:
 		}
 	}
 
-
-public:
-
-	static void copy(ReferenceMatrix &output, const ReferenceMatrix &input) {
-		assert(output.getDimensions() == input.getDimensions());
-
-		for (size_t i = 0; i < output.getRowCount(); i++) {
-			for (size_t j = 0; j < output.getColumnCount(); j++) {
-				output(i, j) = input(i, j);
+	void copy(const Matrix<T> &input) override {
+		const ReferenceMatrix<T> &input_rm = static_cast<const ReferenceMatrix<T> &>(input);
+		for (size_t i = 0; i < this->getRowCount(); i++) {
+			for (size_t j = 0; j < this->getColumnCount(); j++) {
+				this->at(i, j) = input_rm(i, j);
 			}
 		}
 	}
 
-	static void Outer_product(ReferenceMatrix &output, const ReferenceMatrix &input1, const ReferenceMatrix &input2) {
-		assert(input1.getRowCount() == 1);
-		assert(input2.getRowCount() == 1);
+	void outer_product(const Matrix<T> &input1, const Matrix<T> &input2) override {
+		const ReferenceMatrix<T> &input1_rm = static_cast<const ReferenceMatrix<T> &>(input1);
+		const ReferenceMatrix<T> &input2_rm = static_cast<const ReferenceMatrix<T> &>(input2);
 
-		for (size_t i = 0; i < output.getRowCount(); i++) {
-			for (size_t j = 0; j < output.getColumnCount(); j++) {
-				output(i, j) = input1(0, i) * input2(0, j);
+		for (size_t i = 0; i < this->getRowCount(); i++) {
+			for (size_t j = 0; j < this->getColumnCount(); j++) {
+				this->at(i, j) = input1_rm(0, i) * input2_rm(0, j);
 			}
 		}
 	}
 
-	static void Copy_from_vector(ReferenceMatrix &output, const std::vector<T> &input) {
-		assert(output.getColumnCount()*output.getRowCount() == input.size());
-		std::copy(input.begin(), input.end(), output.elems.begin());
+	void copy_from_vector(const std::vector<T> &input) override {
+		std::copy(input.begin(), input.end(), this->elems.begin());
 	}
 
 public:
