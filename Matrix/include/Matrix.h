@@ -6,6 +6,9 @@
 
 template <typename T>
 class Matrix {
+	template<typename U>
+	friend bool operator==(const Matrix<U> &lhs, const Matrix<U> &rhs);
+
 public:
 	//Getting dimensions
 	std::array<size_t, 2> getDimensions() const {
@@ -16,7 +19,8 @@ public:
 	size_t getRowCount() const {
 		return this->matrixAccessProperties.dimensions[0];
 	}
-	//Getting No. of rows
+
+	//Getting No. of columns
 	size_t getColumnCount() const {
 		return this->matrixAccessProperties.dimensions[1];
 	}
@@ -36,11 +40,11 @@ protected:
 		std::array<size_t, 2> dimensions;
 	};
 
-protected:
 	MatrixAccessProperties matrixAccessProperties;
 
-
 private:
+	virtual bool is_equal(const Matrix<T> &) const = 0;
+
 	virtual void subtract_andThen_assign(const Matrix<T> &) = 0;
 	virtual void sum_of_rows(const Matrix<T> &input) = 0;
 	virtual void add(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
@@ -196,3 +200,8 @@ public:
 		output.copy_from_vector(input);
 	}
 };
+
+template<typename T>
+bool operator==(const Matrix<T> &lhs, const Matrix<T> &rhs) {
+	return lhs.is_equal(rhs);
+}

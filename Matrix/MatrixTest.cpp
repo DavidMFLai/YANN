@@ -52,7 +52,7 @@ TEST(BasicOperations, FunctionMultiplyDefault) {
 		{ 131.*211. + 132.*221. , 131.*212. + 132.*222., 131.*213. + 132.*223. },
 	});
 
-	EXPECT_EQ(*static_cast<ReferenceMatrix<double> *>(expected.get()), *static_cast<ReferenceMatrix<double> *>(result.get()));
+	EXPECT_EQ(*expected, *result);
 }
 
 TEST(BasicOperations, sumOfRows) {
@@ -71,7 +71,7 @@ TEST(BasicOperations, sumOfRows) {
 
 	ReferenceMatrix<double>::Sum_of_rows(*result, *input);
 
-	EXPECT_EQ(*static_cast<ReferenceMatrix<double> *>(expected.get()), *static_cast<ReferenceMatrix<double> *>(result.get()));
+	EXPECT_EQ(*expected, *result);
 }
 
 TEST(ReferenceMatrixBuilder, buildBySettingDimensions) {

@@ -45,6 +45,21 @@ public:
 	}
 
 private:
+	bool is_equal(const Matrix<T> &input) const override {
+		double tolerance = 0.0000001;
+
+		if (this->getDimensions() != input.getDimensions()) {
+			return false;
+		}
+
+		for (size_t i = 0; i < this->getDimensions()[0]; i++)
+			for (size_t j = 0; j < this->getDimensions()[1]; j++)
+				if (abs(this->at(i, j) - input.at(i, j)) > tolerance)
+					return false;
+
+		return true;
+	}
+
 	void subtract_andThen_assign(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
 		for (size_t idx = 0; idx < this->getElems().size(); ++idx) {
@@ -195,20 +210,3 @@ public:
 private:
 	std::vector<T> elems;
 };
-
-
-template<typename T>
-bool operator==(const ReferenceMatrix<T> &lhs, const ReferenceMatrix<T> &rhs) {
-	double tolerance = 0.0000001;
-	
-	if (lhs.getDimensions() != rhs.getDimensions()) {
-		return false;
-	}
-
-	for (size_t i = 0; i < lhs.getDimensions()[0]; i++)
-		for (size_t j = 0; j < lhs.getDimensions()[1]; j++)
-			if (abs(lhs.at(i, j) - rhs.at(i, j)) > tolerance)
-				return false;
-
-	return true;
-}
