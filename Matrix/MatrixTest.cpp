@@ -8,89 +8,75 @@
 #include "ReferenceMatrix.h"
 #include "ReferenceMatrixBuilder.h"
 
-TEST(BasicOperations, Default_Contruction) {
-	ReferenceMatrix<double> m;
-	const auto dimensions = m.getDimensions();
-	const std::array<size_t, 2> expectedDimensions{ 0, 0 };
-	EXPECT_EQ(dimensions, expectedDimensions);
-}
+
 
 TEST(BasicOperations, Contruction_With_Dimensions) {
-	ReferenceMatrix<double> m{ 4,5 };
-	const auto dimensions = m.getDimensions();
+	auto m = ReferenceMatrixBuilder<double>{}.create(4, 5);
+	const auto dimensions = m->getDimensions();
 	const std::array<size_t, 2> expectedDimensions{ 4, 5 };
 	EXPECT_EQ(dimensions, expectedDimensions);
 }
 
 TEST(BasicOperations, Contruction_With_InitializationLists) {
-	ReferenceMatrix<double> m{
+	auto m = ReferenceMatrixBuilder<double>{}.create({
 		{ 1., 2. },
 		{ 3., 4. },
 		{ 5., 6. }
-	};
-
-	const auto dimensions = m.getDimensions();
+	});
+ 	const auto dimensions = m->getDimensions();
 	const std::array<size_t, 2> expectedDimensions{ 3, 2 };
 	EXPECT_EQ(dimensions, expectedDimensions);
 }
 
-TEST(BasicOperations, Copy_Contruction) {
-	ReferenceMatrix<double> m{
-		{ 1., 2. },
-		{ 3., 4. },
-		{ 5., 6. }
-	};
-
-	auto n{ m };
-
-	EXPECT_EQ(m, n);
-}
-
 TEST(BasicOperations, FunctionMultiplyDefault) {
-	ReferenceMatrix<double> m{
+	auto builder = ReferenceMatrixBuilder<double>{};
+
+	auto m = builder.create({
 		{ 111., 112. },
 		{ 121., 122. },
 		{ 131., 132. }
-	};
+	});
 
-	ReferenceMatrix<double> n{
+	auto n = builder.create({
 		{ 211., 212., 213. },
 		{ 221., 222., 223. },
-	};
+	});
 
-	ReferenceMatrix<double> result(3, 3);
+	auto result = builder.create( 3, 3 );
 
-	ReferenceMatrix<double>::Multiply(result, m, n);
+	ReferenceMatrix<double>::Multiply(*result, *m, *n);
 
-	ReferenceMatrix<double> expected_result{
+	auto expected = builder.create({
 		{ 111.*211. + 112.*221. , 111.*212. + 112.*222., 111.*213. + 112.*223. },
 		{ 121.*211. + 122.*221. , 121.*212. + 122.*222., 121.*213. + 122.*223. },
 		{ 131.*211. + 132.*221. , 131.*212. + 132.*222., 131.*213. + 132.*223. },
-	};
+	});
 
-	EXPECT_EQ(expected_result, result);
+	EXPECT_EQ(*static_cast<ReferenceMatrix<double> *>(expected.get()), *static_cast<ReferenceMatrix<double> *>(result.get()));
 }
 
 TEST(BasicOperations, sumOfRows) {
-	ReferenceMatrix<double> input{
+	auto builder = ReferenceMatrixBuilder<double>{};
+
+	auto input = builder.create({
 		{ 1., 2., 3. },
 		{ 4., 5., 6. },
-	};
+	});
 
-	ReferenceMatrix<double> expected{
-		{ 1. + 4., 2. + 5., 3. + 6. },
-	};
+	auto expected = builder.create({
+		{ 1. + 4., 2. + 5., 3. + 6. }
+	});
 
-	ReferenceMatrix<double> result{1, 3};
-	ReferenceMatrix<double>::Sum_of_rows(result, input);
+	auto result = builder.create( 1, 3 );
 
-	EXPECT_EQ(expected, result);
+	ReferenceMatrix<double>::Sum_of_rows(*result, *input);
+
+	EXPECT_EQ(*static_cast<ReferenceMatrix<double> *>(expected.get()), *static_cast<ReferenceMatrix<double> *>(result.get()));
 }
 
 TEST(ReferenceMatrixBuilder, buildBySettingDimensions) {
 	ReferenceMatrixBuilder<double> ref_matrix_builder;
-	auto created_matrix = ref_matrix_builder.setDimensions(1, 2)
-		.build();
+	auto created_matrix = ref_matrix_builder.create( 1, 2 );
 
 	EXPECT_EQ(1, created_matrix->getRowCount());
 	EXPECT_EQ(2, created_matrix->getColumnCount());
@@ -98,11 +84,10 @@ TEST(ReferenceMatrixBuilder, buildBySettingDimensions) {
 
 TEST(ReferenceMatrixBuilder, buildBySettingValues) {
 	ReferenceMatrixBuilder<double> ref_matrix_builder;
-	auto created_matrix = ref_matrix_builder.setValues({
-			{ 1, 2, 3},
-			{ 4, 5, 6}
-		})
-		.build();
+	auto created_matrix = ref_matrix_builder.create({ 
+		{ 1, 2, 3 },
+		{ 4, 5, 6 } 
+	});
 
 	EXPECT_EQ(2, created_matrix->getRowCount());
 	EXPECT_EQ(3, created_matrix->getColumnCount());
