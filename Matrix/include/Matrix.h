@@ -28,6 +28,8 @@ namespace {
 
 	protected:
 		struct MatrixAccessProperties {
+			MatrixAccessProperties() = default;
+
 			void setDimensions(size_t rowCount, size_t columnCount) {
 				this->dimensions = { rowCount, columnCount };
 			}
@@ -39,9 +41,7 @@ namespace {
 			}
 
 			std::array<size_t, 2> dimensions;
-		};
-
-		MatrixAccessProperties matrixAccessProperties;
+		} matrixAccessProperties;
 
 	private:
 		virtual bool is_equal(const Matrix<T> &) const = 0;
