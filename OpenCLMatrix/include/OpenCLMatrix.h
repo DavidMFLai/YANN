@@ -103,11 +103,21 @@ namespace {
 		const T &at(size_t i, size_t j) const override {
 			return T{};
 		}
+	private:
+		void copy_data_to_host() const {
+			size_t number_of_elements = this->getRowCount() * this->getColumnCount();
+			buffer_mirror_on_host.resize(number_of_elements);
+			command_queue.enqueueReadBuffer(buffer, CL_BLOCKING, 0, number_of_elements * sizeof(T), &buffer_mirror_on_host[0], nullptr, nullptr);
+		}
+
+	public:
 		std::vector<T> &getElems() override {
-			return std::vector<T>{};
+			copy_data_to_host();
+			return buffer_mirror_on_host;
 		}
 		const std::vector<T> &getElems() const override {
-			return std::vector<T>{};
+			copy_data_to_host();
+			return buffer_mirror_on_host;
 		}
 		void zero() override {
 			return;
@@ -117,6 +127,7 @@ namespace {
 		unordered_map<string, cl::Kernel> &kernels;
 		cl::CommandQueue &command_queue;
 		cl::Buffer buffer;
+		mutable std::vector<T> buffer_mirror_on_host;
 	};
 }
 
