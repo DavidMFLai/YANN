@@ -26,7 +26,7 @@ namespace {
 
 		//Only constructor
 		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions, unordered_map<string, cl::Kernel> &kernels, cl::CommandQueue &command_queue)
-			: buffer{ buffer }
+			: buffer{ buffer, {} }
 			, kernels{ kernels }
 			, command_queue{ command_queue }
 		{
@@ -106,18 +106,18 @@ namespace {
 	private:
 		void copy_data_to_host() const {
 			size_t number_of_elements = this->getRowCount() * this->getColumnCount();
-			buffer_mirror_on_host.resize(number_of_elements);
-			command_queue.enqueueReadBuffer(buffer, CL_BLOCKING, 0, number_of_elements * sizeof(T), &buffer_mirror_on_host[0], nullptr, nullptr);
+			buffer.cl_buffer_mirror_on_host.resize(number_of_elements);
+			command_queue.enqueueReadBuffer(buffer.cl_buffer, CL_BLOCKING, 0, number_of_elements * sizeof(T), &buffer.cl_buffer_mirror_on_host[0], nullptr, nullptr);
 		}
 
 	public:
 		std::vector<T> &getElems() override {
 			copy_data_to_host();
-			return buffer_mirror_on_host;
+			return buffer.cl_buffer_mirror_on_host;
 		}
 		const std::vector<T> &getElems() const override {
 			copy_data_to_host();
-			return buffer_mirror_on_host;
+			return buffer.cl_buffer_mirror_on_host;
 		}
 		void zero() override {
 			return;
@@ -126,8 +126,12 @@ namespace {
 	private:
 		unordered_map<string, cl::Kernel> &kernels;
 		cl::CommandQueue &command_queue;
-		cl::Buffer buffer;
-		mutable std::vector<T> buffer_mirror_on_host;
+
+		struct Buffer {
+			cl::Buffer cl_buffer;
+			mutable std::vector<T> cl_buffer_mirror_on_host;
+		} buffer;
+
 	};
 }
 
