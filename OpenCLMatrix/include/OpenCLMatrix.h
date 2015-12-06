@@ -45,19 +45,19 @@ namespace {
 			return false; //todo: implement
 		};
 
-		void subtract_andThen_assign(const Matrix<T> &) override {
+		void subtract_by(const Matrix<T> &) override {
 			return; //todo: implement
 		}
 		void sum_of_rows(const Matrix<T> &input) override {
 			return;
 		}
-		void add(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			return;
 		}
-		void minus(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			return;
 		}
-		void multiply(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			return;
 		}
 		void per_Element_Sigmoid(const Matrix<T> &input) override {

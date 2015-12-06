@@ -60,7 +60,7 @@ private:
 		return true;
 	}
 
-	void subtract_andThen_assign(const Matrix<T> &input) override {
+	void subtract_by(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
 		for (size_t idx = 0; idx < this->getElems().size(); ++idx) {
 			this->elems[idx] -= input_as_reference_matrix.elems[idx];
@@ -76,7 +76,7 @@ private:
 		}
 	}
 
-	void add(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+	void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
 		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
 		
@@ -85,7 +85,7 @@ private:
 		}
 	}
 
-	void minus(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+	void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
 		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
 		for (size_t idx = 0; idx < lhs_rm.elems.size(); ++idx) {
@@ -93,7 +93,7 @@ private:
 		}
 	}
 
-	void multiply(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+	void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 		const ReferenceMatrix<T> &lhs_rm = static_cast<const ReferenceMatrix<T> &>(lhs);
 		const ReferenceMatrix<T> &rhs_rm = static_cast<const ReferenceMatrix<T> &>(rhs);
 		for (size_t m = 0; m < lhs_rm.getDimensions()[0]; m++) {

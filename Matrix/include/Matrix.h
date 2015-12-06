@@ -46,11 +46,11 @@ namespace {
 	private:
 		virtual bool is_equal(const Matrix<T> &) const = 0;
 
-		virtual void subtract_andThen_assign(const Matrix<T> &) = 0;
+		virtual void subtract_by(const Matrix<T> &) = 0;
 		virtual void sum_of_rows(const Matrix<T> &input) = 0;
-		virtual void add(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
-		virtual void minus(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
-		virtual void multiply(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
+		virtual void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
+		virtual void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
+		virtual void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
 		virtual void per_Element_Sigmoid(const Matrix<T> &input) = 0;
 		virtual void per_Element_Sigmoid_Prime(const Matrix<T> &sigmoid_value) = 0;
 		virtual void per_Element_Tanh(const Matrix<T> &input) = 0;
@@ -71,10 +71,10 @@ namespace {
 		virtual void zero() = 0;
 
 	public:
-		static void subtract_andThen_assign(Matrix<T> &output, const Matrix<T> &input) {
+		static void set_to_difference_of(Matrix<T> &output, const Matrix<T> &input) {
 			assert(typeid(output) == typeid(input));
 			assert(output.getDimensions() == input.getDimensions());
-			output.subtract_andThen_assign(input);
+			output.subtract_by(input);
 		}
 
 		static void Sum_of_rows(Matrix &output, const Matrix &input) {
@@ -88,14 +88,14 @@ namespace {
 			assert(typeid(output) == typeid(lhs));
 			assert(typeid(output) == typeid(rhs));
 			assert(lhs.getDimensions() == rhs.getDimensions());
-			output.add(lhs, rhs);
+			output.set_to_sum_of(lhs, rhs);
 		}
 
 		static void Minus(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs) {
 			assert(typeid(output) == typeid(lhs));
 			assert(typeid(output) == typeid(rhs));
 			assert(lhs.getDimensions() == rhs.getDimensions());
-			output.minus(lhs, rhs);
+			output.set_to_difference_of(lhs, rhs);
 		}
 
 		static void Multiply(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs) {
@@ -104,7 +104,7 @@ namespace {
 			assert(lhs.getDimensions()[1] == rhs.getDimensions()[0]);
 			assert(output.getDimensions()[0] == lhs.getDimensions()[0]);
 			assert(output.getDimensions()[1] == rhs.getDimensions()[1]);
-			output.multiply(lhs, rhs);
+			output.set_to_product_of(lhs, rhs);
 		}
 
 		static void Per_Element_Sigmoid(Matrix<T> &output, const Matrix<T> &input) {

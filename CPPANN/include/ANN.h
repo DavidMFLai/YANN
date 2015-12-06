@@ -236,7 +236,7 @@ namespace CPPANN {
 				else {
 					signal_nodes.at(idx) = matrix_builder->create(1, signal_counts[idx]);
 					network_nodes.at(idx - 1) = matrix_builder->create(1, signal_counts[idx]);
-					biases.at(idx - 1) = matrix_builder->create(settings_biases.at(idx - 1));
+					biases.at(idx - 1) = matrix_builder->createRowMatrix(settings_biases.at(idx - 1));
 					weights.at(idx - 1) = std::move(weight_matrices.at(idx - 1));
 				}
 			}
@@ -332,10 +332,10 @@ namespace CPPANN {
 			Compute_dTotalError_dSnp1(dTotalError_dSnp1, dError_dSnp1);
 			for (size_t idx = 0; idx < weight_updates.size()-1; ++idx) {
 				Compute_weight_update(*weight_updates[idx], *dTotalError_dSnp1[idx], *dSnp1_dWn[idx], speeds[idx]);
-				Matrix<T>::subtract_andThen_assign(*weights[idx], *weight_updates[idx]);
+				Matrix<T>::set_to_difference_of(*weights[idx], *weight_updates[idx]);
 			}
 			Compute_final_weight_update(*weight_updates.back(), *error_vector, *dSnp1_dWn.back(), speeds.back());
-			Matrix<T>::subtract_andThen_assign(*weights.back(), *weight_updates.back());
+			Matrix<T>::set_to_difference_of(*weights.back(), *weight_updates.back());
 
 			//compute dSnp1_dBn		
 			for (size_t idx = 0; idx < dSnp1_dBn.size(); ++idx) {
@@ -345,10 +345,10 @@ namespace CPPANN {
 			//compute bias updates and apply them
 			for (size_t idx = 0; idx < bias_updates.size() - 1; ++idx) {
 				Compute_bias_update(*bias_updates[idx], *dTotalError_dSnp1[idx], *dSnp1_dBn[idx], speeds[idx]);
-				Matrix<T>::subtract_andThen_assign(*biases[idx], *bias_updates[idx]);
+				Matrix<T>::set_to_difference_of(*biases[idx], *bias_updates[idx]);
 			}
 			Compute_final_bias_update(*bias_updates.back(), *error_vector, *dSnp1_dBn.back(), speeds.back());
-			Matrix<T>::subtract_andThen_assign(*biases.back(), *bias_updates.back());
+			Matrix<T>::set_to_difference_of(*biases.back(), *bias_updates.back());
 		}
 
 	private:

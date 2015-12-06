@@ -1,10 +1,8 @@
 #pragma once
 
+#include "Matrix.h"
 #include <initializer_list>
 #include <memory>
-
-template<typename T>
-class Matrix;
 
 namespace {
 	template <typename T>
