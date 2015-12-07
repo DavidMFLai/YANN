@@ -44,10 +44,15 @@ namespace {
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
 			cl::Program::Sources source{ std::make_pair(program_string.c_str(), program_string.length() + 1) };
 			this->program = cl::Program{ this->context, source };
-			this->program.build(this->devices);
-
+			try{
+				this->program.build(this->devices);
+			}
+			catch (cl::Error e) {
+				std::cout << e.what();
+			}
 			//put all the kernels into a map
 			this->kernels.insert( std::make_pair("reduction_scalar", cl::Kernel{ this->program, "reduction_scalar" }));
+			this->kernels.insert(std::make_pair("sum", cl::Kernel{ this->program, "sum" }));
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };

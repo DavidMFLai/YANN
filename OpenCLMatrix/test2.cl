@@ -66,3 +66,24 @@ __kernel void reduction_scalar(__global float* data,  __local float* partial_sum
       output[get_group_id(0)] = partial_sums[0];
    }
 }
+
+__kernel void sum(__global float *output, __local float *partial_sums, __global float *input) {
+
+   int lid = get_local_id(1);
+   int group_size = get_local_size(1);
+
+   partial_sums[lid] = input[get_global_id(0) + get_global_size(0) * get_global_id(1)];
+   barrier(CLK_LOCAL_MEM_FENCE);
+  
+  
+   for(int i = group_size/2; i>0; i >>= 1) {
+      if(lid < i) {
+         partial_sums[lid] += partial_sums[lid + i];
+      }
+      barrier(CLK_LOCAL_MEM_FENCE);
+   }
+   
+   if(lid == 0) {
+      output[get_group_id(0)] = partial_sums[0];
+   }
+}

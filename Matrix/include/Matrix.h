@@ -47,7 +47,7 @@ namespace {
 		virtual bool is_equal(const Matrix<T> &) const = 0;
 
 		virtual void subtract_by(const Matrix<T> &) = 0;
-		virtual void sum_of_rows(const Matrix<T> &input) = 0;
+		virtual void set_to_sum_of_rows(const Matrix<T> &input) = 0;
 		virtual void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
 		virtual void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
 		virtual void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
@@ -81,7 +81,7 @@ namespace {
 			assert(typeid(output) == typeid(input));
 			assert(output.getColumnCount() == input.getColumnCount());
 			assert(output.getRowCount() == 1);
-			output.sum_of_rows(input);
+			output.set_to_sum_of_rows(input);
 		}
 
 		static void Add(Matrix &output, const Matrix &lhs, const Matrix &rhs) {

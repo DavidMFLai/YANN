@@ -82,6 +82,26 @@ TEST(BasicOperations, create_row_vector_matrix) {
 	EXPECT_EQ(elems, expected_elems);
 }
 
+
+TEST(BasicOperations, set_to_sum_of_rows) {
+
+	OpenCLMatrixBuilder<float> builder;
+	auto input = std::unique_ptr<Matrix<float>>{ builder.create({
+		{ 1.1f, 1.2f },
+		{ 21.2f, 25.3f },
+		{ 31.3f, 35.4f },
+		{ 41.4f, 45.7f },
+	}) };
+
+	auto output = std::unique_ptr<Matrix<float>>{ builder.create(1, 2) };
+
+	Matrix<float>::Sum_of_rows(*output, *input);
+
+	auto v = output->getElems();
+
+	std::cout << " ";
+}
+
 int main(int argc, char *argv[])
 {
 	::testing::InitGoogleMock(&argc, argv);

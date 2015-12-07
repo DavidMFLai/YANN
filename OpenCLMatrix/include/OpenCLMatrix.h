@@ -48,7 +48,20 @@ namespace {
 		void subtract_by(const Matrix<T> &) override {
 			return; //todo: implement
 		}
-		void sum_of_rows(const Matrix<T> &input) override {
+		void set_to_sum_of_rows(const Matrix<T> &input) override {
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+			size_t work_group_size = 256; //Should read from: devices[0].getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+	
+			auto &kernel = kernels.at("sum");
+			kernel.setArg(0, this->buffer.cl_buffer);
+			kernel.setArg(1, work_group_size, nullptr);
+			kernel.setArg(2, input_cl.buffer.cl_buffer);
+
+			cl::NDRange global_size{ input.getColumnCount(), input.getRowCount() };
+			cl::NDRange local_size{ 1, input.getRowCount() };
+
+			command_queue.enqueueNDRangeKernel(kernel, cl::NDRange{0, 0}, global_size, local_size);
+
 			return;
 		}
 		void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {

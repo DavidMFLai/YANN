@@ -67,7 +67,7 @@ private:
 		}
 	}
 
-	void sum_of_rows(const Matrix<T> &input) override {
+	void set_to_sum_of_rows(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
 		for (size_t i = 0; i < input_as_reference_matrix.getColumnCount(); ++i) {
 			this->at(0, i) = 0;
