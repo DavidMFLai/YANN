@@ -25,10 +25,14 @@ namespace {
 		friend class OpenCLMatrixBuilder<T>;
 
 		//Only constructor
-		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions, unordered_map<string, cl::Kernel> &kernels, cl::CommandQueue &command_queue)
+		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions, 
+			unordered_map<string, cl::Kernel> &kernels, 
+			cl::CommandQueue &command_queue,
+			size_t max_work_group_size)
 			: buffer{ buffer, {} }
 			, kernels{ kernels }
 			, command_queue{ command_queue }
+			, max_work_group_size{ max_work_group_size }
 		{
 			this->matrixAccessProperties.setDimensions(dimensions[0], dimensions[1]);
 		};
@@ -50,11 +54,10 @@ namespace {
 		}
 		void set_to_sum_of_rows(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
-			size_t work_group_size = 256; //Should read from: devices[0].getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
 	
 			auto &kernel = kernels.at("sum");
 			kernel.setArg(0, this->buffer.cl_buffer);
-			kernel.setArg(1, work_group_size, nullptr);
+			kernel.setArg(1, this->max_work_group_size, nullptr);
 			kernel.setArg(2, input_cl.buffer.cl_buffer);
 
 			cl::NDRange global_size{ input.getColumnCount(), input.getRowCount() };
@@ -137,9 +140,9 @@ namespace {
 		}
 
 	private:
+		size_t max_work_group_size;
 		unordered_map<string, cl::Kernel> &kernels;
 		cl::CommandQueue &command_queue;
-
 		struct Buffer {
 			cl::Buffer cl_buffer;
 			mutable std::vector<T> cl_buffer_mirror_on_host;

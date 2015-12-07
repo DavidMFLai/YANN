@@ -50,12 +50,16 @@ namespace {
 			catch (cl::Error e) {
 				std::cout << e.what();
 			}
+
 			//put all the kernels into a map
 			this->kernels.insert( std::make_pair("reduction_scalar", cl::Kernel{ this->program, "reduction_scalar" }));
-			this->kernels.insert(std::make_pair("sum", cl::Kernel{ this->program, "sum" }));
+			this->kernels.insert( std::make_pair("sum", cl::Kernel{ this->program, "sum" }));
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
+
+			//get info on max work group size
+			this->max_work_group_size = this->devices[0].getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
 		}
 
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
@@ -63,7 +67,7 @@ namespace {
 			
 			std::array<size_t, 2> dimensions{ rowCount, columnCount };
 
-			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue } };
+			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue, this->max_work_group_size } };
 			return retval;
 		};
 
@@ -83,7 +87,7 @@ namespace {
 			std::array<size_t, 2> dimensions{ lists.size(), lists.begin()->size() };
 			cl::Buffer buffer{ context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, number_of_elements * sizeof(T), &data[0] };
 
-			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue } };
+			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue, this->max_work_group_size } };
 			return retval;
 		};
 
@@ -103,7 +107,7 @@ namespace {
 			std::array<size_t, 2> dimensions{ v.size(), v.begin()->size() };
 			cl::Buffer buffer{ context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, number_of_elements * sizeof(T), &data[0] };
 
-			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue } };
+			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue, this->max_work_group_size } };
 			return retval;
 		};
 
@@ -117,7 +121,7 @@ namespace {
 			std::array<size_t, 2> dimensions{ 1, v.size() };
 			cl::Buffer buffer{ context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, number_of_elements * sizeof(T), const_cast<T*>(&data[0]) };
 
-			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue } };
+			unique_ptr<Matrix<T>> retval{ new OpenCLMatrix<T>{ std::move(buffer), std::move(dimensions), this->kernels, this->queue, this->max_work_group_size } };
 			return retval;
 		}
 
@@ -127,6 +131,7 @@ namespace {
 
 	private:
 		string info;
+		size_t max_work_group_size;
 		vector<cl::Platform> platforms;
 		vector<cl::Device> devices;
 		cl::CommandQueue queue;
