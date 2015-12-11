@@ -84,6 +84,6 @@ __kernel void sum(__global float *output, __local float *partial_sums, __global 
    }
    
    if(lid == 0) {
-      output[get_group_id(0)] = partial_sums[0];
+      output[get_group_id(0) + get_num_groups(0) * get_group_id(1)] = partial_sums[0];
    }
 }

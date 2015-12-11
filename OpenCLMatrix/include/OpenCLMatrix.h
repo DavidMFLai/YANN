@@ -25,14 +25,16 @@ namespace {
 		friend class OpenCLMatrixBuilder<T>;
 
 		//Only constructor
-		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions, 
-			unordered_map<string, cl::Kernel> &kernels, 
+		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions,
+			unordered_map<string, cl::Kernel> &kernels,
 			cl::CommandQueue &command_queue,
-			size_t max_work_group_size)
+			size_t max_work_group_size,
+			cl::Buffer shared_scratch_buffer)
 			: buffer{ buffer, {} }
 			, kernels{ kernels }
 			, command_queue{ command_queue }
 			, max_work_group_size{ max_work_group_size }
+			, shared_scratch_buffer{ shared_scratch_buffer }
 		{
 			this->matrixAccessProperties.setDimensions(dimensions[0], dimensions[1]);
 		};
@@ -54,14 +56,16 @@ namespace {
 		}
 		void set_to_sum_of_rows(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
-	
+
+
+
 			auto &kernel = kernels.at("sum");
 			kernel.setArg(0, this->buffer.cl_buffer);
-			kernel.setArg(1, this->max_work_group_size, nullptr);
+			kernel.setArg(1, this->max_work_group_size*sizeof(T), nullptr);
 			kernel.setArg(2, input_cl.buffer.cl_buffer);
 
 			cl::NDRange global_size{ input.getColumnCount(), input.getRowCount() };
-			cl::NDRange local_size{ 1, input.getRowCount() };
+			cl::NDRange local_size{ 1, this->max_work_group_size };
 
 			command_queue.enqueueNDRangeKernel(kernel, cl::NDRange{0, 0}, global_size, local_size);
 
@@ -147,7 +151,7 @@ namespace {
 			cl::Buffer cl_buffer;
 			mutable std::vector<T> cl_buffer_mirror_on_host;
 		} buffer;
-
+		cl::Buffer shared_scratch_buffer;
 	};
 }
 
