@@ -9,6 +9,8 @@
 #include "Matrix.h"
 #include "include\OpenCLMatrix.h"
 #include "include\OpenCLMatrixBuilder.h"
+#include "..\Matrix\include\ReferenceMatrix.h"
+#include "..\Matrix\include\ReferenceMatrixBuilder.h"
 
 TEST(BasicOperations, create_from_dimensions) {
 	
@@ -84,39 +86,26 @@ TEST(BasicOperations, create_row_vector_matrix) {
 
 
 TEST(BasicOperations, set_to_sum_of_rows) {
-
-	OpenCLMatrixBuilder<float> builder;
-	auto input = std::unique_ptr<Matrix<float>>{ builder.create({
+	std::vector<std::vector<float>> input_data{
 		{ 1.1f, 1.2f },
 		{ 21.2f, 25.3f },
 		{ 31.3f, 35.4f },
 		{ 41.4f, 45.7f },
-	}) };
+	};
 
-	auto output = std::unique_ptr<Matrix<float>>{ builder.create(1, 2) };
-	auto output_before_running_as_vector = output->getElems();
-	std::cout << "output before running: ";
-	for (auto data : output_before_running_as_vector) {
-		std::cout << data << " ";
-	}
-	std::cout << std::endl;
+	ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+	auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+	auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(1, 2) };
+	Matrix<float>::Sum_of_rows(*output_ref, *input_ref);
+	auto output_ref_as_vector = output_ref->getElems();
 
+	OpenCLMatrixBuilder<float> openCLMatrixBuilder;
+	auto input = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+	auto output = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(1, 2) };
 	Matrix<float>::Sum_of_rows(*output, *input);
-
 	auto output_as_vector = output->getElems();
-	auto input_as_vector = input->getElems();
 
-	std::cout << "input: ";
-	for (auto data : input_as_vector) {
-		std::cout << data << " ";
-	}
-	std::cout << std::endl;
-
-	std::cout << "output: ";
-	for (auto data : output_as_vector) {
-		std::cout << data << " ";
-	}
-
+	EXPECT_EQ(output_as_vector, output_ref_as_vector);
 }
 
 int main(int argc, char *argv[])
