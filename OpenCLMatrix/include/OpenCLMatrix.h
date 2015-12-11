@@ -29,7 +29,7 @@ namespace {
 			unordered_map<string, cl::Kernel> &kernels,
 			cl::CommandQueue &command_queue,
 			size_t max_work_group_size,
-			cl::Buffer shared_scratch_buffer)
+			std::vector<cl::Buffer> shared_scratch_buffer)
 			: buffer{ buffer, {} }
 			, kernels{ kernels }
 			, command_queue{ command_queue }
@@ -58,9 +58,8 @@ namespace {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
 
 
-
 			auto &kernel = kernels.at("sum");
-			kernel.setArg(0, this->buffer.cl_buffer);
+			kernel.setArg(0, this->shared_scratch_buffer[0]);
 			kernel.setArg(1, this->max_work_group_size*sizeof(T), nullptr);
 			kernel.setArg(2, input_cl.buffer.cl_buffer);
 
@@ -151,7 +150,7 @@ namespace {
 			cl::Buffer cl_buffer;
 			mutable std::vector<T> cl_buffer_mirror_on_host;
 		} buffer;
-		cl::Buffer shared_scratch_buffer;
+		std::vector<cl::Buffer> shared_scratch_buffer;
 	};
 }
 

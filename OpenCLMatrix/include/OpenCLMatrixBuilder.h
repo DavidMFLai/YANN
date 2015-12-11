@@ -66,7 +66,9 @@ namespace {
 			//get info on max work group size
 			this->max_work_group_size = this->devices[0].getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
 
-			this->shared_scratch_buffer = cl::Buffer{ this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr };
+			//create 2 scratch_buffers
+			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
+			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
 		}
 
 		OpenCLMatrixBuilder<T>()
@@ -193,6 +195,6 @@ namespace {
 		cl::Program program;
 		cl::Context context;
 		unordered_map<string, cl::Kernel> kernels;
-		cl::Buffer shared_scratch_buffer;
+		std::vector<cl::Buffer> shared_scratch_buffer;
 	};
 }
