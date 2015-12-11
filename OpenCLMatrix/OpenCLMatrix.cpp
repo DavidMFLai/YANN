@@ -94,12 +94,29 @@ TEST(BasicOperations, set_to_sum_of_rows) {
 	}) };
 
 	auto output = std::unique_ptr<Matrix<float>>{ builder.create(1, 2) };
+	auto output_before_running_as_vector = output->getElems();
+	std::cout << "output before running: ";
+	for (auto data : output_before_running_as_vector) {
+		std::cout << data << " ";
+	}
+	std::cout << std::endl;
 
 	Matrix<float>::Sum_of_rows(*output, *input);
 
-	auto v = output->getElems();
+	auto output_as_vector = output->getElems();
+	auto input_as_vector = input->getElems();
 
-	std::cout << " ";
+	std::cout << "input: ";
+	for (auto data : input_as_vector) {
+		std::cout << data << " ";
+	}
+	std::cout << std::endl;
+
+	std::cout << "output: ";
+	for (auto data : output_as_vector) {
+		std::cout << data << " ";
+	}
+
 }
 
 int main(int argc, char *argv[])

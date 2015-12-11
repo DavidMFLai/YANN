@@ -58,7 +58,7 @@ namespace {
 
 			//put all the kernels into a map
 			this->kernels.insert(std::make_pair("reduction_scalar", cl::Kernel{ this->program, "reduction_scalar" }));
-			this->kernels.insert(std::make_pair("sum", cl::Kernel{ this->program, "sum" }));
+			this->kernels.insert(std::make_pair("used_by_set_to_sum_of_rows", cl::Kernel{ this->program, "used_by_set_to_sum_of_rows" }));
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };

@@ -67,12 +67,12 @@ __kernel void reduction_scalar(__global float* data,  __local float* partial_sum
    }
 }
 
-__kernel void sum(__global float *output, __local float *partial_sums, __global float *input) {
+__kernel void used_by_set_to_sum_of_rows(__global float *input_and_output, __local float *partial_sums) {
 
    int lid = get_local_id(1);
    int group_size = get_local_size(1);
 
-   partial_sums[lid] = input[get_global_id(0) + get_global_size(0) * get_global_id(1)];
+   partial_sums[lid] = input_and_output[get_global_id(0) + get_global_size(0) * get_global_id(1)];
    barrier(CLK_LOCAL_MEM_FENCE);
   
   
@@ -84,6 +84,6 @@ __kernel void sum(__global float *output, __local float *partial_sums, __global 
    }
    
    if(lid == 0) {
-      output[get_group_id(0) + get_num_groups(0) * get_group_id(1)] = partial_sums[0];
+      input_and_output[get_group_id(0) + get_num_groups(0) * get_group_id(1)] = partial_sums[0];
    }
 }

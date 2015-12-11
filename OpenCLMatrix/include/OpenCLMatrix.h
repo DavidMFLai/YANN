@@ -57,16 +57,46 @@ namespace {
 		void set_to_sum_of_rows(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
 
+			//copy input buffer to 0th scratch buffer
+			command_queue.enqueueCopyBuffer(input_cl.buffer.cl_buffer, 
+				this->shared_scratch_buffer[0],
+				0, 
+				0,
+				input.getColumnCount() * input.getRowCount() * sizeof(T)
+				);
 
-			auto &kernel = kernels.at("sum");
-			kernel.setArg(0, this->shared_scratch_buffer[0]);
-			kernel.setArg(1, this->max_work_group_size*sizeof(T), nullptr);
-			kernel.setArg(2, input_cl.buffer.cl_buffer);
+			//For an M-rows by N-columns data, we divide the data into max_work_group_size-columns by 1-row chunks
+			//if M is not divisible by max_work_group_size, then the last workgroups will have (M % max_work_group_size) chunks
+			size_t number_of_rows_at_input = input.getRowCount();
+			while(number_of_rows_at_input > 1)
+			{
+				auto &kernel = kernels.at("used_by_set_to_sum_of_rows");
+				kernel.setArg(0, this->shared_scratch_buffer[0]);
+				kernel.setArg(1, this->max_work_group_size*sizeof(T), nullptr);
 
-			cl::NDRange global_size{ input.getColumnCount(), input.getRowCount() };
-			cl::NDRange local_size{ 1, this->max_work_group_size };
+				cl::NDRange global_size{ input.getColumnCount(), number_of_rows_at_input };
+				cl::NDRange local_size;
+				if (number_of_rows_at_input < this->max_work_group_size) {
+					local_size = cl::NDRange{ 1, number_of_rows_at_input };
+				}
+				else {
+					local_size = cl::NDRange{ 1, this->max_work_group_size };
+				}
 
-			command_queue.enqueueNDRangeKernel(kernel, cl::NDRange{0, 0}, global_size, local_size);
+				command_queue.enqueueNDRangeKernel(kernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+
+				number_of_rows_at_input = number_of_rows_at_input / this->max_work_group_size
+					+ (input.getColumnCount() % this->max_work_group_size == 0) ? 0 : 1;
+
+			}
+
+			//copy 0th scratch buffer to this
+			command_queue.enqueueCopyBuffer(this->shared_scratch_buffer[0],
+				this->buffer.cl_buffer,
+				0,
+				0,
+				input.getColumnCount() * sizeof(T)
+				);
 
 			return;
 		}
