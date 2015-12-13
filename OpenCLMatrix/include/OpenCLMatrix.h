@@ -24,16 +24,15 @@ namespace {
 	private:
 		friend class OpenCLMatrixBuilder<T>;
 
-		//Only constructor
-		OpenCLMatrix(cl::Buffer buffer, std::array<size_t, 2> dimensions,
-			unordered_map<string, cl::Kernel> &kernels,
+		//Sole constructor
+		OpenCLMatrix(cl::Buffer buffer, 
+			std::array<size_t, 2> dimensions,
+			unordered_map<string, KernelWrapper> &kernel_wrappers,
 			cl::CommandQueue &command_queue,
-			size_t max_work_group_size,
 			std::vector<cl::Buffer> shared_scratch_buffer)
 			: buffer{ buffer, {} }
-			, kernels{ kernels }
+			, kernel_wrappers{ kernel_wrappers }
 			, command_queue{ command_queue }
-			, max_work_group_size{ max_work_group_size }
 			, shared_scratch_buffer{ shared_scratch_buffer }
 		{
 			this->matrixAccessProperties.setDimensions(dimensions[0], dimensions[1]);
@@ -54,6 +53,7 @@ namespace {
 		void subtract_by(const Matrix<T> &) override {
 			return; //todo: implement
 		}
+
 		void set_to_sum_of_rows(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
 
@@ -62,32 +62,51 @@ namespace {
 				this->shared_scratch_buffer[0],
 				0, 
 				0,
-				input.getColumnCount() * input.getRowCount() * sizeof(T)
+				input.getRowLength() * input.getColumnLength() * sizeof(T)
 				);
 
 			//For an M-rows by N-columns data, we divide the data into max_work_group_size-columns by 1-row chunks
 			//if M is not divisible by max_work_group_size, then the last workgroups will have (M % max_work_group_size) chunks
-			size_t number_of_rows_at_input = input.getRowCount();
-			while(number_of_rows_at_input > 1)
+			size_t column_length_at_input = input.getColumnLength();
+			while(column_length_at_input > 1)
 			{
-				auto &kernel = kernels.at("used_by_set_to_sum_of_rows");
-				kernel.setArg(0, this->shared_scratch_buffer[0]);
-				kernel.setArg(1, this->max_work_group_size*sizeof(T), nullptr);
+				size_t max_work_group_size = kernel_wrappers.at("used_by_set_to_sum_of_rows").kernel_work_group_size;
 
-				cl::NDRange global_size{ input.getColumnCount(), number_of_rows_at_input };
+				auto &clKernel = kernel_wrappers.at("used_by_set_to_sum_of_rows").clKernel;
+				clKernel.setArg(0, this->shared_scratch_buffer[0]);
+
+				cl::LocalSpaceArg arg = cl::__local(max_work_group_size*sizeof(T));
+				clKernel.setArg(1, arg);
+
+				cl::NDRange global_size{ input.getRowLength(), column_length_at_input };
 				cl::NDRange local_size;
-				if (number_of_rows_at_input < this->max_work_group_size) {
-					local_size = cl::NDRange{ 1, number_of_rows_at_input };
+				if (column_length_at_input < max_work_group_size) {
+					local_size = cl::NDRange{ 1, column_length_at_input };
 				}
 				else {
-					local_size = cl::NDRange{ 1, this->max_work_group_size };
+					local_size = cl::NDRange{ 1, max_work_group_size };
 				}
 
-				command_queue.enqueueNDRangeKernel(kernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+				//calculate new column length after execution
+				if (column_length_at_input <= max_work_group_size) {
+					column_length_at_input = 1;
+				}
+				else {
+					bool has_odd_column = (column_length_at_input % max_work_group_size) == 0 ? 0 : 1;
+					column_length_at_input = column_length_at_input / max_work_group_size + has_odd_column;
+				}
 
-				number_of_rows_at_input = number_of_rows_at_input / this->max_work_group_size
-					+ (input.getColumnCount() % this->max_work_group_size == 0) ? 0 : 1;
-
+				try {
+					command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+				}
+				catch (cl::Error e) {
+					std::cout << e.what();
+				}
+				//test
+				size_t number_of_elements_used_at_scratch_buffer =  input.getRowLength() * column_length_at_input;
+				auto data = std::make_unique<float[]>(number_of_elements_used_at_scratch_buffer);
+				command_queue.enqueueReadBuffer(this->shared_scratch_buffer[0], CL_BLOCKING, 0, number_of_elements_used_at_scratch_buffer * sizeof(T), &data[0], nullptr, nullptr);
+				std::cout << "";
 			}
 
 			//copy 0th scratch buffer to this
@@ -95,7 +114,7 @@ namespace {
 				this->buffer.cl_buffer,
 				0,
 				0,
-				input.getColumnCount() * sizeof(T)
+				input.getRowLength() * sizeof(T)
 				);
 
 			return;
@@ -154,7 +173,7 @@ namespace {
 		}
 	private:
 		void copy_data_to_host() const {
-			size_t number_of_elements = this->getRowCount() * this->getColumnCount();
+			size_t number_of_elements = this->getColumnLength() * this->getRowLength();
 			buffer.cl_buffer_mirror_on_host.resize(number_of_elements);
 			command_queue.enqueueReadBuffer(buffer.cl_buffer, CL_BLOCKING, 0, number_of_elements * sizeof(T), &buffer.cl_buffer_mirror_on_host[0], nullptr, nullptr);
 		}
@@ -173,8 +192,7 @@ namespace {
 		}
 
 	private:
-		size_t max_work_group_size;
-		unordered_map<string, cl::Kernel> &kernels;
+		std::unordered_map<std::string, KernelWrapper> &kernel_wrappers;
 		cl::CommandQueue &command_queue;
 		struct Buffer {
 			cl::Buffer cl_buffer;

@@ -17,6 +17,12 @@
 #include "OpenCLMatrix.h"
 #include "MatrixBuilder.h"
 
+class KernelWrapper {
+public:
+	cl::Kernel clKernel;
+	size_t kernel_work_group_size;
+};
+
 namespace {
 	using std::vector;
 	using std::unordered_map;
@@ -28,17 +34,25 @@ namespace {
 	template<typename T>
 	class OpenCLMatrixBuilder : public MatrixBuilder<T> {
 	public:
-		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count) {
+		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count)
+			: max_matrix_element_count{ max_matrix_element_count } {
 			//get platform
 			cl::Platform::get(&this->platforms);
 
-			//check platform's OpenCL major version
-			checkOpenCLVersion(this->platforms[0], 2);
-
-			this->platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &this->devices);
-			for (const auto & device : this->devices) {
-				info += device.getInfo<CL_DEVICE_NAME>().c_str();
-				info += '\n';
+			//find first device with OpenCL 2.0
+			for (auto &platform : this->platforms) {
+				vector<cl::Device> all_devices;
+				platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+				for (auto &device : all_devices) {
+					auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
+					if (major_version_as_string == "2") {
+						this->devices.push_back(device);
+						break;
+					}
+				}
+				if (this->devices.size() == 1) {
+					break;
+				}
 			}
 
 			//create context
@@ -50,21 +64,25 @@ namespace {
 			cl::Program::Sources source{ std::make_pair(program_string.c_str(), program_string.length() + 1) };
 			this->program = cl::Program{ this->context, source };
 			try {
-				this->program.build(this->devices);
+				this->program.build(this->devices, "-cl-std=CL2.0");
 			}
 			catch (cl::Error e) {
-				std::cout << e.what();
+				auto buildInfo = this->program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->devices.at(0));
+				std::cout << e.what() << '\n';
+				std::cout << buildInfo << '\n';
+
 			}
 
 			//put all the kernels into a map
-			this->kernels.insert(std::make_pair("reduction_scalar", cl::Kernel{ this->program, "reduction_scalar" }));
-			this->kernels.insert(std::make_pair("used_by_set_to_sum_of_rows", cl::Kernel{ this->program, "used_by_set_to_sum_of_rows" }));
+			KernelWrapper kernel_wrapper;
+			kernel_wrapper.clKernel = cl::Kernel{ this->program, "used_by_set_to_sum_of_rows" };
+			kernel_wrapper.kernel_work_group_size = kernel_wrapper.clKernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(this->devices[0]);
+			this->kernel_wrappers.insert(std::make_pair("used_by_set_to_sum_of_rows", kernel_wrapper));
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
 
-			//get info on max work group size
-			this->max_work_group_size = this->devices[0].getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+			//auto local_mem_size = this->devices[0].getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
 
 			//create 2 scratch_buffers
 			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
@@ -76,6 +94,10 @@ namespace {
 		{}
 
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
+			if (rowCount * columnCount > this->max_matrix_element_count) {
+				throw CannotCreateError{ "rowCount * columnCount is greater than max_matrix_element_count" };
+			}
+
 			cl::Buffer buffer{ context, CL_MEM_READ_WRITE, rowCount * columnCount * sizeof(T) };
 			
 			std::array<size_t, 2> dimensions{ rowCount, columnCount };
@@ -84,9 +106,8 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer),
 					std::move(dimensions),
-					this->kernels,
+					this->kernel_wrappers,
 					this->queue,
-					this->max_work_group_size,
 					this->shared_scratch_buffer
 				}
 			};
@@ -96,6 +117,10 @@ namespace {
 		unique_ptr<Matrix<T>> create(initializer_list<initializer_list<T>> lists) override {
 			//total number of elements
 			size_t number_of_elements = lists.size() * lists.begin()->size();
+
+			if (number_of_elements > this->max_matrix_element_count) {
+				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
+			}
 
 			//prepare data for host ptr
 			auto data = std::vector<T>();
@@ -113,9 +138,8 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernels, 
+					this->kernel_wrappers, 
 					this->queue, 
-					this->max_work_group_size,
 					this->shared_scratch_buffer
 				} 
 			};
@@ -125,6 +149,10 @@ namespace {
 		unique_ptr<Matrix<T>> create(const vector<vector<T>> &v) override {
 			//total number of elements
 			size_t number_of_elements = v.size() * v.begin()->size();
+
+			if (number_of_elements > this->max_matrix_element_count) {
+				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
+			}
 
 			//prepare data for host ptr
 			auto data = std::vector<T>();
@@ -142,9 +170,8 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernels, 
+					this->kernel_wrappers, 
 					this->queue, 
-					this->max_work_group_size,
 					this->shared_scratch_buffer
 				} 
 			};
@@ -154,6 +181,10 @@ namespace {
 		unique_ptr<Matrix<T>> createRowMatrix(const vector<T> &v) override {
 			//total number of elements
 			size_t number_of_elements = v.size();
+
+			if (number_of_elements > this->max_matrix_element_count) {
+				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
+			}
 
 			//prepare data for host ptr
 			auto data = std::vector<T>{ v };
@@ -165,9 +196,8 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernels, 
+					this->kernel_wrappers, 
 					this->queue,
-					this->max_work_group_size,
 					this->shared_scratch_buffer
 				}
 			};
@@ -188,13 +218,25 @@ namespace {
 		}
 
 		string info;
-		size_t max_work_group_size;
 		vector<cl::Platform> platforms;
 		vector<cl::Device> devices;
 		cl::CommandQueue queue;
 		cl::Program program;
 		cl::Context context;
-		unordered_map<string, cl::Kernel> kernels;
+		unordered_map<string, KernelWrapper> kernel_wrappers;
+		size_t max_matrix_element_count;
 		std::vector<cl::Buffer> shared_scratch_buffer;
+	};
+
+
+	class CannotCreateError : public std::runtime_error {
+	public:
+		CannotCreateError(const char *str)
+			: std::runtime_error(str)
+		{};
+
+		CannotCreateError(std::string str)
+			: std::runtime_error(str)
+		{};
 	};
 }

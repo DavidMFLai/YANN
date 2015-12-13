@@ -69,9 +69,9 @@ private:
 
 	void set_to_sum_of_rows(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_as_reference_matrix = static_cast<const ReferenceMatrix<T> &>(input);
-		for (size_t i = 0; i < input_as_reference_matrix.getColumnCount(); ++i) {
+		for (size_t i = 0; i < input_as_reference_matrix.getRowLength(); ++i) {
 			this->at(0, i) = 0;
-			for (size_t j = 0; j < input_as_reference_matrix.getRowCount(); ++j)
+			for (size_t j = 0; j < input_as_reference_matrix.getColumnLength(); ++j)
 				this->at(0, i) += input_as_reference_matrix.at(j, i);
 		}
 	}
@@ -138,8 +138,8 @@ private:
 		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
 		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
 
-		for (size_t i = 0; i < this->getRowCount(); i++) {
-			for (size_t j = 0; j < this->getColumnCount(); j++) {
+		for (size_t i = 0; i < this->getColumnLength(); i++) {
+			for (size_t j = 0; j < this->getRowLength(); j++) {
 				this->at(i, j) = multipliers_rm.at(0, i) * multiplicand_rm.at(j, i);
 			}
 		}
@@ -148,8 +148,8 @@ private:
 	void per_Column_Multiply_AndThen_Scale(const Matrix<T> &multipliers, const Matrix<T> &multiplicand, T scale) {
 		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
 		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
-		for (size_t i = 0; i < this->getRowCount(); i++) {
-			for (size_t j = 0; j < this->getColumnCount(); j++) {
+		for (size_t i = 0; i < this->getColumnLength(); i++) {
+			for (size_t j = 0; j < this->getRowLength(); j++) {
 				this->at(i, j) = multipliers_rm.at(0, j) * multiplicand_rm.at(i, j) * scale;
 			}
 		}
@@ -158,8 +158,8 @@ private:
 	void per_Row_Multiply(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) {
 		const ReferenceMatrix<T> &multipliers_rm = static_cast<const ReferenceMatrix<T> &>(multipliers);
 		const ReferenceMatrix<T> &multiplicand_rm = static_cast<const ReferenceMatrix<T> &>(multiplicand);
-		for (size_t i = 0; i < this->getRowCount(); i++) {
-			for (size_t j = 0; j < this->getColumnCount(); j++) {
+		for (size_t i = 0; i < this->getColumnLength(); i++) {
+			for (size_t j = 0; j < this->getRowLength(); j++) {
 				this->at(i, j) = multipliers_rm.at(0, i) * multiplicand_rm.at(i, j);
 			}
 		}
@@ -169,15 +169,15 @@ private:
 		const ReferenceMatrix<T> &row_vector_1_rm = static_cast<const ReferenceMatrix<T> &>(row_vector_1);
 		const ReferenceMatrix<T> &row_vector_2_rm = static_cast<const ReferenceMatrix<T> &>(row_vector_2);
 
-		for (size_t i = 0; i < this->getColumnCount(); i++) {
+		for (size_t i = 0; i < this->getRowLength(); i++) {
 			this->at(0, i) = row_vector_1_rm.at(0, i) * row_vector_2_rm.at(0, i) * scale;
 		}
 	}
 
 	void copy(const Matrix<T> &input) override {
 		const ReferenceMatrix<T> &input_rm = static_cast<const ReferenceMatrix<T> &>(input);
-		for (size_t i = 0; i < this->getRowCount(); i++) {
-			for (size_t j = 0; j < this->getColumnCount(); j++) {
+		for (size_t i = 0; i < this->getColumnLength(); i++) {
+			for (size_t j = 0; j < this->getRowLength(); j++) {
 				this->at(i, j) = input_rm.at(i, j);
 			}
 		}
@@ -187,8 +187,8 @@ private:
 		const ReferenceMatrix<T> &input1_rm = static_cast<const ReferenceMatrix<T> &>(input1);
 		const ReferenceMatrix<T> &input2_rm = static_cast<const ReferenceMatrix<T> &>(input2);
 
-		for (size_t i = 0; i < this->getRowCount(); i++) {
-			for (size_t j = 0; j < this->getColumnCount(); j++) {
+		for (size_t i = 0; i < this->getColumnLength(); i++) {
+			for (size_t j = 0; j < this->getRowLength(); j++) {
 				this->at(i, j) = input1_rm.at(0, i) * input2_rm.at(0, j);
 			}
 		}

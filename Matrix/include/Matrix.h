@@ -17,12 +17,12 @@ namespace {
 		}
 
 		//Getting No. of rows
-		size_t getRowCount() const {
+		size_t getColumnLength() const {
 			return this->matrixAccessProperties.dimensions[0];
 		}
 
 		//Getting No. of columns
-		size_t getColumnCount() const {
+		size_t getRowLength() const {
 			return this->matrixAccessProperties.dimensions[1];
 		}
 
@@ -79,8 +79,8 @@ namespace {
 
 		static void Sum_of_rows(Matrix &output, const Matrix &input) {
 			assert(typeid(output) == typeid(input));
-			assert(output.getColumnCount() == input.getColumnCount());
-			assert(output.getRowCount() == 1);
+			assert(output.getRowLength() == input.getRowLength());
+			assert(output.getColumnLength() == 1);
 			output.set_to_sum_of_rows(input);
 		}
 
@@ -138,9 +138,9 @@ namespace {
 		static void Per_Column_Multiply_AndThen_Transpose(Matrix<T> &output, const Matrix<T> &multipliers, const Matrix<T> &multiplicand) {
 			assert(typeid(output) == typeid(multipliers));
 			assert(typeid(output) == typeid(multiplicand));
-			assert(multipliers.getRowCount() == 1);
-			assert(output.getColumnCount() == multiplicand.getRowCount());
-			assert(output.getRowCount() == multiplicand.getColumnCount());
+			assert(multipliers.getColumnLength() == 1);
+			assert(output.getRowLength() == multiplicand.getColumnLength());
+			assert(output.getColumnLength() == multiplicand.getRowLength());
 			output.per_Column_Multiply_AndThen_Transpose(multipliers, multiplicand);
 		}
 
@@ -152,9 +152,9 @@ namespace {
 		static void Per_Column_Multiply_AndThen_Scale(Matrix<T> &output, const Matrix<T> &multipliers, const Matrix<T> &multiplicand, T scale) {
 			assert(typeid(output) == typeid(multipliers));
 			assert(typeid(output) == typeid(multiplicand));
-			assert(multipliers.getRowCount() == 1);
-			assert(output.getRowCount() == multiplicand.getRowCount());
-			assert(output.getColumnCount() == multiplicand.getColumnCount());
+			assert(multipliers.getColumnLength() == 1);
+			assert(output.getColumnLength() == multiplicand.getColumnLength());
+			assert(output.getRowLength() == multiplicand.getRowLength());
 			output.per_Column_Multiply_AndThen_Scale(multipliers, multiplicand, scale);
 		}
 
@@ -165,20 +165,20 @@ namespace {
 		static void Per_Row_Multiply(Matrix<T> &output, const Matrix<T> &multipliers, const Matrix<T> &multiplicand) {
 			assert(typeid(output) == typeid(multipliers));
 			assert(typeid(output) == typeid(multiplicand));
-			assert(multipliers.getRowCount() == 1);
-			assert(output.getRowCount() == multiplicand.getRowCount());
-			assert(output.getColumnCount() == multiplicand.getColumnCount());
+			assert(multipliers.getColumnLength() == 1);
+			assert(output.getColumnLength() == multiplicand.getColumnLength());
+			assert(output.getRowLength() == multiplicand.getRowLength());
 			output.per_Row_Multiply(multipliers, multiplicand);
 		}
 
 		static void Row_Vectors_Per_Element_Multiply_AndThen_Scale(Matrix<T> &output, const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) {
 			assert(typeid(output) == typeid(row_vector_1));
 			assert(typeid(output) == typeid(row_vector_2));
-			assert(row_vector_1.getRowCount() == 1);
-			assert(row_vector_2.getRowCount() == 1);
-			assert(output.getRowCount() == 1);
-			assert(output.getColumnCount() == row_vector_1.getColumnCount());
-			assert(output.getColumnCount() == row_vector_2.getColumnCount());
+			assert(row_vector_1.getColumnLength() == 1);
+			assert(row_vector_2.getColumnLength() == 1);
+			assert(output.getColumnLength() == 1);
+			assert(output.getRowLength() == row_vector_1.getRowLength());
+			assert(output.getRowLength() == row_vector_2.getRowLength());
 			output.row_Vectors_Per_Element_Multiply_AndThen_Scale(row_vector_1, row_vector_2, scale);
 		}
 
@@ -191,13 +191,13 @@ namespace {
 		static void Outer_product(Matrix<T> &output, const Matrix<T> &input1, const Matrix<T> &input2) {
 			assert(typeid(output) == typeid(input1));
 			assert(typeid(output) == typeid(input2));
-			assert(input1.getRowCount() == 1);
-			assert(input2.getRowCount() == 1);
+			assert(input1.getColumnLength() == 1);
+			assert(input2.getColumnLength() == 1);
 			output.outer_product(input1, input2);
 		}
 
 		static void Copy_from_vector(Matrix<T> &output, const std::vector<T> &input) {
-			assert(output.getColumnCount()*output.getRowCount() == input.size());
+			assert(output.getRowLength()*output.getColumnLength() == input.size());
 			output.copy_from_vector(input);
 		}
 	};
