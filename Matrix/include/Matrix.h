@@ -71,12 +71,6 @@ namespace {
 		virtual void zero() = 0;
 
 	public:
-		static void set_to_difference_of(Matrix<T> &output, const Matrix<T> &input) {
-			assert(typeid(output) == typeid(input));
-			assert(output.getDimensions() == input.getDimensions());
-			output.subtract_by(input);
-		}
-
 		static void Sum_of_rows(Matrix &output, const Matrix &input) {
 			assert(typeid(output) == typeid(input));
 			assert(output.getRowLength() == input.getRowLength());
@@ -89,6 +83,12 @@ namespace {
 			assert(typeid(output) == typeid(rhs));
 			assert(lhs.getDimensions() == rhs.getDimensions());
 			output.set_to_sum_of(lhs, rhs);
+		}
+
+		static void Minus_By(Matrix<T> &output, const Matrix<T> &input) {
+			assert(typeid(output) == typeid(input));
+			assert(output.getDimensions() == input.getDimensions());
+			output.subtract_by(input);
 		}
 
 		static void Minus(Matrix<T> &output, const Matrix<T> &lhs, const Matrix<T> &rhs) {

@@ -435,19 +435,19 @@ TEST(ANNBuilder_Basics, ANNBuilder_Basics)
 	auto &speeds = ann.getSpeeds();
 
 	EXPECT_EQ(3, biases.size());
-	EXPECT_EQ(4, biases.at(0)->getColumnCount());
-	EXPECT_EQ(3, biases.at(1)->getColumnCount());
-	EXPECT_EQ(2, biases.at(2)->getColumnCount());
+	EXPECT_EQ(4, biases.at(0)->getRowLength());
+	EXPECT_EQ(3, biases.at(1)->getRowLength());
+	EXPECT_EQ(2, biases.at(2)->getRowLength());
 
 	EXPECT_EQ(4, neuron_counts.size());
 
 	EXPECT_EQ(3, weight_matrices.size());
-	EXPECT_EQ(5, weight_matrices.at(0)->getRowCount());
-	EXPECT_EQ(4, weight_matrices.at(0)->getColumnCount());
-	EXPECT_EQ(4, weight_matrices.at(1)->getRowCount());
-	EXPECT_EQ(3, weight_matrices.at(1)->getColumnCount());
-	EXPECT_EQ(3, weight_matrices.at(2)->getRowCount());
-	EXPECT_EQ(2, weight_matrices.at(2)->getColumnCount());
+	EXPECT_EQ(5, weight_matrices.at(0)->getColumnLength());
+	EXPECT_EQ(4, weight_matrices.at(0)->getRowLength());
+	EXPECT_EQ(4, weight_matrices.at(1)->getColumnLength());
+	EXPECT_EQ(3, weight_matrices.at(1)->getRowLength());
+	EXPECT_EQ(3, weight_matrices.at(2)->getColumnLength());
+	EXPECT_EQ(2, weight_matrices.at(2)->getRowLength());
 
 	EXPECT_EQ(3, neuron_types.size());
 	EXPECT_EQ(Neuron_Type::Sigmoid, neuron_types.at(0));
