@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 namespace {
 	using std::unordered_map;
@@ -65,48 +66,29 @@ namespace {
 				input.getRowLength() * input.getColumnLength() * sizeof(T)
 				);
 
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("used_by_set_to_sum_of_rows").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("used_by_set_to_sum_of_rows").clKernel;
+			
 			//For an M-rows by N-columns data, we divide the data into max_work_group_size-columns by 1-row chunks
 			//if M is not divisible by max_work_group_size, then the last workgroups will have (M % max_work_group_size) chunks
 			size_t column_length_at_input = input.getColumnLength();
-			while(column_length_at_input > 1)
-			{
-				size_t max_work_group_size = kernel_wrappers.at("used_by_set_to_sum_of_rows").kernel_work_group_size;
-
-				auto &clKernel = kernel_wrappers.at("used_by_set_to_sum_of_rows").clKernel;
+			while(column_length_at_input > 1)	{
+				//Get clKernel and set arguments 
 				clKernel.setArg(0, this->shared_scratch_buffer[0]);
-
 				cl::LocalSpaceArg arg = cl::__local(max_work_group_size*sizeof(T));
 				clKernel.setArg(1, arg);
 
+				//enqueueNDRangeKernel 
 				cl::NDRange global_size{ input.getRowLength(), column_length_at_input };
-				cl::NDRange local_size;
-				if (column_length_at_input < max_work_group_size) {
-					local_size = cl::NDRange{ 1, column_length_at_input };
-				}
-				else {
-					local_size = cl::NDRange{ 1, max_work_group_size };
-				}
+				cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(column_length_at_input, max_work_group_size) };
+				command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 
 				//calculate new column length after execution
-				if (column_length_at_input <= max_work_group_size) {
-					column_length_at_input = 1;
-				}
-				else {
+				{
 					bool has_odd_column = (column_length_at_input % max_work_group_size) == 0 ? 0 : 1;
 					column_length_at_input = column_length_at_input / max_work_group_size + has_odd_column;
 				}
-
-				try {
-					command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
-				}
-				catch (cl::Error e) {
-					std::cout << e.what();
-				}
-				//test
-				size_t number_of_elements_used_at_scratch_buffer =  input.getRowLength() * column_length_at_input;
-				auto data = std::make_unique<float[]>(number_of_elements_used_at_scratch_buffer);
-				command_queue.enqueueReadBuffer(this->shared_scratch_buffer[0], CL_BLOCKING, 0, number_of_elements_used_at_scratch_buffer * sizeof(T), &data[0], nullptr, nullptr);
-				std::cout << "";
 			}
 
 			//copy 0th scratch buffer to this
@@ -116,12 +98,28 @@ namespace {
 				0,
 				input.getRowLength() * sizeof(T)
 				);
+		}
 
-			return;
-		}
 		void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
-			return;
+			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
+			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_sum_of").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_sum_of").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
+			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			size_t number_of_elements = lhs_cl.getRowLength() * lhs_cl.getColumnLength();
+			cl::NDRange global_size{ number_of_elements };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
+
 		void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			return;
 		}

@@ -74,10 +74,8 @@ namespace {
 			}
 
 			//put all the kernels into a map
-			KernelWrapper kernel_wrapper;
-			kernel_wrapper.clKernel = cl::Kernel{ this->program, "used_by_set_to_sum_of_rows" };
-			kernel_wrapper.kernel_work_group_size = kernel_wrapper.clKernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(this->devices[0]);
-			this->kernel_wrappers.insert(std::make_pair("used_by_set_to_sum_of_rows", kernel_wrapper));
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "used_by_set_to_sum_of_rows", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_sum_of", this->program, this->devices[0]);
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
@@ -215,6 +213,17 @@ namespace {
 			if (stoi(major_version_as_string) < minimum_major_version) {
 				throw std::exception("OpenCL version must be at least 2.0");
 			}
+		}
+
+		static void add_to_wrapper(std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
+			const string &kernel_name, 
+			const cl::Program &program,
+			const cl::Device &device) 
+		{
+			KernelWrapper kernel_wrapper;
+			kernel_wrapper.clKernel = cl::Kernel{ program, kernel_name.c_str() };
+			kernel_wrapper.kernel_work_group_size = kernel_wrapper.clKernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device);
+			kernel_wrappers.insert(std::make_pair(kernel_name, kernel_wrapper));
 		}
 
 		string info;

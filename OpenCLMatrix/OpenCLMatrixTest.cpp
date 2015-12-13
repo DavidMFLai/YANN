@@ -13,10 +13,6 @@
 #include "..\Matrix\include\ReferenceMatrixBuilder.h"
 
 namespace {
-	MATCHER_P(FloatNearPointwise, tol, "Out of range") {
-		return (std::get<0>(arg) > std::get<1>(arg) - tol && std::get<0>(arg) < std::get<1>(arg) + tol);
-	}
-
 	void set_sum_of_rows_test_internal(const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
 		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
@@ -35,6 +31,29 @@ namespace {
 		for (size_t i = 0; i < output_as_vector.size(); i++) {
 			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_as_vector.at(i), tolerance);
 		}
+	}
+
+	void set_to_sum_of_test_internal(const std::vector<std::vector<float>> &lhs_data, const std::vector<std::vector<float>> &rhs_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
+		Matrix<float>::Add(*output_ref, *lhs_ref, *rhs_ref);
+		auto output_ref_as_vector = output_ref->getElems();
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.size() * lhs_data.at(0).size());
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
+		Matrix<float>::Add(*output_cl, *lhs_cl, *rhs_cl);
+		auto output_cl_as_vector = output_cl->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(output_ref_as_vector.size(), output_cl_as_vector.size());
+		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
+			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
+		}
+
 	}
 
 	TEST(BasicOperations, create_from_dimensions) {
@@ -137,6 +156,17 @@ namespace {
 		}
 
 		set_sum_of_rows_test_internal(input_data);
+	}
+
+	TEST(BasicOperations, set_to_sum_of_very_long) {
+		std::vector<std::vector<float>> lhs_data;
+		std::vector<std::vector<float>> rhs_data;
+		for (int idx = 0; idx < 10000; idx++) {
+			lhs_data.push_back({ 1.f, 2.f });
+			rhs_data.push_back({ 3.f, 5.f });
+		}
+
+		set_to_sum_of_test_internal(lhs_data, rhs_data);
 	}
 }
 
