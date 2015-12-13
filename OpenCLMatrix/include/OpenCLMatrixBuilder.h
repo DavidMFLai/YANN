@@ -64,13 +64,13 @@ namespace {
 			cl::Program::Sources source{ std::make_pair(program_string.c_str(), program_string.length() + 1) };
 			this->program = cl::Program{ this->context, source };
 			try {
-				this->program.build(this->devices, "-cl-std=CL2.0");
+				char options[] = "-cl-std=CL2.0 -g -s \"test2.cl\""; //see https://software.intel.com/en-us/node/539339
+				this->program.build(this->devices, options);
 			}
 			catch (cl::Error e) {
 				auto buildInfo = this->program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->devices.at(0));
 				std::cout << e.what() << '\n';
 				std::cout << buildInfo << '\n';
-
 			}
 
 			//put all the kernels into a map
