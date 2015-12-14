@@ -135,6 +135,25 @@ namespace {
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
 
+	void set_to_difference_of_test_internal(const std::vector<std::vector<float>> &output_data, 
+		const std::vector<std::vector<float>> &lhs_data,
+		const std::vector<std::vector<float>> &rhs_data) {
+
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Minus(*output_ref, *lhs_ref, *rhs_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.size() * output_data.at(0).size());
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Minus(*output_cl, *lhs_cl, *rhs_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
 	TEST(BasicOperations, create_from_dimensions) {
 		OpenCLMatrixBuilder<float> builder;
 		auto m = builder.create(3, 4);
@@ -379,23 +398,74 @@ namespace {
 			EXPECT_FLOAT_EQ(input_data.at(i), elems_in_opencl_matrix.at(i), tolerance);
 		}
 	}
+	
+	TEST(BasicOperations, subtract_by_short) {
+		size_t column_length = 50;
+		size_t row_length = 101;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+		subtract_by_test_internal(output_data, input_data);
+	}
 
 	TEST(BasicOperations, subtract_by_long) {
-		std::vector<std::vector<float>> output_data(500);
+		size_t column_length = 500;
+		size_t row_length = 1001;
+
+		std::vector<std::vector<float>> output_data(column_length);
 		for (int idy = 0; idy < output_data.size(); idy++) {
-			for (int idx = 0; idx < 1001; idx++) {
+			for (int idx = 0; idx < row_length; idx++) {
 				output_data.at(idy).push_back(9.3f * idx * idy);
 			}
 		}
 		
-		std::vector<std::vector<float>> input_data(500);
+		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
-			for (int idx = 0; idx < 1001; idx++) {
+			for (int idx = 0; idx < row_length; idx++) {
 				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
 			}
 		}
 
 		subtract_by_test_internal(output_data, input_data);
+	}
+
+	TEST(BasicOperations, set_to_difference_of_long) {
+		size_t column_length = 500;
+		size_t row_length = 1001;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> lhs(column_length);
+		for (int idy = 0; idy < lhs.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				lhs.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		std::vector<std::vector<float>> rhs(column_length);
+		for (int idy = 0; idy < rhs.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				rhs.at(idy).push_back(1.9f * idx * std::log(5.2f + idy));
+			}
+		}
+
+		set_to_difference_of_test_internal(output_data, lhs, rhs);
 	}
 }
 

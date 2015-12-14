@@ -80,3 +80,7 @@ __kernel void subtract_by(__global float *output, __global float *input) {
 
 	output[get_index_2D(x, y, row_length)] -= input[get_index_2D(x, y, row_length)];
 }
+
+__kernel void set_to_difference_of(__global float *output, __global float *lhs, __global float *rhs) { 
+	output[get_global_id(0)] = lhs[get_global_id(0)] - rhs[get_global_id(0)];
+}

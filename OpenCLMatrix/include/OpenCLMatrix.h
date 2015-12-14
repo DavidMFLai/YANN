@@ -130,8 +130,25 @@ namespace {
 		}
 
 		void set_to_difference_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
-			return;
+			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
+			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_difference_of").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_difference_of").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
+			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			size_t number_of_elements = lhs_cl.getRowLength() * lhs_cl.getColumnLength();
+			cl::NDRange global_size{ number_of_elements };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
+
 		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			return;
 		}

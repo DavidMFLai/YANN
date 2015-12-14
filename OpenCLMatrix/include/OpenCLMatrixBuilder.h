@@ -82,11 +82,10 @@ namespace {
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "copy", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "outer_product", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "subtract_by", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_difference_of", this->program, this->devices[0]);
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
-
-			//auto local_mem_size = this->devices[0].getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
 
 			//create 2 scratch_buffers
 			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
