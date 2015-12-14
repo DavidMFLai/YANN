@@ -26,11 +26,7 @@ namespace {
 		Matrix<float>::Sum_of_rows(*output, *input);
 		auto output_as_vector = output->getElems();
 
-		float tolerance = 0.000001;
-		EXPECT_EQ(output_ref_as_vector.size(), output_as_vector.size());
-		for (size_t i = 0; i < output_as_vector.size(); i++) {
-			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_as_vector.at(i), tolerance);
-		}
+		EXPECT_EQ(*output_ref, *output);
 	}
 
 	void set_to_sum_of_test_internal(const std::vector<std::vector<float>> &lhs_data, const std::vector<std::vector<float>> &rhs_data) {
