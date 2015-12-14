@@ -141,6 +141,28 @@ namespace {
 		}
 	}
 
+	void outer_product_test_internal(const std::vector<std::vector<float>> &lhs_data, const std::vector<std::vector<float>> &rhs_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_ref->getRowLength(), rhs_ref->getRowLength()) };
+		Matrix<float>::Outer_product(*output_ref, *lhs_ref, *rhs_ref);
+		auto output_ref_as_vector = output_ref->getElems();
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.at(0).size() * rhs_data.at(0).size());
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_cl->getRowLength(), rhs_cl->getRowLength()) };
+		Matrix<float>::Outer_product(*output_cl, *lhs_cl, *rhs_cl);
+		auto output_cl_as_vector = output_cl->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(output_ref_as_vector.size(), output_cl_as_vector.size());
+		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
+			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
+		}
+	}
+
 	TEST(BasicOperations, create_from_dimensions) {
 		OpenCLMatrixBuilder<float> builder;
 		auto m = builder.create(3, 4);
@@ -320,6 +342,45 @@ namespace {
 			}
 		}
 		copy_test_internal(input_data);
+	}
+
+	TEST(BasicOperations, copy_short) {
+		std::vector<std::vector<float>> input_data(50);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < 11; idx++) {
+				input_data.at(idy).push_back(9.f * idx * idy);
+			}
+		}
+		copy_test_internal(input_data);
+	}
+
+
+	TEST(BasicOperations, outer_product_long) {
+		std::vector<std::vector<float>> lhs_data(1);
+		for (int idx = 0; idx < 1005; idx++) {
+			lhs_data.at(0).push_back(1.5f * idx * std::log(1 + idx));
+		}
+
+		std::vector<std::vector<float>> rhs_data(1);
+		for (int idx = 0; idx < 1001; idx++) {
+			rhs_data.at(0).push_back(9.f * idx);
+		}
+
+		outer_product_test_internal(lhs_data, rhs_data);
+	}
+
+	TEST(BasicOperations, outer_product_short) {
+		std::vector<std::vector<float>> lhs_data(1);
+		for (int idx = 0; idx < 10; idx++) {
+			lhs_data.at(0).push_back(1.5f * idx * std::log(1 + idx));
+		}
+
+		std::vector<std::vector<float>> rhs_data(1);
+		for (int idx = 0; idx < 11; idx++) {
+			rhs_data.at(0).push_back(9.f * idx);
+		}
+
+		outer_product_test_internal(lhs_data, rhs_data);
 	}
 }
 

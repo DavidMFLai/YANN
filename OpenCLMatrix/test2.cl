@@ -63,3 +63,11 @@ __kernel void copy(__global float *output, __global float *input) {
 
 	output[get_index_2D(x, y, row_length)] = input[get_index_2D(x, y, row_length)];
 }
+
+__kernel void outer_product(__global float *output, __global float *lhs, __global float *rhs) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0);
+
+	output[get_index_2D(x, y, row_length)] = lhs[y] * rhs[x];
+}

@@ -218,7 +218,29 @@ namespace {
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
-		void outer_product(const Matrix<T> &input1, const Matrix<T> &input2) override {
+		void outer_product(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+			assert(lhs.getColumnLength() == 1);
+			assert(rhs.getColumnLength() == 1);
+			assert(lhs.getRowLength() == this->getColumnLength());
+			assert(rhs.getRowLength() == this->getRowLength());
+
+			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
+			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("outer_product").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("outer_product").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
+			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+
 			return;
 		}
 		void copy_from_vector(const std::vector<T> &input) override {

@@ -80,6 +80,7 @@ namespace {
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_column_multiply_and_then_scale", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "row_vectors_per_element_multiply_and_then_scale", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "copy", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "outer_product", this->program, this->devices[0]);
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
