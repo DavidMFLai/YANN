@@ -52,3 +52,7 @@ __kernel void per_column_multiply_and_then_scale(__global float *output, __globa
 	output[get_index_2D(x, y, row_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)] * scale;
 }
 
+__kernel void row_vectors_per_element_multiply_and_then_scale(__global float *output, __global float *lhs, __global float *rhs, float scale) { 
+	output[get_global_id(0)] = lhs[get_global_id(0)] * rhs[get_global_id(0)] * scale;
+}
+

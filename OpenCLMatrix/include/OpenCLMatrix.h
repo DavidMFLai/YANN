@@ -141,6 +141,7 @@ namespace {
 		void per_Column_Multiply_AndThen_Transpose(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) override {
 			return;
 		}
+
 		void per_Column_Multiply_AndThen_Scale(const Matrix<T> &multipliers, const Matrix<T> &multiplicand, T scale) override {
 			const OpenCLMatrix &multipliers_cl = dynamic_cast<const OpenCLMatrix &>(multipliers);
 			const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(multiplicand);
@@ -160,6 +161,7 @@ namespace {
 			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
+
 		void per_Row_Multiply(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) override {
 			const OpenCLMatrix &multipliers_cl = dynamic_cast<const OpenCLMatrix &>(multipliers);
 			const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(multiplicand);
@@ -178,9 +180,27 @@ namespace {
 			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
+
 		void row_Vectors_Per_Element_Multiply_AndThen_Scale(const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) override {
-			return;
+			const OpenCLMatrix &row_vector_1_cl = dynamic_cast<const OpenCLMatrix &>(row_vector_1);
+			const OpenCLMatrix &row_vector_2_cl = dynamic_cast<const OpenCLMatrix &>(row_vector_2);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("per_column_multiply_and_then_scale").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_column_multiply_and_then_scale").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, row_vector_1_cl.buffer.cl_buffer);
+			clKernel.setArg(2, row_vector_2_cl.buffer.cl_buffer);
+			clKernel.setArg(3, scale);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength() };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(this->getRowLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
+
 		void copy(const Matrix<T> &input) override {
 			return;
 		}
