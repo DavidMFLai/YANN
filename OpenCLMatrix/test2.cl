@@ -72,3 +72,11 @@ __kernel void outer_product(__global float *output, __global float *lhs, __globa
 	output[get_index_2D(x, y, row_length)] = lhs[y] * rhs[x];
 }
 
+
+__kernel void subtract_by(__global float *output, __global float *input) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0);
+
+	output[get_index_2D(x, y, row_length)] -= input[get_index_2D(x, y, row_length)];
+}

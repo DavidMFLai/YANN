@@ -47,8 +47,21 @@ namespace {
 		OpenCLMatrix &operator=(const OpenCLMatrix &) = delete;
 
 	private:
-		void subtract_by(const Matrix<T> &) override {
-			return; //todo: implement
+		void subtract_by(const Matrix<T> &input) override {
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("subtract_by").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("subtract_by").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, input_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
 		void set_to_sum_of_rows(const Matrix<T> &input) override {

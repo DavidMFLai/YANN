@@ -83,7 +83,7 @@ namespace {
 			output.set_to_sum_of(lhs, rhs);
 		}
 
-		static void Minus_By(Matrix<T> &output, const Matrix<T> &input) {
+		static void Subtract_By(Matrix<T> &output, const Matrix<T> &input) {
 			assert(typeid(output) == typeid(input));
 			assert(output.getDimensions() == input.getDimensions());
 			output.subtract_by(input);

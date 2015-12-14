@@ -16,7 +16,7 @@ namespace {
 	void set_sum_of_rows_test_internal(const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
 		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(1, input_data.at(0).size())};
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(1, input_data.at(0).size()) };
 		Matrix<float>::Sum_of_rows(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size());
@@ -117,6 +117,20 @@ namespace {
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_cl->getRowLength(), rhs_cl->getRowLength()) };
 		Matrix<float>::Outer_product(*output_cl, *lhs_cl, *rhs_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
+	void subtract_by_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Subtract_By(*output_ref, *input_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Subtract_By(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
@@ -253,7 +267,7 @@ namespace {
 	TEST(BasicOperations, Per_Column_Multiply_AndThen_Scale_long) {
 		std::vector<std::vector<float>> multipliers_data(1);
 		for (int idx = 0; idx < 1001; idx++) {
-			multipliers_data.at(0).push_back(7.f * idx * std::log(idx+1));
+			multipliers_data.at(0).push_back(7.f * idx * std::log(idx + 1));
 		}
 
 		std::vector<std::vector<float>> multiplicand_data(500);
@@ -364,6 +378,24 @@ namespace {
 		for (size_t i = 0; i < elems_in_opencl_matrix.size(); i++) {
 			EXPECT_FLOAT_EQ(input_data.at(i), elems_in_opencl_matrix.at(i), tolerance);
 		}
+	}
+
+	TEST(BasicOperations, subtract_by_long) {
+		std::vector<std::vector<float>> output_data(500);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < 1001; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+		
+		std::vector<std::vector<float>> input_data(500);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < 1001; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		subtract_by_test_internal(output_data, input_data);
 	}
 }
 
