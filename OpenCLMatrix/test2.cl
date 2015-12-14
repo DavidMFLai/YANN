@@ -71,3 +71,4 @@ __kernel void outer_product(__global float *output, __global float *lhs, __globa
 
 	output[get_index_2D(x, y, row_length)] = lhs[y] * rhs[x];
 }
+

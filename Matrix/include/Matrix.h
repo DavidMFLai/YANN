@@ -44,8 +44,6 @@ namespace {
 		} matrixAccessProperties;
 
 	private:
-		virtual bool is_equal(const Matrix<T> &) const = 0;
-
 		virtual void subtract_by(const Matrix<T> &) = 0;
 		virtual void set_to_sum_of_rows(const Matrix<T> &input) = 0;
 		virtual void set_to_sum_of(const Matrix<T> &lhs, const Matrix<T> &rhs) = 0;
@@ -204,7 +202,22 @@ namespace {
 
 	template<typename T>
 	bool operator==(const Matrix<T> &lhs, const Matrix<T> &rhs) {
-		return lhs.is_equal(rhs);
-	}
+		double tolerance = 0.0000001;
+		bool retval = true;
 
+		if (lhs.getDimensions() != rhs.getDimensions()) {
+			retval = false;
+		}
+		else {
+			auto lhs_elems = lhs.getElems();
+			auto rhs_elems = rhs.getElems();
+
+			for (int i = 0; i < lhs_elems.size(); i++) {
+				if (abs(rhs_elems[i] - lhs_elems[i]) > tolerance) {
+					retval = false;
+				}
+			}
+		}
+		return retval;
+	};
 }

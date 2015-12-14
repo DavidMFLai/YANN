@@ -47,10 +47,6 @@ namespace {
 		OpenCLMatrix &operator=(const OpenCLMatrix &) = delete;
 
 	private:
-		bool is_equal(const Matrix<T> &) const override {
-			return false; //todo: implement
-		};
-
 		void subtract_by(const Matrix<T> &) override {
 			return; //todo: implement
 		}
