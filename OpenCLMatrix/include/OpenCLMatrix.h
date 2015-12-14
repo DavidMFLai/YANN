@@ -186,8 +186,8 @@ namespace {
 			const OpenCLMatrix &row_vector_2_cl = dynamic_cast<const OpenCLMatrix &>(row_vector_2);
 
 			//get clKernel and its work group size for this device
-			size_t max_work_group_size = kernel_wrappers.at("per_column_multiply_and_then_scale").kernel_work_group_size;
-			auto &clKernel = kernel_wrappers.at("per_column_multiply_and_then_scale").clKernel;
+			size_t max_work_group_size = kernel_wrappers.at("row_vectors_per_element_multiply_and_then_scale").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("row_vectors_per_element_multiply_and_then_scale").clKernel;
 
 			//Set arguments for clKernel
 			clKernel.setArg(0, this->buffer.cl_buffer);
@@ -202,8 +202,22 @@ namespace {
 		}
 
 		void copy(const Matrix<T> &input) override {
-			return;
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("copy").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("copy").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, input_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
+
 		void outer_product(const Matrix<T> &input1, const Matrix<T> &input2) override {
 			return;
 		}

@@ -56,3 +56,10 @@ __kernel void row_vectors_per_element_multiply_and_then_scale(__global float *ou
 	output[get_global_id(0)] = lhs[get_global_id(0)] * rhs[get_global_id(0)] * scale;
 }
 
+__kernel void copy(__global float *output, __global float *input) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0);
+
+	output[get_index_2D(x, y, row_length)] = input[get_index_2D(x, y, row_length)];
+}

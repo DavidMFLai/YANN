@@ -104,14 +104,34 @@ namespace {
 		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.createRowMatrix(lhs_data) };
 		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.createRowMatrix(rhs_data) };
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_ref->getColumnLength(), rhs_ref->getRowLength()) };
-		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_ref, *lhs_ref, *rhs_ref, scale);
+		Matrix<float>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(*output_ref, *lhs_ref, *rhs_ref, scale);
 		auto output_ref_as_vector = output_ref->getElems();
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder(rhs_data.size());
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_cl->getColumnLength(), rhs_cl->getRowLength()) };
-		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_cl, *lhs_cl, *rhs_cl, scale);
+		Matrix<float>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(*output_cl, *lhs_cl, *rhs_cl, scale);
+		auto output_cl_as_vector = output_cl->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(output_ref_as_vector.size(), output_cl_as_vector.size());
+		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
+			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
+		}
+	}
+
+	void copy_test_internal(const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_ref->getColumnLength(), input_ref->getRowLength()) };
+		Matrix<float>::Copy(*output_ref, *input_ref);
+		auto output_ref_as_vector = output_ref->getElems();
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_cl->getColumnLength(), input_cl->getRowLength()) };
+		Matrix<float>::Copy(*output_cl, *input_cl);
 		auto output_cl_as_vector = output_cl->getElems();
 
 		float tolerance = 0.000001;
@@ -289,12 +309,18 @@ namespace {
 		for (int idx = 0; idx < 10001; idx++) {
 			rhs.push_back(8.6f * -idx * std::log(idx + 5));
 		}
-
 		row_vectors_per_element_multiply_and_then_scale_test_internal(lhs, rhs, 4.6f);
 	}
 
-
-
+	TEST(BasicOperations, copy_long) {
+		std::vector<std::vector<float>> input_data(500);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < 1001; idx++) {
+				input_data.at(idy).push_back(9.f * idx * idy);
+			}
+		}
+		copy_test_internal(input_data);
+	}
 }
 
 int main(int argc, char *argv[])
