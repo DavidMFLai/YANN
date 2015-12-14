@@ -240,11 +240,14 @@ namespace {
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
 			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
-
-			return;
 		}
+
 		void copy_from_vector(const std::vector<T> &input) override {
-			return;
+			command_queue.enqueueWriteBuffer(this->buffer.cl_buffer, 
+				CL_BLOCKING, 
+				0, 
+				input.size() * sizeof(T), 
+				&input[0]);
 		}
 
 	public:

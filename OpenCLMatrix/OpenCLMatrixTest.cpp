@@ -382,6 +382,31 @@ namespace {
 
 		outer_product_test_internal(lhs_data, rhs_data);
 	}
+
+	TEST(BasicOperations, copy_from_vector) {
+		const size_t size_x = 33;
+		const size_t size_y = 37;
+		std::vector<float> input_data;
+		for (int idx = 0; idx < size_x * size_y; idx++) {
+			input_data.push_back(1.5f * idx * std::log(1 + idx));
+		}
+
+		//create opencl_matrix
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size());
+		auto opencl_matrix = openCLMatrixBuilder.create(size_x, size_y);
+
+		//copy input data into opencl_matrix
+		Matrix<float>::Copy_from_vector(*opencl_matrix, input_data);
+
+		//get the data back from the opencl_matrix
+		auto elems_in_opencl_matrix = opencl_matrix->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(input_data.size(), elems_in_opencl_matrix.size());
+		for (size_t i = 0; i < elems_in_opencl_matrix.size(); i++) {
+			EXPECT_FLOAT_EQ(input_data.at(i), elems_in_opencl_matrix.at(i), tolerance);
+		}
+	}
 }
 
 int main(int argc, char *argv[])
