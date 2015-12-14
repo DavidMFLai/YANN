@@ -77,6 +77,7 @@ namespace {
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "used_by_set_to_sum_of_rows", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_sum_of", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_row_multiply_reduction", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_column_multiply_and_then_scale", this->program, this->devices[0]);
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };

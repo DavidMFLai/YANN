@@ -17,7 +17,7 @@ private:
 	//Constructor by vector of vectors
 	ReferenceMatrix(std::vector<std::vector<T>> lists) {
 		this->matrixAccessProperties.setDimensions(lists.size(), lists.begin()->size());
-		for (std::vector<T> list : lists) {
+		for (const std::vector<T> &list : lists) {
 			this->elems.insert(elems.end(), list.begin(), list.end());
 		}
 	}

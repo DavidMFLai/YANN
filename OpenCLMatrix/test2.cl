@@ -41,5 +41,14 @@ __kernel void per_row_multiply_reduction(__global float *output, __global float 
 	int y = get_global_id(1);
 	int row_length = get_global_size(0);
 	
-	output[get_index_2D(x, y, row_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)];
+	output[get_index_2D(x, y, row_length)] = multipliers[y] * multiplicand[get_index_2D(x, y, row_length)];
 }
+
+__kernel void per_column_multiply_and_then_scale(__global float *output, __global float *multipliers, __global float *multiplicand, float scale) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0);
+	
+	output[get_index_2D(x, y, row_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)] * scale;
+}
+

@@ -77,6 +77,28 @@ namespace {
 		}
 	}
 
+	void per_column_multiply_and_then_scale_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> &multiplicand_data, float scale) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
+		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_ref, *multipliers_ref, *multiplicand_ref, scale);
+		auto output_ref_as_vector = output_ref->getElems();
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
+		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_cl, *multipliers_cl, *multiplicand_cl, scale);
+		auto output_cl_as_vector = output_cl->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(output_ref_as_vector.size(), output_cl_as_vector.size());
+		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
+			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
+		}
+	}
+
 	TEST(BasicOperations, create_from_dimensions) {
 		OpenCLMatrixBuilder<float> builder;
 		auto m = builder.create(3, 4);
@@ -193,22 +215,33 @@ namespace {
 	TEST(BasicOperations, per_Row_Multiply_very_long) {
 		std::vector<std::vector<float>> multipliers_data(1);
 		for (int idx = 0; idx < 1000; idx++) {
-			multipliers_data.at(0).push_back(7.f);
+			multipliers_data.at(0).push_back(7.f * idx);
 		}
 
 		std::vector<std::vector<float>> multiplicand_data(500);
-		for (int idy = 0; idy < 500; idy++) {
+		for (int idy = 0; idy < multiplicand_data.size(); idy++) {
 			for (int idx = 0; idx < 1000; idx++) {
-				multiplicand_data.at(idy).push_back(9.f);
+				multiplicand_data.at(idy).push_back(9.f * idx * idy);
 			}
 		}
 
 		per_Row_Multiply_test_internal(multipliers_data, multiplicand_data);
-		std::cout << "";
 	}
 
+	TEST(BasicOperations, per_column_multiply_and_then_scale_very_long) {
+		std::vector<std::vector<float>> multipliers_data(1);
+		for (int idx = 0; idx < 1001; idx++) {
+			multipliers_data.at(0).push_back(7.f * idx * std::log(idx+1));
+		}
 
-
+		std::vector<std::vector<float>> multiplicand_data(500);
+		for (int idy = 0; idy < multiplicand_data.size(); idy++) {
+			for (int idx = 0; idx < 1001; idx++) {
+				multiplicand_data.at(idy).push_back(9.f * idx * idy);
+			}
+		}
+		per_column_multiply_and_then_scale_test_internal(multipliers_data, multiplicand_data, 3.5f);
+	}
 }
 
 int main(int argc, char *argv[])
