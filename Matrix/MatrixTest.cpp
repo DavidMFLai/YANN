@@ -78,8 +78,8 @@ TEST(ReferenceMatrixBuilder, buildBySettingDimensions) {
 	ReferenceMatrixBuilder<double> ref_matrix_builder;
 	auto created_matrix = ref_matrix_builder.create( 1, 2 );
 
-	EXPECT_EQ(1, created_matrix->getRowCount());
-	EXPECT_EQ(2, created_matrix->getColumnCount());
+	EXPECT_EQ(1, created_matrix->getColumnLength());
+	EXPECT_EQ(2, created_matrix->getRowLength());
 }
 
 TEST(ReferenceMatrixBuilder, buildBySettingValues) {
@@ -89,8 +89,8 @@ TEST(ReferenceMatrixBuilder, buildBySettingValues) {
 		{ 4, 5, 6 } 
 	});
 
-	EXPECT_EQ(2, created_matrix->getRowCount());
-	EXPECT_EQ(3, created_matrix->getColumnCount());
+	EXPECT_EQ(2, created_matrix->getColumnLength());
+	EXPECT_EQ(3, created_matrix->getRowLength());
 }
 
 int main(int argc, char *argv[])

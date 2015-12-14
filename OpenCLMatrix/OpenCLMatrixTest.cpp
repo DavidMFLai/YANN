@@ -53,7 +53,28 @@ namespace {
 		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
 			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
 		}
+	}
 
+	void per_Row_Multiply_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> &multiplicand_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
+		Matrix<float>::Per_Row_Multiply(*output_ref, *multipliers_ref, *multiplicand_ref);
+		auto output_ref_as_vector = output_ref->getElems();
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
+		Matrix<float>::Per_Row_Multiply(*output_cl, *multipliers_cl, *multiplicand_cl);
+		auto output_cl_as_vector = output_cl->getElems();
+
+		float tolerance = 0.000001;
+		EXPECT_EQ(output_ref_as_vector.size(), output_cl_as_vector.size());
+		for (size_t i = 0; i < output_cl_as_vector.size(); i++) {
+			EXPECT_FLOAT_EQ(output_ref_as_vector.at(i), output_cl_as_vector.at(i), tolerance);
+		}
 	}
 
 	TEST(BasicOperations, create_from_dimensions) {
@@ -168,6 +189,26 @@ namespace {
 
 		set_to_sum_of_test_internal(lhs_data, rhs_data);
 	}
+
+	TEST(BasicOperations, per_Row_Multiply_very_long) {
+		std::vector<std::vector<float>> multipliers_data(1);
+		for (int idx = 0; idx < 1000; idx++) {
+			multipliers_data.at(0).push_back(7.f);
+		}
+
+		std::vector<std::vector<float>> multiplicand_data(500);
+		for (int idy = 0; idy < 500; idy++) {
+			for (int idx = 0; idx < 1000; idx++) {
+				multiplicand_data.at(idy).push_back(9.f);
+			}
+		}
+
+		per_Row_Multiply_test_internal(multipliers_data, multiplicand_data);
+		std::cout << "";
+	}
+
+
+
 }
 
 int main(int argc, char *argv[])

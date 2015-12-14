@@ -145,7 +145,22 @@ namespace {
 			return;
 		}
 		void per_Row_Multiply(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) override {
-			return;
+			const OpenCLMatrix &multipliers_cl = dynamic_cast<const OpenCLMatrix &>(multipliers);
+			const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(multiplicand);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("per_row_multiply_reduction").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_row_multiply_reduction").clKernel;
+			
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, multipliers_cl.buffer.cl_buffer);
+			clKernel.setArg(2, multiplicand_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 		void row_Vectors_Per_Element_Multiply_AndThen_Scale(const Matrix<T> &row_vector_1, const Matrix<T> &row_vector_2, T scale) override {
 			return;
