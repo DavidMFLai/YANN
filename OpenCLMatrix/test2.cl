@@ -84,3 +84,15 @@ __kernel void subtract_by(__global float *output, __global float *input) {
 __kernel void set_to_difference_of(__global float *output, __global float *lhs, __global float *rhs) { 
 	output[get_global_id(0)] = lhs[get_global_id(0)] - rhs[get_global_id(0)];
 }
+
+//very naive implementation..
+__kernel void set_to_product_of(__global float *output, int M, int N, int K, __global float *lhs, __global float *rhs) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+
+	float acc = 0.f;
+	for (int index=0; index<K; index++) {
+        acc += lhs[ get_index_2D(index, x, K) ] * rhs[ get_index_2D(y, index, N) ];
+    }
+	output[get_index_2D(x, y, M)] = acc;
+}
