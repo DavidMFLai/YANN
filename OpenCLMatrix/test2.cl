@@ -96,3 +96,12 @@ __kernel void set_to_product_of(__global float *output, size_t M, size_t K, size
     }
 	output[get_index_2D(x, y, N)] = acc;
 }
+
+__kernel void per_column_multiply_and_then_transpose(__global float *output, __global float *multipliers, __global float *multiplicand) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0); 
+	int column_length = get_global_size(1);
+	
+	output[get_index_2D(y, x, column_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)];
+}
