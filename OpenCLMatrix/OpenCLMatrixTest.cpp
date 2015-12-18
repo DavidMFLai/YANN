@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 
+#include <functional>
+
 #include "gmock\gmock.h"
 #include "gtest/gtest.h"
 
@@ -150,6 +152,33 @@ namespace {
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Minus(*output_cl, *lhs_cl, *rhs_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
+	void set_to_product_of_test_internal(const std::vector<std::vector<float>> &output_data, 
+		const std::vector<std::vector<float>> &lhs_data,
+		const std::vector<std::vector<float>> &rhs_data) 
+	{
+
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Multiply(*output_ref, *lhs_ref, *rhs_ref);
+
+		//get data counts and use that for openCLMatrixBuilder
+		std::vector<size_t> counts;
+		counts.push_back(output_ref->getColumnLength() * output_ref->getRowLength());
+		counts.push_back(lhs_ref->getColumnLength() * lhs_ref->getRowLength());
+		counts.push_back(rhs_ref->getColumnLength() * rhs_ref->getRowLength());
+		std::sort(counts.begin(), counts.end(), std::greater<int>()); //sort in decending order
+				
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(counts.at(0) * counts.at(1));
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Multiply(*output_cl, *lhs_cl, *rhs_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
@@ -466,6 +495,35 @@ namespace {
 		}
 
 		set_to_difference_of_test_internal(output_data, lhs, rhs);
+	}
+
+	TEST(BasicOperations, set_to_product_of) {
+		size_t M = 50;
+		size_t K = 101;
+		size_t N = 201;
+
+		std::vector<std::vector<float>> lhs_data(M);
+		for (int idy = 0; idy < M; idy++) {
+			for (int idx = 0; idx < K; idx++) {
+				lhs_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> rhs_data(K);
+		for (int idy = 0; idy < K; idy++) {
+			for (int idx = 0; idx < N; idx++) {
+				rhs_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		std::vector<std::vector<float>> output_data(M);
+		for (int idy = 0; idy < M; idy++) {
+			for (int idx = 0; idx < N; idx++) {
+				output_data.at(idy).push_back(0.0f);
+			}
+		}
+
+		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
 	}
 }
 

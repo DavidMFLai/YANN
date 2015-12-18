@@ -150,6 +150,26 @@ namespace {
 		}
 
 		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
+			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
+			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_product_of").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_product_of").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, lhs.getColumnLength());
+			clKernel.setArg(2, lhs.getRowLength());
+			clKernel.setArg(3, rhs.getRowLength());
+			clKernel.setArg(4, lhs_cl.buffer.cl_buffer);
+			clKernel.setArg(5, rhs_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+
 			return;
 		}
 		void per_Element_Sigmoid(const Matrix<T> &input) override {

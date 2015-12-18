@@ -86,13 +86,13 @@ __kernel void set_to_difference_of(__global float *output, __global float *lhs, 
 }
 
 //very naive implementation..
-__kernel void set_to_product_of(__global float *output, int M, int N, int K, __global float *lhs, __global float *rhs) { 
-	int x = get_global_id(0);
-	int y = get_global_id(1);
+__kernel void set_to_product_of(__global float *output, size_t M, size_t K, size_t N, __global float *lhs, __global float *rhs) { 
+	size_t x = get_global_id(0);
+	size_t y = get_global_id(1);
 
 	float acc = 0.f;
-	for (int index=0; index<K; index++) {
-        acc += lhs[ get_index_2D(index, x, K) ] * rhs[ get_index_2D(y, index, N) ];
+	for (size_t index=0; index<K; index++) {
+        acc += lhs[ get_index_2D(index, y, K) ] * rhs[ get_index_2D(x, index, N) ];
     }
-	output[get_index_2D(x, y, M)] = acc;
+	output[get_index_2D(x, y, N)] = acc;
 }
