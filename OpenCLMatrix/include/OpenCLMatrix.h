@@ -198,8 +198,8 @@ namespace {
 			clKernel.setArg(2, multiplicand_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ multiplicand.getRowLength(), multiplicand.getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(multiplicand.getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 

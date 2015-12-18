@@ -52,6 +52,15 @@ __kernel void per_column_multiply_and_then_scale(__global float *output, __globa
 	output[get_index_2D(x, y, row_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)] * scale;
 }
 
+__kernel void per_column_multiply_and_then_transpose(__global float *output, __global float *multipliers, __global float *multiplicand) { 
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	int row_length = get_global_size(0); 
+	int column_length = get_global_size(1);
+	
+	output[get_index_2D(y, x, column_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)];
+}
+
 __kernel void row_vectors_per_element_multiply_and_then_scale(__global float *output, __global float *lhs, __global float *rhs, float scale) { 
 	output[get_global_id(0)] = lhs[get_global_id(0)] * rhs[get_global_id(0)] * scale;
 }
@@ -97,11 +106,3 @@ __kernel void set_to_product_of(__global float *output, size_t M, size_t K, size
 	output[get_index_2D(x, y, N)] = acc;
 }
 
-__kernel void per_column_multiply_and_then_transpose(__global float *output, __global float *multipliers, __global float *multiplicand) { 
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-	int row_length = get_global_size(0); 
-	int column_length = get_global_size(1);
-	
-	output[get_index_2D(y, x, column_length)] = multipliers[x] * multiplicand[get_index_2D(x, y, row_length)];
-}

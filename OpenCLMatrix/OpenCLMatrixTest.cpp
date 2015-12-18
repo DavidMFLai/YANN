@@ -77,6 +77,23 @@ namespace {
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
 
+	void per_column_multiply_and_then_transpose_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> & multiplicand_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getRowLength(), multiplicand_ref->getColumnLength()) };
+		Matrix<float>::Per_Column_Multiply_AndThen_Transpose(*output_ref, *multipliers_ref, *multiplicand_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getRowLength(), multiplicand_cl->getColumnLength()) };
+		Matrix<float>::Per_Column_Multiply_AndThen_Transpose(*output_cl, *multipliers_cl, *multiplicand_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+
+	}
+
 	void row_vectors_per_element_multiply_and_then_scale_test_internal(const std::vector<float> &lhs_data, const std::vector<float> &rhs_data, float scale) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
 		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.createRowMatrix(lhs_data) };
@@ -524,6 +541,22 @@ namespace {
 		}
 
 		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
+	}
+
+	TEST(BasicOperations, per_column_multiply_and_then_transpose) {
+		std::vector<std::vector<float>> multipliers_data(1);
+		for (int idx = 0; idx < 1001; idx++) {
+			multipliers_data.at(0).push_back(7.f * idx * std::log(idx + 1));
+		}
+
+		std::vector<std::vector<float>> multiplicand_data(500);
+		for (int idy = 0; idy < multiplicand_data.size(); idy++) {
+			for (int idx = 0; idx < 1001; idx++) {
+				multiplicand_data.at(idy).push_back(9.f * idx * idy);
+			}
+		}
+		per_column_multiply_and_then_transpose_test_internal(multipliers_data, multiplicand_data);
+
 	}
 }
 
