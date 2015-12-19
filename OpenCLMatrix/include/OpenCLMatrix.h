@@ -1,6 +1,8 @@
 #pragma once
 
+#define NOMINMAX
 #define __CL_ENABLE_EXCEPTIONS
+
 #ifdef MAC
 #include <OpenCL/cl.h>
 #else
@@ -60,7 +62,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -90,7 +92,7 @@ namespace {
 
 				//enqueueNDRangeKernel 
 				cl::NDRange global_size{ input.getRowLength(), column_length_at_input };
-				cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(column_length_at_input, max_work_group_size) };
+				cl::NDRange local_size = cl::NDRange{ 1, std::min(column_length_at_input, max_work_group_size) };
 				command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 
 				//calculate new column length after execution
@@ -125,7 +127,7 @@ namespace {
 			//enqueueNDRangeKernel 
 			size_t number_of_elements = lhs_cl.getRowLength() * lhs_cl.getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -145,7 +147,7 @@ namespace {
 			//enqueueNDRangeKernel 
 			size_t number_of_elements = lhs_cl.getRowLength() * lhs_cl.getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -167,7 +169,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -184,7 +186,7 @@ namespace {
 
 			auto number_of_elements = this->getRowLength() * this->getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -201,7 +203,7 @@ namespace {
 
 			auto number_of_elements = this->getRowLength() * this->getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -218,7 +220,7 @@ namespace {
 
 			auto number_of_elements = this->getRowLength() * this->getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -235,7 +237,7 @@ namespace {
 
 			auto number_of_elements = this->getRowLength() * this->getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -254,7 +256,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ multiplicand.getRowLength(), multiplicand.getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(multiplicand.getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(multiplicand.getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -274,7 +276,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -293,7 +295,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -313,7 +315,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength() };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(this->getRowLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ std::min(this->getRowLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -330,7 +332,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -354,7 +356,7 @@ namespace {
 
 			//enqueueNDRangeKernel 
 			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 

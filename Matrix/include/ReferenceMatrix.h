@@ -41,7 +41,7 @@ public:
 	}
 
 	void zero() override {
-		std::fill(elems.begin(), elems.end(), 0);
+		std::fill(elems.begin(), elems.end(), T{});
 	}
 
 private:

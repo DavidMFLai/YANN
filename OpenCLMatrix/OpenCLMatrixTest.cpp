@@ -245,7 +245,7 @@ namespace {
 		counts.push_back(output_ref->getColumnLength() * output_ref->getRowLength());
 		counts.push_back(lhs_ref->getColumnLength() * lhs_ref->getRowLength());
 		counts.push_back(rhs_ref->getColumnLength() * rhs_ref->getRowLength());
-		std::sort(counts.begin(), counts.end(), std::greater<int>()); //sort in decending order
+		std::sort(counts.begin(), counts.end(), std::greater<size_t>()); //sort in decending order
 				
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder(counts.at(0) * counts.at(1));
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
