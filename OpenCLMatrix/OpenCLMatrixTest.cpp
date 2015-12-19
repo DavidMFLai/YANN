@@ -579,10 +579,9 @@ namespace {
 		//get the data back from the opencl_matrix
 		auto elems_in_opencl_matrix = opencl_matrix->getElems();
 
-		float tolerance = 0.000001;
 		EXPECT_EQ(input_data.size(), elems_in_opencl_matrix.size());
 		for (size_t i = 0; i < elems_in_opencl_matrix.size(); i++) {
-			EXPECT_FLOAT_EQ(input_data.at(i), elems_in_opencl_matrix.at(i), tolerance);
+			ASSERT_FLOAT_EQ(input_data.at(i), elems_in_opencl_matrix.at(i));
 		}
 	}
 	
@@ -670,7 +669,7 @@ namespace {
 		std::vector<std::vector<float>> rhs_data(K);
 		for (int idy = 0; idy < K; idy++) {
 			for (int idx = 0; idx < N; idx++) {
-				rhs_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				rhs_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 

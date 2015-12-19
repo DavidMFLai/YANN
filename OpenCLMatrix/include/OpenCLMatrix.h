@@ -85,7 +85,7 @@ namespace {
 			while(column_length_at_input > 1)	{
 				//Get clKernel and set arguments 
 				clKernel.setArg(0, shared_scratch_buffer[0]);
-				cl::LocalSpaceArg arg = cl::__local(max_work_group_size*sizeof(T));
+				cl::LocalSpaceArg arg = cl::Local(max_work_group_size*sizeof(T));
 				clKernel.setArg(1, arg);
 
 				//enqueueNDRangeKernel 
