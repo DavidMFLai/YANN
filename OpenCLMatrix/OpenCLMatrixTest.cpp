@@ -270,7 +270,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
@@ -291,7 +291,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
@@ -312,7 +312,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
@@ -333,7 +333,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
@@ -473,7 +473,7 @@ namespace {
 	TEST(BasicOperations, Per_Column_Multiply_AndThen_Scale_long) {
 		std::vector<std::vector<float>> multipliers_data(1);
 		for (int idx = 0; idx < 1001; idx++) {
-			multipliers_data.at(0).push_back(7.f * idx * std::log(idx + 1));
+			multipliers_data.at(0).push_back(7.f * idx * std::log(1.f + idx));
 		}
 
 		std::vector<std::vector<float>> multiplicand_data(500);
@@ -488,12 +488,12 @@ namespace {
 	TEST(BasicOperations, Row_Vectors_Per_Element_Multiply_AndThen_Scale_short) {
 		std::vector<float> lhs;
 		for (int idx = 0; idx < 2; idx++) {
-			lhs.push_back(7.6f * idx * std::log(idx + 1));
+			lhs.push_back(7.6f * idx * std::log(1.f + idx));
 		}
 
 		std::vector<float> rhs;
 		for (int idx = 0; idx < 2; idx++) {
-			rhs.push_back(8.6f * -idx * std::log(idx + 5));
+			rhs.push_back(8.6f * -idx * std::log(5.f + idx));
 		}
 
 		row_vectors_per_element_multiply_and_then_scale_test_internal(lhs, rhs, 4.6f);
@@ -502,12 +502,12 @@ namespace {
 	TEST(BasicOperations, Row_Vectors_Per_Element_Multiply_AndThen_Scale_long) {
 		std::vector<float> lhs;
 		for (int idx = 0; idx < 10001; idx++) {
-			lhs.push_back(7.6f * idx * std::log(idx + 1));
+			lhs.push_back(7.6f * idx * std::log(1.f + idx));
 		}
 
 		std::vector<float> rhs;
 		for (int idx = 0; idx < 10001; idx++) {
-			rhs.push_back(8.6f * -idx * std::log(idx + 5));
+			rhs.push_back(8.6f * -idx * std::log(5.f + idx));
 		}
 		row_vectors_per_element_multiply_and_then_scale_test_internal(lhs, rhs, 4.6f);
 	}
@@ -536,7 +536,7 @@ namespace {
 	TEST(BasicOperations, outer_product_long) {
 		std::vector<std::vector<float>> lhs_data(1);
 		for (int idx = 0; idx < 1005; idx++) {
-			lhs_data.at(0).push_back(1.5f * idx * std::log(1 + idx));
+			lhs_data.at(0).push_back(1.5f * idx * std::log(1.f + idx));
 		}
 
 		std::vector<std::vector<float>> rhs_data(1);
@@ -550,7 +550,7 @@ namespace {
 	TEST(BasicOperations, outer_product_short) {
 		std::vector<std::vector<float>> lhs_data(1);
 		for (int idx = 0; idx < 10; idx++) {
-			lhs_data.at(0).push_back(1.5f * idx * std::log(1 + idx));
+			lhs_data.at(0).push_back(1.5f * idx * std::log(1.f + idx));
 		}
 
 		std::vector<std::vector<float>> rhs_data(1);
@@ -566,7 +566,7 @@ namespace {
 		const size_t size_y = 37;
 		std::vector<float> input_data;
 		for (int idx = 0; idx < size_x * size_y; idx++) {
-			input_data.push_back(1.5f * idx * std::log(1 + idx));
+			input_data.push_back(1.5f * idx * std::log(1.f + idx));
 		}
 
 		//create opencl_matrix
@@ -600,7 +600,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 		subtract_by_test_internal(output_data, input_data);
@@ -620,7 +620,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
@@ -641,7 +641,7 @@ namespace {
 		std::vector<std::vector<float>> lhs(column_length);
 		for (int idy = 0; idy < lhs.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				lhs.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				lhs.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
 			}
 		}
 
