@@ -202,7 +202,7 @@ namespace {
 
 	template<typename T>
 	bool operator==(const Matrix<T> &lhs, const Matrix<T> &rhs) {
-		T tolerance = 0.0001;
+		T tolerance = static_cast<T>(0.0001);
 		bool retval = true;
 
 		if (lhs.getDimensions() != rhs.getDimensions()) {

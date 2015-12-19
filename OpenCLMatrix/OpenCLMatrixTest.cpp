@@ -270,7 +270,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
 			}
 		}
 
@@ -291,7 +291,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
 			}
 		}
 
@@ -312,7 +312,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
 			}
 		}
 
@@ -333,7 +333,7 @@ namespace {
 		std::vector<std::vector<float>> input_data(column_length);
 		for (int idy = 0; idy < input_data.size(); idy++) {
 			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+				input_data.at(idy).push_back(1.2f * idx * std::log(static_cast<float>(1 + idy)));
 			}
 		}
 

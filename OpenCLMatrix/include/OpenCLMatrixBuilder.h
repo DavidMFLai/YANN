@@ -37,65 +37,65 @@ namespace {
 		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count)
 			: max_matrix_element_count{ max_matrix_element_count } {
 			//get platform
-			cl::Platform::get(&this->platforms);
+			cl::Platform::get(&platforms);
 
 			//find first device with OpenCL 2.0
-			for (auto &platform : this->platforms) {
+			for (auto &platform : platforms) {
 				vector<cl::Device> all_devices;
 				platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
 				for (auto &device : all_devices) {
 					auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
 					if (major_version_as_string == "2") {
-						this->devices.push_back(device);
+						devices.push_back(device);
 						break;
 					}
 				}
-				if (this->devices.size() == 1) {
+				if (devices.size() == 1) {
 					break;
 				}
 			}
 
 			//create context
-			this->context = cl::Context{ this->devices };
+			context = cl::Context{ devices };
 
 			//build the program
 			ifstream program_file{ "test2.cl" };
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
 			cl::Program::Sources source{ std::make_pair(program_string.c_str(), program_string.length() + 1) };
-			this->program = cl::Program{ this->context, source };
+			program = cl::Program{ context, source };
 			try {
 				char options[] = "-cl-std=CL2.0 -g -s \"test2.cl\""; //see https://software.intel.com/en-us/node/539339
-				this->program.build(this->devices, options);
+				program.build(devices, options);
 			}
 			catch (cl::Error e) {
-				auto buildInfo = this->program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->devices.at(0));
+				auto buildInfo = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices.at(0));
 				std::cout << e.what() << '\n';
 				std::cout << buildInfo << '\n';
 			}
 
 			//put all the kernels into a map
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "used_by_set_to_sum_of_rows", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_sum_of", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_row_multiply_reduction", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_column_multiply_and_then_scale", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "row_vectors_per_element_multiply_and_then_scale", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "copy", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "outer_product", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "subtract_by", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_difference_of", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_product_of", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_column_multiply_and_then_transpose", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_sigmoid", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_sigmoid_prime", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_tanh", this->program, this->devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_tanh_prime", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "used_by_set_to_sum_of_rows", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_sum_of", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_row_multiply_reduction", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_scale", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "row_vectors_per_element_multiply_and_then_scale", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "copy", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "outer_product", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "subtract_by", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_difference_of", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_product_of", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_transpose", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_sigmoid", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_sigmoid_prime", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_tanh", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_tanh_prime", program, devices[0]);
 
 			//create command queue
-			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
+			queue = cl::CommandQueue{ context, devices[0], CL_QUEUE_PROFILING_ENABLE };
 
 			//create 2 scratch_buffers
-			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
-			this->shared_scratch_buffer.emplace_back( this->context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
+			shared_scratch_buffer.emplace_back( context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
+			shared_scratch_buffer.emplace_back( context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
 		}
 
 		OpenCLMatrixBuilder<T>()
@@ -103,7 +103,7 @@ namespace {
 		{}
 
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
-			if (rowCount * columnCount > this->max_matrix_element_count) {
+			if (rowCount * columnCount > max_matrix_element_count) {
 				throw CannotCreateError{ "rowCount * columnCount is greater than max_matrix_element_count" };
 			}
 
@@ -115,9 +115,9 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer),
 					std::move(dimensions),
-					this->kernel_wrappers,
-					this->queue,
-					this->shared_scratch_buffer
+					kernel_wrappers,
+					queue,
+					shared_scratch_buffer
 				}
 			};
 			return retval;
@@ -127,7 +127,7 @@ namespace {
 			//total number of elements
 			size_t number_of_elements = lists.size() * lists.begin()->size();
 
-			if (number_of_elements > this->max_matrix_element_count) {
+			if (number_of_elements > max_matrix_element_count) {
 				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
 			}
 
@@ -147,9 +147,9 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernel_wrappers, 
-					this->queue, 
-					this->shared_scratch_buffer
+					kernel_wrappers, 
+					queue, 
+					shared_scratch_buffer
 				} 
 			};
 			return retval;
@@ -159,7 +159,7 @@ namespace {
 			//total number of elements
 			size_t number_of_elements = v.size() * v.begin()->size();
 
-			if (number_of_elements > this->max_matrix_element_count) {
+			if (number_of_elements > max_matrix_element_count) {
 				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
 			}
 
@@ -179,9 +179,9 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernel_wrappers, 
-					this->queue, 
-					this->shared_scratch_buffer
+					kernel_wrappers, 
+					queue, 
+					shared_scratch_buffer
 				} 
 			};
 			return retval;
@@ -191,7 +191,7 @@ namespace {
 			//total number of elements
 			size_t number_of_elements = v.size();
 
-			if (number_of_elements > this->max_matrix_element_count) {
+			if (number_of_elements > max_matrix_element_count) {
 				throw CannotCreateError{ "number_of_elements is greater than max_matrix_element_count" };
 			}
 
@@ -205,9 +205,9 @@ namespace {
 				new OpenCLMatrix<T>{ 
 					std::move(buffer), 
 					std::move(dimensions), 
-					this->kernel_wrappers, 
-					this->queue,
-					this->shared_scratch_buffer
+					kernel_wrappers, 
+					queue,
+					shared_scratch_buffer
 				}
 			};
 			return retval;

@@ -36,7 +36,7 @@ namespace {
 			, command_queue{ command_queue }
 			, shared_scratch_buffer{ shared_scratch_buffer }
 		{
-			this->matrixAccessProperties.setDimensions(dimensions[0], dimensions[1]);
+			matrixAccessProperties.setDimensions(dimensions[0], dimensions[1]);
 		};
 
 		//deleted default, copy, move, copy assignment, and move assignment
@@ -55,12 +55,12 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("subtract_by").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -69,7 +69,7 @@ namespace {
 
 			//copy input buffer to 0th scratch buffer
 			command_queue.enqueueCopyBuffer(input_cl.buffer.cl_buffer, 
-				this->shared_scratch_buffer[0],
+				shared_scratch_buffer[0],
 				0, 
 				0,
 				input.getRowLength() * input.getColumnLength() * sizeof(T)
@@ -84,7 +84,7 @@ namespace {
 			size_t column_length_at_input = input.getColumnLength();
 			while(column_length_at_input > 1)	{
 				//Get clKernel and set arguments 
-				clKernel.setArg(0, this->shared_scratch_buffer[0]);
+				clKernel.setArg(0, shared_scratch_buffer[0]);
 				cl::LocalSpaceArg arg = cl::__local(max_work_group_size*sizeof(T));
 				clKernel.setArg(1, arg);
 
@@ -101,8 +101,8 @@ namespace {
 			}
 
 			//copy 0th scratch buffer to this
-			command_queue.enqueueCopyBuffer(this->shared_scratch_buffer[0],
-				this->buffer.cl_buffer,
+			command_queue.enqueueCopyBuffer(shared_scratch_buffer[0],
+				buffer.cl_buffer,
 				0,
 				0,
 				input.getRowLength() * sizeof(T)
@@ -118,7 +118,7 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("set_to_sum_of").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
 			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
 
@@ -138,7 +138,7 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("set_to_difference_of").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
 			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
 
@@ -158,7 +158,7 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("set_to_product_of").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, lhs.getColumnLength());
 			clKernel.setArg(2, lhs.getRowLength());
 			clKernel.setArg(3, rhs.getRowLength());
@@ -166,8 +166,8 @@ namespace {
 			clKernel.setArg(5, rhs_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -179,10 +179,10 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_element_sigmoid").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
-			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			auto number_of_elements = getRowLength() * getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
 			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
@@ -196,10 +196,10 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_element_sigmoid_prime").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
-			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			auto number_of_elements = getRowLength() * getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
 			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
@@ -213,10 +213,10 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_element_tanh").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
-			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			auto number_of_elements = getRowLength() * getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
 			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
@@ -230,10 +230,10 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_element_tanh_prime").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
-			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			auto number_of_elements = getRowLength() * getColumnLength();
 			cl::NDRange global_size{ number_of_elements };
 			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
@@ -248,7 +248,7 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_column_multiply_and_then_transpose").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, multipliers_cl.buffer.cl_buffer);
 			clKernel.setArg(2, multiplicand_cl.buffer.cl_buffer);
 
@@ -267,14 +267,14 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_column_multiply_and_then_scale").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, multipliers_cl.buffer.cl_buffer);
 			clKernel.setArg(2, multiplicand_cl.buffer.cl_buffer);
 			clKernel.setArg(3, scale);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -287,13 +287,13 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("per_row_multiply_reduction").clKernel;
 			
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, multipliers_cl.buffer.cl_buffer);
 			clKernel.setArg(2, multiplicand_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
@@ -306,14 +306,14 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("row_vectors_per_element_multiply_and_then_scale").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, row_vector_1_cl.buffer.cl_buffer);
 			clKernel.setArg(2, row_vector_2_cl.buffer.cl_buffer);
 			clKernel.setArg(3, scale);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength() };
-			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(this->getRowLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength() };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(getRowLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
@@ -325,20 +325,20 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("copy").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, input_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
 		void outer_product(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			assert(lhs.getColumnLength() == 1);
 			assert(rhs.getColumnLength() == 1);
-			assert(lhs.getRowLength() == this->getColumnLength());
-			assert(rhs.getRowLength() == this->getRowLength());
+			assert(lhs.getRowLength() == getColumnLength());
+			assert(rhs.getRowLength() == getRowLength());
 
 			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
 			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
@@ -348,18 +348,18 @@ namespace {
 			auto &clKernel = kernel_wrappers.at("outer_product").clKernel;
 
 			//Set arguments for clKernel
-			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(0, buffer.cl_buffer);
 			clKernel.setArg(1, lhs_cl.buffer.cl_buffer);
 			clKernel.setArg(2, rhs_cl.buffer.cl_buffer);
 
 			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(this->getColumnLength(), max_work_group_size) };
+			cl::NDRange global_size{ getRowLength(), getColumnLength() };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min<size_t>(getColumnLength(), max_work_group_size) };
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
 		void copy_from_vector(const std::vector<T> &input) override {
-			command_queue.enqueueWriteBuffer(this->buffer.cl_buffer, 
+			command_queue.enqueueWriteBuffer(buffer.cl_buffer, 
 				CL_BLOCKING, 
 				0, 
 				input.size() * sizeof(T), 
@@ -377,7 +377,7 @@ namespace {
 		}
 	private:
 		void copy_data_to_host() const {
-			size_t number_of_elements = this->getColumnLength() * this->getRowLength();
+			size_t number_of_elements = getColumnLength() * getRowLength();
 			buffer.cl_buffer_mirror_on_host.resize(number_of_elements);
 			command_queue.enqueueReadBuffer(buffer.cl_buffer, CL_BLOCKING, 0, number_of_elements * sizeof(T), &buffer.cl_buffer_mirror_on_host[0], nullptr, nullptr);
 		}
