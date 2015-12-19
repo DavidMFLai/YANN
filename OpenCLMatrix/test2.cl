@@ -106,3 +106,18 @@ __kernel void set_to_product_of(__global float *output, size_t M, size_t K, size
 	output[get_index_2D(x, y, N)] = acc;
 }
 
+__kernel void per_element_sigmoid(__global float *output, __global float *input) { 
+	output[get_global_id(0)] = 1 / (1 + exp(-input[get_global_id(0)]));
+}
+
+__kernel void per_element_sigmoid_prime(__global float *output, __global float *input) { 
+	output[get_global_id(0)] = input[get_global_id(0)] * (1 - input[get_global_id(0)]);
+}
+
+__kernel void per_element_tanh(__global float *output, __global float *input) { 
+	output[get_global_id(0)] = tanh(input[get_global_id(0)]);
+}
+
+__kernel void per_element_tanh_prime(__global float *output, __global float *input) { 
+	output[get_global_id(0)] = 1 - (input[get_global_id(0)] * input[get_global_id(0)]);
+}

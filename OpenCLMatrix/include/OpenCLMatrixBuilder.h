@@ -85,6 +85,10 @@ namespace {
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_difference_of", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "set_to_product_of", this->program, this->devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_column_multiply_and_then_transpose", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_sigmoid", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_sigmoid_prime", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_tanh", this->program, this->devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(this->kernel_wrappers, "per_element_tanh_prime", this->program, this->devices[0]);
 
 			//create command queue
 			this->queue = cl::CommandQueue{ this->context, this->devices[0], CL_QUEUE_PROFILING_ENABLE };
