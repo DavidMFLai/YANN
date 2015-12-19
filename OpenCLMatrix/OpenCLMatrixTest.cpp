@@ -168,6 +168,48 @@ namespace {
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
 
+	void per_element_sigmoid_prime_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Sigmoid_Prime(*output_ref, *input_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Sigmoid_Prime(*output_cl, *input_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
+	void per_element_tanh_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Tanh(*output_ref, *input_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Tanh(*output_cl, *input_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
+	void per_element_tanh_prime_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Tanh_Prime(*output_ref, *input_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Tanh_Prime(*output_cl, *input_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
 	void set_to_difference_of_test_internal(const std::vector<std::vector<float>> &output_data, 
 		const std::vector<std::vector<float>> &lhs_data,
 		const std::vector<std::vector<float>> &rhs_data) {
@@ -213,6 +255,91 @@ namespace {
 
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
+
+	TEST(BasicOperations, per_element_sigmoid) {
+		size_t column_length = 50;
+		size_t row_length = 101;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		per_element_sigmoid_test_internal(output_data, input_data);
+	}
+
+	TEST(BasicOperations, per_element_sigmoid_prime) {
+		size_t column_length = 50;
+		size_t row_length = 101;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		per_element_sigmoid_prime_test_internal(output_data, input_data);
+	}
+
+	TEST(BasicOperations, per_element_tanh) {
+		size_t column_length = 50;
+		size_t row_length = 101;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		per_element_tanh_test_internal(output_data, input_data);
+	}
+
+	TEST(BasicOperations, per_element_tanh_prime) {
+		size_t column_length = 50;
+		size_t row_length = 101;
+
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		per_element_tanh_prime_test_internal(output_data, input_data);
+	}
+
 
 	TEST(BasicOperations, create_from_dimensions) {
 		OpenCLMatrixBuilder<float> builder;
@@ -555,27 +682,6 @@ namespace {
 		}
 
 		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
-	}
-
-	TEST(BasicOperations, per_element_sigmoid) {
-		size_t column_length = 50;
-		size_t row_length = 101;
-
-		std::vector<std::vector<float>> output_data(column_length);
-		for (int idy = 0; idy < output_data.size(); idy++) {
-			for (int idx = 0; idx < row_length; idx++) {
-				output_data.at(idy).push_back(9.3f * idx * idy);
-			}
-		}
-
-		std::vector<std::vector<float>> input_data(column_length);
-		for (int idy = 0; idy < input_data.size(); idy++) {
-			for (int idx = 0; idx < row_length; idx++) {
-				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
-			}
-		}
-
-		per_element_sigmoid_test_internal(output_data, input_data);
 	}
 
 

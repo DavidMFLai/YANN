@@ -188,15 +188,57 @@ namespace {
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
-		void per_Element_Sigmoid_Prime(const Matrix<T> &sigmoid_value) override {
-			return;
+		void per_Element_Sigmoid_Prime(const Matrix<T> &input) override {
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("per_element_sigmoid_prime").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_element_sigmoid_prime").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, input_cl.buffer.cl_buffer);
+
+			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			cl::NDRange global_size{ number_of_elements };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
+
 		void per_Element_Tanh(const Matrix<T> &input) override {
-			return;
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("per_element_tanh").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_element_tanh").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, input_cl.buffer.cl_buffer);
+
+			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			cl::NDRange global_size{ number_of_elements };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
-		void per_Element_Tanh_Prime(const Matrix<T> &tanh_value) override {
-			return;
+
+		void per_Element_Tanh_Prime(const Matrix<T> &input) override {
+			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
+
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("per_element_tanh_prime").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_element_tanh_prime").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, this->buffer.cl_buffer);
+			clKernel.setArg(1, input_cl.buffer.cl_buffer);
+
+			auto number_of_elements = this->getRowLength() * this->getColumnLength();
+			cl::NDRange global_size{ number_of_elements };
+			cl::NDRange local_size = cl::NDRange{ std::min<size_t>(number_of_elements, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
+
 		void per_Column_Multiply_AndThen_Transpose(const Matrix<T> &multipliers, const Matrix<T> &multiplicand) override {
 			const OpenCLMatrix &multipliers_cl = dynamic_cast<const OpenCLMatrix &>(multipliers);
 			const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(multiplicand);
