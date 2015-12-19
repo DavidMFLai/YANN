@@ -154,6 +154,20 @@ namespace {
 		EXPECT_EQ(*output_ref, *output_cl);
 	}
 
+	void per_element_sigmoid_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
+		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Sigmoid(*output_ref, *input_ref);
+
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		Matrix<float>::Per_Element_Sigmoid(*output_cl, *input_cl);
+
+		EXPECT_EQ(*output_ref, *output_cl);
+	}
+
 	void set_to_difference_of_test_internal(const std::vector<std::vector<float>> &output_data, 
 		const std::vector<std::vector<float>> &lhs_data,
 		const std::vector<std::vector<float>> &rhs_data) {
@@ -543,21 +557,29 @@ namespace {
 		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
 	}
 
-	TEST(BasicOperations, per_column_multiply_and_then_transpose) {
-		std::vector<std::vector<float>> multipliers_data(1);
-		for (int idx = 0; idx < 1001; idx++) {
-			multipliers_data.at(0).push_back(7.f * idx * std::log(idx + 1));
-		}
+	TEST(BasicOperations, per_element_sigmoid) {
+		size_t column_length = 50;
+		size_t row_length = 101;
 
-		std::vector<std::vector<float>> multiplicand_data(500);
-		for (int idy = 0; idy < multiplicand_data.size(); idy++) {
-			for (int idx = 0; idx < 1001; idx++) {
-				multiplicand_data.at(idy).push_back(9.f * idx * idy);
+		std::vector<std::vector<float>> output_data(column_length);
+		for (int idy = 0; idy < output_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				output_data.at(idy).push_back(9.3f * idx * idy);
 			}
 		}
-		per_column_multiply_and_then_transpose_test_internal(multipliers_data, multiplicand_data);
 
+		std::vector<std::vector<float>> input_data(column_length);
+		for (int idy = 0; idy < input_data.size(); idy++) {
+			for (int idx = 0; idx < row_length; idx++) {
+				input_data.at(idy).push_back(1.2f * idx * std::log(1 + idy));
+			}
+		}
+
+		per_element_sigmoid_test_internal(output_data, input_data);
 	}
+
+
+
 }
 
 int main(int argc, char *argv[])
