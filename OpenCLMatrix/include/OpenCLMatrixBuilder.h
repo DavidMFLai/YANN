@@ -35,8 +35,9 @@ namespace {
 	template<typename T>
 	class OpenCLMatrixBuilder : public MatrixBuilder<T> {
 	public:
-		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count)
-			: max_matrix_element_count{ max_matrix_element_count } {
+		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count, const string &kernels_full_path)
+			: max_matrix_element_count{ max_matrix_element_count },
+			kernels_full_path{ kernels_full_path } {
 			//get platform
 			cl::Platform::get(&platforms);
 
@@ -60,12 +61,13 @@ namespace {
 			context = cl::Context{ devices };
 
 			//build the program
-			ifstream program_file{ "test2.cl" };
+			ifstream program_file{ kernels_full_path };
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
+
 			cl::Program::Sources source{ program_string };
 			program = cl::Program{ context, source };
 			try {
-				char options[] = "-cl-std=CL2.0 -g -s \"test2.cl\""; //see https://software.intel.com/en-us/node/539339
+				char options[] = "-cl-std=CL2.0 -g -s \"include/test2.cl\""; //see https://software.intel.com/en-us/node/539339
 				program.build(devices, options);
 			}
 			catch (cl::Error e) {
@@ -100,7 +102,7 @@ namespace {
 		}
 
 		OpenCLMatrixBuilder<T>()
-			: OpenCLMatrixBuilder<T>(10000)
+			: OpenCLMatrixBuilder<T>(10000, "include/test2.cl")
 		{}
 
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
@@ -246,6 +248,7 @@ namespace {
 		cl::Context context;
 		unordered_map<string, KernelWrapper> kernel_wrappers;
 		size_t max_matrix_element_count;
+		string kernels_full_path;
 		std::vector<cl::Buffer> shared_scratch_buffer;
 	};
 

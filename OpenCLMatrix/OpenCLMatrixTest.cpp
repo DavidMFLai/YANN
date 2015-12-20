@@ -21,7 +21,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(1, input_data.at(0).size()) };
 		Matrix<float>::Sum_of_rows(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(1, input_data.at(0).size()) };
 		Matrix<float>::Sum_of_rows(*output_cl, *input_cl);
@@ -36,7 +36,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
 		Matrix<float>::Add(*output_ref, *lhs_ref, *rhs_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.size() * lhs_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.size() * lhs_data.at(0).size(), "include/test2.cl");
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
@@ -52,7 +52,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
 		Matrix<float>::Per_Row_Multiply(*output_ref, *multipliers_ref, *multiplicand_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size(), "include/test2.cl");
 		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
 		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
@@ -68,7 +68,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_ref, *multipliers_ref, *multiplicand_ref, scale);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size(), "include/test2.cl");
 		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
 		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
@@ -84,7 +84,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getRowLength(), multiplicand_ref->getColumnLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Transpose(*output_ref, *multipliers_ref, *multiplicand_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(multiplicand_data.size() * multiplicand_data.at(0).size(), "include/test2.cl");
 		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
 		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getRowLength(), multiplicand_cl->getColumnLength()) };
@@ -101,7 +101,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_ref->getColumnLength(), rhs_ref->getRowLength()) };
 		Matrix<float>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(*output_ref, *lhs_ref, *rhs_ref, scale);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(rhs_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(rhs_data.size(), "include/test2.cl");
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_cl->getColumnLength(), rhs_cl->getRowLength()) };
@@ -116,7 +116,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_ref->getColumnLength(), input_ref->getRowLength()) };
 		Matrix<float>::Copy(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size() * input_data.at(0).size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_cl->getColumnLength(), input_cl->getRowLength()) };
 		Matrix<float>::Copy(*output_cl, *input_cl);
@@ -131,7 +131,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_ref->getRowLength(), rhs_ref->getRowLength()) };
 		Matrix<float>::Outer_product(*output_ref, *lhs_ref, *rhs_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.at(0).size() * rhs_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(lhs_data.at(0).size() * rhs_data.at(0).size(), "include/test2.cl");
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_cl->getRowLength(), rhs_cl->getRowLength()) };
@@ -146,7 +146,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Subtract_By(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Subtract_By(*output_cl, *input_cl);
@@ -160,7 +160,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Sigmoid(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Sigmoid(*output_cl, *input_cl);
@@ -174,7 +174,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Sigmoid_Prime(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Sigmoid_Prime(*output_cl, *input_cl);
@@ -188,7 +188,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Tanh(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Tanh(*output_cl, *input_cl);
@@ -202,7 +202,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Tanh_Prime(*output_ref, *input_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.at(0).size() * output_data.size(), "include/test2.cl");
 		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
 		Matrix<float>::Per_Element_Tanh_Prime(*output_cl, *input_cl);
@@ -220,7 +220,7 @@ namespace {
 		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
 		Matrix<float>::Minus(*output_ref, *lhs_ref, *rhs_ref);
 
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.size() * output_data.at(0).size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(output_data.size() * output_data.at(0).size(), "include/test2.cl");
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
@@ -247,7 +247,7 @@ namespace {
 		counts.push_back(rhs_ref->getColumnLength() * rhs_ref->getRowLength());
 		std::sort(counts.begin(), counts.end(), std::greater<size_t>()); //sort in decending order
 				
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(counts.at(0) * counts.at(1));
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(counts.at(0) * counts.at(1), "include/test2.cl");
 		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
 		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
 		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
@@ -570,7 +570,7 @@ namespace {
 		}
 
 		//create opencl_matrix
-		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size());
+		OpenCLMatrixBuilder<float> openCLMatrixBuilder(input_data.size(), "include/test2.cl");
 		auto opencl_matrix = openCLMatrixBuilder.create(size_x, size_y);
 
 		//copy input data into opencl_matrix
