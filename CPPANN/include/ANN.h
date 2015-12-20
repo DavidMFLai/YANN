@@ -65,6 +65,11 @@ namespace CPPANN {
 			return *this;
 		}
 
+		ANNBuilder &set_matrix_builder(std::unique_ptr<MatrixBuilder<T>> matrix_builder) {
+			this->matrix_builder = std::move(matrix_builder);
+			return *this;
+		}
+
 		//Hidden layer index is zero based
 		ANNBuilder &set_hidden_layer(size_t hidden_layer_index, Neuron_Type type, T speed, uint64_t size) {
 			//setup neuron counts

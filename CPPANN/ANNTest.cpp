@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ANN.h"
+#include "OpenCLMatrix.h"
 #include <vector>
 #include <cmath>
 #include <utility>
@@ -12,6 +13,48 @@
 
 using namespace std;
 using namespace CPPANN;
+
+TEST(Basics, mattmazur_opencl)
+{
+	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/. But the guy didnt update the biases
+
+	//Setup MatrixBuilder
+	std::unique_ptr<MatrixBuilder<float>> openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>();
+
+	//Setup ANN
+	ANNBuilder<float> ann_builder;
+	auto ann = ann_builder.set_input_layer(2)
+		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5f, 2)
+		.set_output_layer(Neuron_Type::Sigmoid, 0.5f, 2)
+		.set_weights(0, {
+			{ 0.15f, 0.25f },
+			{ 0.20f, 0.30f },
+		})
+		.set_weights(1, {
+			{ 0.40f, 0.50f }, //weights from the 0th neuron of the present layer
+			{ 0.45f, 0.55f },
+		})
+		.set_bias(0, { 0.35f, 0.35f })
+		.set_bias(1, { 0.60f, 0.60f })
+		.set_matrix_builder(std::move(openCLMatrixBuilder))
+		.build();
+
+	//Execute ANN
+	ann.forward_propagate({ 0.05f, 0.10f });
+	ann.back_propagate({ 0.01f, 0.99f });
+
+	//Verify
+	float tolerence = 0.00000001f;
+	auto &weights = ann.getWeights();
+	EXPECT_NEAR(0.14978072f, weights[0]->at(0, 0), tolerence);
+	EXPECT_NEAR(0.24975114f, weights[0]->at(0, 1), tolerence);
+	EXPECT_NEAR(0.19956143f, weights[0]->at(1, 0), tolerence);
+	EXPECT_NEAR(0.29950229f, weights[0]->at(1, 1), tolerence);
+	EXPECT_NEAR(0.35891648f, weights[1]->at(0, 0), tolerence);
+	EXPECT_NEAR(0.51130127f, weights[1]->at(0, 1), tolerence);
+	EXPECT_NEAR(0.40866619f, weights[1]->at(1, 0), tolerence);
+	EXPECT_NEAR(0.56137012f, weights[1]->at(1, 1), tolerence);
+}
 
 TEST(Basics, mattmazur)
 {
