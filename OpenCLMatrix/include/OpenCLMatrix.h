@@ -1,14 +1,14 @@
 #pragma once
 
 #define NOMINMAX
-#define __CL_ENABLE_EXCEPTIONS
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION 200 //opencl 2.0
 
 #ifdef MAC
-#include <OpenCL/cl.h>
+#include <OpenCL/cl2.h>
 #else
-#include <CL/cl.hpp>
+#include <CL/cl2.hpp>
 #endif
-
 
 #include "Matrix.h"
 #include "OpenCLMatrixBuilder.h"

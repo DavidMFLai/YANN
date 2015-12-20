@@ -7,11 +7,12 @@
 #include <utility>
 #include <unordered_map>
 
-#define __CL_ENABLE_EXCEPTIONS
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION 200 //opencl 2.0
 #ifdef MAC
-#include <OpenCL/cl.h>
+#include <OpenCL/cl2.h>
 #else
-#include <CL/cl.hpp>
+#include <CL/cl2.hpp>
 #endif
 
 #include "OpenCLMatrix.h"
@@ -61,7 +62,7 @@ namespace {
 			//build the program
 			ifstream program_file{ "test2.cl" };
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
-			cl::Program::Sources source{ std::make_pair(program_string.c_str(), program_string.length() + 1) };
+			cl::Program::Sources source{ program_string };
 			program = cl::Program{ context, source };
 			try {
 				char options[] = "-cl-std=CL2.0 -g -s \"test2.cl\""; //see https://software.intel.com/en-us/node/539339
