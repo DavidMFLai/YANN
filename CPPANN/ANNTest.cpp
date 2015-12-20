@@ -19,7 +19,8 @@ TEST(Basics, mattmazur_opencl)
 	//See http://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/. But the guy didnt update the biases
 
 	//Setup MatrixBuilder
-	std::unique_ptr<MatrixBuilder<float>> openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>();
+	std::unique_ptr<MatrixBuilder<float>> openCLMatrixBuilder = 
+		std::make_unique<OpenCLMatrixBuilder<float>>(10000, "../OpenCLMatrix/include/test2.cl");
 
 	//Setup ANN
 	ANNBuilder<float> ann_builder;
@@ -44,7 +45,7 @@ TEST(Basics, mattmazur_opencl)
 	ann.back_propagate({ 0.01f, 0.99f });
 
 	//Verify
-	float tolerence = 0.00000001f;
+	float tolerence = 0.0001f;
 	auto &weights = ann.getWeights();
 	EXPECT_NEAR(0.14978072f, weights[0]->at(0, 0), tolerence);
 	EXPECT_NEAR(0.24975114f, weights[0]->at(0, 1), tolerence);
