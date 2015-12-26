@@ -1,0 +1,13 @@
+#ignores all files and directories in the current directory
+/*
+
+# ... except for directory "src" in the current directory
+!/src/
+
+# Ignores CMAKE intermediate files
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
