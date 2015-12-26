@@ -47,37 +47,8 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR} ) #so that our
 find_package(OpenCL REQUIRED)
 message("Import library found: " ${OPENCL_LIBRARIES})
 
-#Visual Studio Specific
-if (MSVC)
-	message("MSVC_VERSION is ${MSVC_VERSION}")
-	if(NOT (MSVC_VERSION LESS 1900)) #VS2015 or later
-		#allows edit and continue
-		SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd -ZI") 
-		SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT -Zi")
-	else()
-		SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd -ZI") 
-		SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT -Zi")
-	endif()
-	message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
-	message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
-	
-	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-endif()
-
 #adds google test and google mock
 add_subdirectory( ./googlemock )
-set_target_properties(gmock 
-	PROPERTIES FOLDER Google/Tools
-)
-set_target_properties(gtest 
-	PROPERTIES FOLDER Google/Tools
-)
-set_target_properties(gmock_main
-	PROPERTIES FOLDER Google/Tools
-)
-set_target_properties(gtest_main
-	PROPERTIES FOLDER Google/Tools
-)
 
 #adds ReferenceMatrixTest
 add_executable(ReferenceMatrixTest 
@@ -89,6 +60,9 @@ target_include_directories(ReferenceMatrixTest PUBLIC
 	"${PROJECT_SOURCE_DIR}/googletest/include"
 	"${PROJECT_SOURCE_DIR}/googlemock/include"
 	)
+set_target_properties(ReferenceMatrixTest 
+	PROPERTIES LINK_FLAGS_RELEASE /LTCG
+)
 target_link_libraries(ReferenceMatrixTest gtest gmock gtest_main)
 
 #adds ANN
@@ -115,9 +89,6 @@ target_include_directories(MINST PUBLIC
 	"${PROJECT_SOURCE_DIR}/googlemock/include"
 	)
 add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
-set_target_properties(MINST 
-	PROPERTIES FOLDER Examples/Common
-)
 target_link_libraries(MINST gtest gmock gtest_main)
 
 #add Examples/Common/CharacterRecognition
@@ -135,9 +106,6 @@ target_include_directories(CharacterRecognition PUBLIC
 	"${PROJECT_SOURCE_DIR}/googlemock/include"
 	)
 add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
-set_target_properties(CharacterRecognition 
-	PROPERTIES FOLDER Examples/Common
-)
 target_link_libraries(CharacterRecognition gtest gmock gtest_main)
 	
 if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
@@ -156,4 +124,50 @@ if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 		)
 	add_definitions(-DKERNEL_FULL_PATH="${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl")
 	target_link_libraries(OpenCLMatrixTest gtest gmock gtest_main ${OPENCL_LIBRARIES})
+endif()
+
+#Visual Studio Specific
+if (MSVC)
+	set(ALL_NON_OPENCL_TARGETS gtest gtest gmock_main gtest_main ReferenceMatrixTest MINST ANNTest CharacterRecognition)
+	set(ALL_OPENCL_TARGETS OpenCLMatrixTest)
+
+	#Compile-options for all projects dependent on gtest should be the same
+	if(NOT (MSVC_VERSION LESS 1900)) #VS2015 or later
+		set(MSVC_DEBUG_OPTIONS_2015 /MTd -ZI)
+		target_compile_options(gtest PUBLIC "$<$<CONFIG:Debug>:${MSVC_DEBUG_OPTIONS_2015}>")
+	else()
+		set(MSVC_DEBUG_OPTIONS_b4_2015 /MTd -Zi)
+		target_compile_options(gtest PUBLIC "$<$<CONFIG:Debug>:${MSVC_DEBUG_OPTIONS_b4_2015}>")
+	endif()
+	set(MSVC_RELEASE_OPTIONS /MT -Zi)
+	target_compile_options(gtest PUBLIC "$<$<CONFIG:Release>:${MSVC_RELEASE_OPTIONS}>")
+
+	#Makes breakpoints work
+	set_target_properties(${ALL_NON_OPENCL_TARGETS}
+		PROPERTIES LINK_FLAGS "/DEBUG"
+	)
+	if(OPENCL_FOUND)
+		set_target_properties(${ALL_OPENCL_TARGETS}
+			PROPERTIES LINK_FLAGS_RELEASE "/DEBUG"
+		)
+	endif()
+	
+	#LTCG for release builds
+	set_target_properties(${ALL_NON_OPENCL_TARGETS}
+		PROPERTIES LINK_FLAGS_RELEASE "/LTCG"
+	)
+	if(OPENCL_FOUND)
+		set_target_properties(${ALL_OPENCL_TARGETS}
+			PROPERTIES LINK_FLAGS_RELEASE "/LTCG"
+		)
+	endif()
+	
+	#Folders within Visual Studio
+	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+	set_target_properties(gmock gtest gmock_main gtest_main
+		PROPERTIES FOLDER Google/Tools
+	)
+	set_target_properties(MINST CharacterRecognition
+		PROPERTIES FOLDER Examples/Common
+	)
 endif()
