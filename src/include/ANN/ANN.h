@@ -32,7 +32,7 @@ namespace CPPANN {
 	class Random_number_generator {
 	public:
 		Random_number_generator()
-			: gen{ rd() }, dist{ 0, 0.1 }
+			: gen{ rd() }, dist{ 0, static_cast<T>(0.1) }
 		{}
 
 		T generate() const{
@@ -284,7 +284,7 @@ namespace CPPANN {
 			}
 		}
 	public:
-		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
+		void forward_propagate_no_output(const std::vector<T> &input) {
 			Matrix<T>::Copy_from_vector(*signal_nodes[0], input);
 			for (int i = 0; i < weights.size(); i++) {
 				Matrix<T>::Multiply(*network_nodes[i], *signal_nodes[i], *weights[i]);
@@ -296,6 +296,10 @@ namespace CPPANN {
 					Matrix<T>::Per_Element_Tanh(*signal_nodes[i + 1], *network_nodes[i]);
 				}
 			}
+		}
+
+		const std::vector<T> &forward_propagate(const std::vector<T> &input) {
+			forward_propagate_no_output(input);
 			return signal_nodes.back()->getElems();
 		}
 

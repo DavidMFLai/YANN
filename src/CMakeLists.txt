@@ -93,10 +93,8 @@ target_link_libraries(MINST gtest gmock gtest_main)
 
 #add Examples/Common/CharacterRecognition
 add_executable(CharacterRecognition
-	"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/ANNToMINSTConverter.cpp"
 	"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/ANNToMINSTConverter.h"
 	"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/CharacterRecognitionTest.cpp"
-	#"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/main.cpp"
 	)
 target_include_directories(CharacterRecognition PUBLIC
 	"${PROJECT_SOURCE_DIR}/include/ANN"
@@ -124,12 +122,31 @@ if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 		)
 	add_definitions(-DKERNEL_FULL_PATH="${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl")
 	target_link_libraries(OpenCLMatrixTest gtest gmock gtest_main ${OPENCL_LIBRARIES})
+	
+	
+	#add Examples/Common/CharacterRecognition/CharacterRecognitionOpenCL
+	add_executable(CharacterRecognitionOpenCL
+		"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/ANNToMINSTConverter.h"
+		"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/CharacterRecognitionOpenCLTest.cpp"
+		)
+	target_include_directories(CharacterRecognitionOpenCL PUBLIC
+		"${PROJECT_SOURCE_DIR}/include/ANN"
+		"${PROJECT_SOURCE_DIR}/include/ReferenceMatrix"
+		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix"
+		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/khronos"
+		"${PROJECT_SOURCE_DIR}/tests/MINST"
+		"${PROJECT_SOURCE_DIR}/googletest/include"
+		"${PROJECT_SOURCE_DIR}/googlemock/include"
+		)
+	add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
+	#add_definitions(-DKERNEL_FULL_PATH="${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl")
+	target_link_libraries(CharacterRecognitionOpenCL gtest gmock gtest_main ${OPENCL_LIBRARIES})
 endif()
 
 #Visual Studio Specific
 if (MSVC)
 	set(ALL_NON_OPENCL_TARGETS gtest gtest gmock_main gtest_main ReferenceMatrixTest MINST ANNTest CharacterRecognition)
-	set(ALL_OPENCL_TARGETS OpenCLMatrixTest)
+	set(ALL_OPENCL_TARGETS OpenCLMatrixTest CharacterRecognitionOpenCL)
 
 	#Compile-options for all projects dependent on gtest should be the same
 	if(NOT (MSVC_VERSION LESS 1900)) #VS2015 or later
@@ -148,7 +165,7 @@ if (MSVC)
 	)
 	if(OPENCL_FOUND)
 		set_target_properties(${ALL_OPENCL_TARGETS}
-			PROPERTIES LINK_FLAGS_RELEASE "/DEBUG"
+			PROPERTIES LINK_FLAGS "/DEBUG"
 		)
 	endif()
 	
@@ -167,7 +184,7 @@ if (MSVC)
 	set_target_properties(gmock gtest gmock_main gtest_main
 		PROPERTIES FOLDER Google/Tools
 	)
-	set_target_properties(MINST CharacterRecognition
+	set_target_properties(MINST CharacterRecognition CharacterRecognitionOpenCL
 		PROPERTIES FOLDER Examples/Common
 	)
 endif()

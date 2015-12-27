@@ -1,6 +1,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "gmock\gmock.h"
 #include "gtest\gtest.h"
@@ -8,12 +9,14 @@
 #include "ANN.h"
 #include "MinstData.h"
 #include "ANNToMINSTConverter.h"
+#include "OpenCLMatrix.h"
+#include "OpenCLMatrixBuilder.h"
 
 using namespace std;
 using namespace CPPANN;
 using namespace Converter;
 
-TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
+TEST(CharacterRecognitionOpenCL, one_hidden_layer_with_15_neurons)
 {
 	string train_images_full_path = MINSTDATA_ROOT + "train-images.idx3-ubyte"s;
 	string train_labels_full_path = MINSTDATA_ROOT + "train-labels.idx1-ubyte"s;
@@ -22,18 +25,24 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 
 
 	//read raw training material
-	MINSTData<double> mINSTData;
+	MINSTData<float> mINSTData;
 	mINSTData.read_data(train_images_full_path, train_labels_full_path);
 
+	//setup OpenCLMatrixBuilder
+	auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1) * 15, KERNEL_FULL_PATH);
+	//auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>(60000*15, KERNEL_FULL_PATH);
+
 	//Setup ANN
-	ANNBuilder<double> ann_builder;
+	ANNBuilder<float> ann_builder;
+	//auto ann = ann_builder.set_input_layer(60000)
 	auto ann = ann_builder.set_input_layer(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1))
 		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 15)
 		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 10)
+		.set_matrix_builder(std::move(openCLMatrixBuilder))
 		.build();
 
 	//Train with first 5000 only
-	std::vector<double> training_output_data(10);
+	std::vector<float> training_output_data(10);
 	for (size_t j = 0; j < 10; j++) {
 		for (size_t idx = 0; idx < 5000; idx++) {
 			auto &training_input_data = mINSTData.get_image(idx);
@@ -46,16 +55,16 @@ TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)
 	}
 
 	//read raw testing material
-	MINSTData<double> mINSTData_test;
+	MINSTData<float> mINSTData_test;
 	mINSTData_test.read_data(test_images_full_path, test_labels_full_path);
 
 	//Test
 	size_t correct_count = 0;
 	size_t total_count = 0;
-	std::vector<double> testing_output_data(10);
+	std::vector<float> testing_output_data(10);
 	for (size_t idx = 0; idx < mINSTData_test.get_number_of_images(); idx++) {
 		auto &test_input_data = mINSTData_test.get_image(idx);
-		std::vector<double> ann_result = ann.forward_propagate(test_input_data);
+		std::vector<float> ann_result = ann.forward_propagate(test_input_data);
 		uchar result = Convert_ANN_output_data_to_label(ann_result);
 
 		uchar label = mINSTData_test.get_label(idx);

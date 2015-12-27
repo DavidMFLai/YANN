@@ -110,7 +110,7 @@ private:
 
 	template<typename U = T>
 	static U Convert_to_normalized_T(uchar single_data) {
-		double retval = single_data;
+		U retval = static_cast<U>(single_data);
 		retval /= std::numeric_limits<uchar>::max() + 1; //the +1 allows easier division?
 		return retval; 
 	};
