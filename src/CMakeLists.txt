@@ -88,8 +88,10 @@ target_include_directories(MINST PUBLIC
 	"${PROJECT_SOURCE_DIR}/googletest/include"
 	"${PROJECT_SOURCE_DIR}/googlemock/include"
 	)
-add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
 target_link_libraries(MINST gtest gmock gtest_main)
+set_target_properties(MINST 
+	PROPERTIES COMPILE_DEFINITIONS "MINSTDATA_ROOT=\"${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/\""
+)
 
 #add Examples/Common/CharacterRecognition
 add_executable(CharacterRecognition
@@ -103,8 +105,10 @@ target_include_directories(CharacterRecognition PUBLIC
 	"${PROJECT_SOURCE_DIR}/googletest/include"
 	"${PROJECT_SOURCE_DIR}/googlemock/include"
 	)
-add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
 target_link_libraries(CharacterRecognition gtest gmock gtest_main)
+set_target_properties(CharacterRecognition
+	PROPERTIES COMPILE_DEFINITIONS "MINSTDATA_ROOT=\"${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/\""
+)
 	
 if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 	#adds OpenCLMatrix
@@ -112,6 +116,7 @@ if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 		"${PROJECT_SOURCE_DIR}/tests/OpenCLMatrix/OpenCLMatrixTest.cpp"
 		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/OpenCLMatrix.h" 
 		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/OpenCLMatrixBuilder.h"
+		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl"
 		)
 	target_include_directories(OpenCLMatrixTest PUBLIC
 		"${PROJECT_SOURCE_DIR}/include/ReferenceMatrix"
@@ -120,14 +125,16 @@ if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 		"${PROJECT_SOURCE_DIR}/googletest/include"
 		"${PROJECT_SOURCE_DIR}/googlemock/include"
 		)
-	add_definitions(-DKERNEL_FULL_PATH="${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl")
 	target_link_libraries(OpenCLMatrixTest gtest gmock gtest_main ${OPENCL_LIBRARIES})
-	
+	set_target_properties(OpenCLMatrixTest
+		PROPERTIES COMPILE_DEFINITIONS "KERNEL_FULL_PATH=\"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl\"" 
+	)
 	
 	#add Examples/Common/CharacterRecognition/CharacterRecognitionOpenCL
 	add_executable(CharacterRecognitionOpenCL
 		"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/ANNToMINSTConverter.h"
 		"${PROJECT_SOURCE_DIR}/tests/CharacterRecognition/CharacterRecognitionOpenCLTest.cpp"
+		"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl"
 		)
 	target_include_directories(CharacterRecognitionOpenCL PUBLIC
 		"${PROJECT_SOURCE_DIR}/include/ANN"
@@ -138,9 +145,10 @@ if(OPENCL_FOUND) #defined by find_package(OpenCL REQUIRED)
 		"${PROJECT_SOURCE_DIR}/googletest/include"
 		"${PROJECT_SOURCE_DIR}/googlemock/include"
 		)
-	add_definitions(-DMINSTDATA_ROOT="${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/")
-	#add_definitions(-DKERNEL_FULL_PATH="${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl")
-	target_link_libraries(CharacterRecognitionOpenCL gtest gmock gtest_main ${OPENCL_LIBRARIES})
+	target_link_libraries(CharacterRecognitionOpenCL gtest gmock gtest_main ${OPENCL_LIBRARIES})	
+	set_target_properties(CharacterRecognitionOpenCL
+		PROPERTIES COMPILE_DEFINITIONS 	"KERNEL_FULL_PATH=\"${PROJECT_SOURCE_DIR}/include/OpenCLMatrix/test2.cl\";MINSTDATA_ROOT=\"${PROJECT_SOURCE_DIR}/tests/MINST/MINSTDataset/\"" 
+	)
 endif()
 
 #Visual Studio Specific

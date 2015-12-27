@@ -30,11 +30,9 @@ TEST(CharacterRecognitionOpenCL, one_hidden_layer_with_15_neurons)
 
 	//setup OpenCLMatrixBuilder
 	auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1) * 15, KERNEL_FULL_PATH);
-	//auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>(60000*15, KERNEL_FULL_PATH);
 
 	//Setup ANN
 	ANNBuilder<float> ann_builder;
-	//auto ann = ann_builder.set_input_layer(60000)
 	auto ann = ann_builder.set_input_layer(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1))
 		.set_hidden_layer(0, Neuron_Type::Sigmoid, 0.5, 15)
 		.set_output_layer(Neuron_Type::Sigmoid, 0.5, 10)
