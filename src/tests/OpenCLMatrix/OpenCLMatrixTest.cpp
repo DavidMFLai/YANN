@@ -680,4 +680,34 @@ namespace {
 
 		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
 	}
+
+
+	TEST(BasicOperations, set_to_product_of_lhs_is_row_matrix) {
+		size_t M = 1;
+		size_t K = 101;
+		size_t N = 201;
+
+		std::vector<std::vector<float>> lhs_data(M);
+		for (int idy = 0; idy < M; idy++) {
+			for (int idx = 0; idx < K; idx++) {
+				lhs_data.at(idy).push_back(9.3f * idx * idy);
+			}
+		}
+
+		std::vector<std::vector<float>> rhs_data(K);
+		for (int idy = 0; idy < K; idy++) {
+			for (int idx = 0; idx < N; idx++) {
+				rhs_data.at(idy).push_back(1.2f * idx * std::log(1.f + idy));
+			}
+		}
+
+		std::vector<std::vector<float>> output_data(M);
+		for (int idy = 0; idy < M; idy++) {
+			for (int idx = 0; idx < N; idx++) {
+				output_data.at(idy).push_back(0.0f);
+			}
+		}
+
+		set_to_product_of_test_internal(output_data, lhs_data, rhs_data);
+	}
 }

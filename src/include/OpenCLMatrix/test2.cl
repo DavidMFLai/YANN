@@ -106,6 +106,17 @@ __kernel void set_to_product_of(__global float *output, size_t M, size_t K, size
 	output[get_index_2D(x, y, N)] = acc;
 }
 
+//for a long row matrix multiplied with another matrix
+__kernel void set_to_product_of_where_lhs_is_a_long_row_matrix(__global float *output, size_t K, size_t N, __global float *lhs, __global float *rhs) { 
+	size_t global_id = get_global_id(0);
+
+	float acc = 0.f;
+	for (size_t index=0; index<K; index++) {
+        acc += lhs[ index ] * rhs[ get_index_2D(global_id, index, N) ];
+    }
+	output[global_id] = acc;
+}
+
 __kernel void per_element_sigmoid(__global float *output, __global float *input) { 
 	output[get_global_id(0)] = 1 / (1 + exp(-input[get_global_id(0)]));
 }
