@@ -112,6 +112,9 @@ namespace {
 			: OpenCLMatrixBuilder<T>(10000, KERNEL_FULL_PATH)
 		{}
 
+		//default destructor
+		~OpenCLMatrixBuilder() = default;
+		
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
 			if (rowCount * columnCount > max_matrix_element_count) {
 				throw CannotCreateError{ "rowCount * columnCount is greater than max_matrix_element_count" };

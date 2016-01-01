@@ -13,5 +13,6 @@ namespace {
 		virtual std::unique_ptr<Matrix<T>> create(const std::vector<std::vector<T>> &t) = 0;
 		virtual std::unique_ptr<Matrix<T>> createRowMatrix(const std::vector<T> &t) = 0; //creates row matrix
 		virtual std::string getInfo() = 0;
+		virtual ~MatrixBuilder<T>() = default;
 	};
 }

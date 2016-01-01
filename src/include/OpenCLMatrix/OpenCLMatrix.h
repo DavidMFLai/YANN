@@ -48,6 +48,9 @@ namespace {
 		OpenCLMatrix &operator=(OpenCLMatrix &&) = delete;
 		OpenCLMatrix &operator=(const OpenCLMatrix &) = delete;
 
+		//default destructor
+		~OpenCLMatrix() = default;
+
 	private:
 		void subtract_by(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);

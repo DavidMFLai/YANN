@@ -26,6 +26,8 @@ namespace {
 			return this->matrixAccessProperties.dimensions[1];
 		}
 
+		virtual ~Matrix<T>() = default;
+
 	protected:
 		struct MatrixAccessProperties {
 			MatrixAccessProperties() = default;
