@@ -36,7 +36,7 @@ __kernel void set_to_sum_of(__global float *output, __global float *lhs, __globa
 	output[get_global_id(0)] = lhs[get_global_id(0)] + rhs[get_global_id(0)];
 }
 
-__kernel void per_row_multiply_reduction(__global float *output, __global float *multipliers, __global float *multiplicand) {
+__kernel void per_row_multiply(__global float *output, __global float *multipliers, __global float *multiplicand) {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	int row_length = get_global_size(0);

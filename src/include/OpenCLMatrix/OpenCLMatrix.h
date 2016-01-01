@@ -183,8 +183,8 @@ namespace {
 						const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
 
 						//get clKernel and its work group size for this device
-						size_t max_work_group_size = kernel_wrappers.at("per_row_multiply_reduction").kernel_work_group_size;
-						auto &clKernel = kernel_wrappers.at("per_row_multiply_reduction").clKernel;
+						size_t max_work_group_size = kernel_wrappers.at("per_row_multiply").kernel_work_group_size;
+						auto &clKernel = kernel_wrappers.at("per_row_multiply").clKernel;
 
 						//Set arguments for clKernel
 						clKernel.setArg(0, shared_scratch_buffer[0]);
@@ -193,7 +193,7 @@ namespace {
 
 						//enqueueNDRangeKernel 
 						cl::NDRange global_size{ multiplicand_cl.getRowLength(), multiplicand_cl.getColumnLength() };
-						cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
+						cl::NDRange local_size = cl::NDRange{ 1, std::min(multiplicand_cl.getColumnLength(), max_work_group_size) };
 						command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 					}
 					
@@ -366,8 +366,8 @@ namespace {
 			const OpenCLMatrix &multiplicand_cl = dynamic_cast<const OpenCLMatrix &>(multiplicand);
 
 			//get clKernel and its work group size for this device
-			size_t max_work_group_size = kernel_wrappers.at("per_row_multiply_reduction").kernel_work_group_size;
-			auto &clKernel = kernel_wrappers.at("per_row_multiply_reduction").clKernel;
+			size_t max_work_group_size = kernel_wrappers.at("per_row_multiply").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("per_row_multiply").clKernel;
 			
 			//Set arguments for clKernel
 			clKernel.setArg(0, buffer.cl_buffer);
