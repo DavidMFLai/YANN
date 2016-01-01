@@ -54,8 +54,8 @@ if( LIB64 )
         NAMES OpenCL
         HINTS
             ${OPENCL_ROOT}/lib
+			$ENV{AMDAPPSDKROOT}/lib
 			$ENV{INTELOCLSDKROOT}/lib
-            $ENV{AMDAPPSDKROOT}/lib
             $ENV{CUDA_PATH}/lib
         DOC "OpenCL dynamic library path"
         PATH_SUFFIXES x86_64 x64 x86_64/sdk
@@ -69,8 +69,8 @@ else( )
         NAMES OpenCL
         HINTS
             ${OPENCL_ROOT}/lib
+			$ENV{AMDAPPSDKROOT}/lib
 			$ENV{INTELOCLSDKROOT}/lib
-            $ENV{AMDAPPSDKROOT}/lib
             $ENV{CUDA_PATH}/lib
         DOC "OpenCL dynamic library path"
         PATH_SUFFIXES x86 Win32

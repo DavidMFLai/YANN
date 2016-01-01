@@ -162,8 +162,8 @@ namespace {
 
 				//Set arguments for clKernel
 				clKernel.setArg(0, buffer.cl_buffer);
-				clKernel.setArg(1, lhs.getRowLength());
-				clKernel.setArg(2, rhs.getRowLength());
+				clKernel.setArg(1, static_cast<unsigned int>(lhs.getRowLength()));
+				clKernel.setArg(2, static_cast<unsigned int>(rhs.getRowLength()));
 				clKernel.setArg(3, lhs_cl.buffer.cl_buffer);
 				clKernel.setArg(4, rhs_cl.buffer.cl_buffer);
 				
@@ -179,9 +179,9 @@ namespace {
 
 				//Set arguments for clKernel
 				clKernel.setArg(0, buffer.cl_buffer);
-				clKernel.setArg(1, lhs.getColumnLength());
-				clKernel.setArg(2, lhs.getRowLength());
-				clKernel.setArg(3, rhs.getRowLength());
+				clKernel.setArg(1, static_cast<unsigned int>(lhs.getColumnLength()));
+				clKernel.setArg(2, static_cast<unsigned int>(lhs.getRowLength()));
+				clKernel.setArg(3, static_cast<unsigned int>(rhs.getRowLength()));
 				clKernel.setArg(4, lhs_cl.buffer.cl_buffer);
 				clKernel.setArg(5, rhs_cl.buffer.cl_buffer);
 
@@ -340,19 +340,7 @@ namespace {
 
 		void copy(const Matrix<T> &input) override {
 			const OpenCLMatrix &input_cl = dynamic_cast<const OpenCLMatrix &>(input);
-
-			//get clKernel and its work group size for this device
-			size_t max_work_group_size = kernel_wrappers.at("copy").kernel_work_group_size;
-			auto &clKernel = kernel_wrappers.at("copy").clKernel;
-
-			//Set arguments for clKernel
-			clKernel.setArg(0, buffer.cl_buffer);
-			clKernel.setArg(1, input_cl.buffer.cl_buffer);
-
-			//enqueueNDRangeKernel 
-			cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-			cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
-			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+			command_queue.enqueueCopyBuffer(input_cl.buffer.cl_buffer, buffer.cl_buffer, 0, 0, this->getRowLength() * this->getColumnLength() * sizeof(T));
 		}
 
 		void outer_product(const Matrix<T> &lhs, const Matrix<T> &rhs) override {

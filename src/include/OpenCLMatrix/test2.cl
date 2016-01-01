@@ -65,14 +65,6 @@ __kernel void row_vectors_per_element_multiply_and_then_scale(__global float *ou
 	output[get_global_id(0)] = lhs[get_global_id(0)] * rhs[get_global_id(0)] * scale;
 }
 
-__kernel void copy(__global float *output, __global float *input) { 
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-	int row_length = get_global_size(0);
-
-	output[get_index_2D(x, y, row_length)] = input[get_index_2D(x, y, row_length)];
-}
-
 __kernel void outer_product(__global float *output, __global float *lhs, __global float *rhs) { 
 	int x = get_global_id(0);
 	int y = get_global_id(1);
@@ -95,7 +87,7 @@ __kernel void set_to_difference_of(__global float *output, __global float *lhs, 
 }
 
 //very naive implementation..
-__kernel void set_to_product_of(__global float *output, size_t M, size_t K, size_t N, __global float *lhs, __global float *rhs) { 
+__kernel void set_to_product_of(__global float *output, unsigned int M, unsigned int K, unsigned int N, __global float *lhs, __global float *rhs) { 
 	size_t x = get_global_id(0);
 	size_t y = get_global_id(1);
 
@@ -107,7 +99,7 @@ __kernel void set_to_product_of(__global float *output, size_t M, size_t K, size
 }
 
 //for a long row matrix multiplied with another matrix
-__kernel void set_to_product_of_where_lhs_is_a_long_row_matrix(__global float *output, size_t K, size_t N, __global float *lhs, __global float *rhs) { 
+__kernel void set_to_product_of_where_lhs_is_a_long_row_matrix(__global float *output, unsigned int K, unsigned int N, __global float *lhs, __global float *rhs) { 
 	size_t global_id = get_global_id(0);
 
 	float acc = 0.f;

@@ -44,16 +44,21 @@ namespace {
 			//find first device with OpenCL 2.0
 			for (auto &platform : platforms) {
 				vector<cl::Device> all_devices;
-				platform.getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
-				for (auto &device : all_devices) {
-					auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
-					if (major_version_as_string == "2") {
-						devices.push_back(device);
+				try {
+					platform.getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
+					for (auto &device : all_devices) {
+						auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
+						if (major_version_as_string == "2") {
+							devices.push_back(device);
+							break;
+						}
+					}
+					if (devices.size() == 1) {
 						break;
 					}
 				}
-				if (devices.size() == 1) {
-					break;
+				catch (cl::Error e) {
+					//do nothing
 				}
 			}
 
@@ -83,7 +88,7 @@ namespace {
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_row_multiply_reduction", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_scale", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "row_vectors_per_element_multiply_and_then_scale", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "copy", program, devices[0]);
+			//OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "copy", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "outer_product", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "subtract_by", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_difference_of", program, devices[0]);
