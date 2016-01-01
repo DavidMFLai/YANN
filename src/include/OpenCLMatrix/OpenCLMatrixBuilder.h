@@ -83,7 +83,7 @@ namespace {
 			}
 
 			//put all the kernels into a map
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "used_by_set_to_sum_of_rows", program, devices[0]);
+			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_sum_of_rows", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_sum_of", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_row_multiply_reduction", program, devices[0]);
 			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_scale", program, devices[0]);

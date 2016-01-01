@@ -2,7 +2,7 @@ int get_index_2D(int x, int y, int x_length) {
 	return x + y*x_length;
 }
 
-__kernel void used_by_set_to_sum_of_rows(__global float *input_and_output, __local float *partial_sums) {
+__kernel void set_to_sum_of_rows(__global float *input_and_output, __local float *partial_sums) {
 
 	int lid = get_local_id(1);
 	int current_size = get_local_size(1);
@@ -27,9 +27,9 @@ __kernel void used_by_set_to_sum_of_rows(__global float *input_and_output, __loc
 		barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
-   if(lid == 0) {
-      input_and_output[get_group_id(0) + get_num_groups(0) * get_group_id(1)] = partial_sums[0];
-   }
+	if(lid == 0) {
+		input_and_output[get_group_id(0) + get_num_groups(0) * get_group_id(1)] = partial_sums[0];
+	}
 }
 
 __kernel void set_to_sum_of(__global float *output, __global float *lhs, __global float *rhs) { 
@@ -98,7 +98,7 @@ __kernel void set_to_product_of(__global float *output, unsigned int M, unsigned
 	output[get_index_2D(x, y, N)] = acc;
 }
 
-//for a long row matrix multiplied with another matrix
+//optimized for a long row matrix multiplied with another matrix
 __kernel void set_to_product_of_where_lhs_is_a_long_row_matrix(__global float *output, unsigned int K, unsigned int N, __global float *lhs, __global float *rhs) { 
 	size_t global_id = get_global_id(0);
 
