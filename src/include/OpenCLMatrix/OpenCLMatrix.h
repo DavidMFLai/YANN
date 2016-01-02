@@ -188,7 +188,6 @@ namespace {
 			cl::Buffer &results_buffer,
 			const OpenCLMatrix &multipliers_cl,
 			const OpenCLMatrix &multiplicand_cl,
-
 			std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
 			const cl::CommandQueue &command_queue) 
 		{
@@ -207,7 +206,39 @@ namespace {
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
 		}
 
+		//inout_buffer stores both the input and the results. results_buffer is copied from
+		static void run_set_to_sum_of_rows(
+			cl::Buffer &inout_buffer,
+			size_t row_length,
+			size_t column_length,
+			std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
+			const cl::CommandQueue &command_queue)
+		{
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_sum_of_rows").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_sum_of_rows").clKernel;
 
+			//For an M-rows by N-columns data, we divide the data into max_work_group_size-columns by 1-row chunks
+			//if M is not divisible by max_work_group_size, then the last workgroups will have (M % max_work_group_size) chunks
+			size_t column_length_at_input = column_length;
+			while (column_length_at_input > 1) {
+				//Get clKernel and set arguments 
+				clKernel.setArg(0, inout_buffer);
+				cl::LocalSpaceArg arg = cl::Local(max_work_group_size*sizeof(T));
+				clKernel.setArg(1, arg);
+
+				//enqueueNDRangeKernel 
+				cl::NDRange global_size{ row_length, column_length_at_input };
+				cl::NDRange local_size = cl::NDRange{ 1, std::min(column_length_at_input, max_work_group_size) };
+				command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+
+				//calculate new column length after execution
+				{
+					bool has_odd_column = (column_length_at_input % max_work_group_size) == 0 ? 0 : 1;
+					column_length_at_input = column_length_at_input / max_work_group_size + has_odd_column;
+				}
+			}
+		}
 
 		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
@@ -220,42 +251,16 @@ namespace {
 				}
 				else {
 					run_per_row_multiply(shared_scratch_buffer[0], lhs_cl, rhs_cl, kernel_wrappers, command_queue);
-				
-					//perform reduction on shared_scratch_buffer[0]
-					{
-						//get clKernel and its work group size for this device
-						size_t max_work_group_size = kernel_wrappers.at("set_to_sum_of_rows").kernel_work_group_size;
-						auto &clKernel = kernel_wrappers.at("set_to_sum_of_rows").clKernel;
 
-						//For an M-rows by N-columns data, we divide the data into max_work_group_size-columns by 1-row chunks
-						//if M is not divisible by max_work_group_size, then the last workgroups will have (M % max_work_group_size) chunks
-						size_t column_length_at_input = rhs.getColumnLength();
-						while (column_length_at_input > 1) {
-							//Get clKernel and set arguments 
-							clKernel.setArg(0, shared_scratch_buffer[0]);
-							cl::LocalSpaceArg arg = cl::Local(max_work_group_size*sizeof(T));
-							clKernel.setArg(1, arg);
+					run_set_to_sum_of_rows(shared_scratch_buffer[0], rhs.getRowLength(), rhs.getColumnLength(), kernel_wrappers, command_queue);
 
-							//enqueueNDRangeKernel 
-							cl::NDRange global_size{ rhs.getRowLength(), column_length_at_input };
-							cl::NDRange local_size = cl::NDRange{ 1, std::min(column_length_at_input, max_work_group_size) };
-							command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
-
-							//calculate new column length after execution
-							{
-								bool has_odd_column = (column_length_at_input % max_work_group_size) == 0 ? 0 : 1;
-								column_length_at_input = column_length_at_input / max_work_group_size + has_odd_column;
-							}
-						}
-
-						//copy shared_scratch_buffer[0] to this->buffer.cl_buffer
-						command_queue.enqueueCopyBuffer(shared_scratch_buffer[0],
-							buffer.cl_buffer,
-							0,
-							0,
-							rhs.getRowLength() * sizeof(T)
-							);
-					}
+					//copy shared_scratch_buffer[0] to this->buffer.cl_buffer
+					command_queue.enqueueCopyBuffer(shared_scratch_buffer[0],
+						buffer.cl_buffer,
+						0,
+						0,
+						rhs.getRowLength() * sizeof(T)
+						);
 				}
 			}
 			else {

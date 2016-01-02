@@ -204,7 +204,7 @@ namespace {
 
 	template<typename T>
 	bool operator==(const Matrix<T> &lhs, const Matrix<T> &rhs) {
-		T tolerance = static_cast<T>(0.0001);
+		T error_ratio = static_cast<T>(0.001);
 		bool retval = true;
 
 		if (lhs.getDimensions() != rhs.getDimensions()) {
@@ -215,8 +215,9 @@ namespace {
 			auto rhs_elems = rhs.getElems();
 
 			for (size_t i = 0; i < lhs_elems.size(); i++) {
-				if (abs(rhs_elems[i] - lhs_elems[i]) > tolerance) {
+				if (abs(rhs_elems[i] - lhs_elems[i]) > abs(error_ratio * (rhs_elems[i] + lhs_elems[i])/2) ) {
 					retval = false;
+					break;
 				}
 			}
 		}

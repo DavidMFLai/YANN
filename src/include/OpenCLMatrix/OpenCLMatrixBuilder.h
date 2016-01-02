@@ -26,7 +26,7 @@ namespace {
 	};
 
 	struct DeviceInfo {
-		cl_int saturation_workitem_count;
+		size_t saturation_workitem_count;
 	};
 
 	using std::vector;
