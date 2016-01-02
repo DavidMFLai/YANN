@@ -22,6 +22,12 @@ namespace {
 	using std::vector;
 
 	template<typename T>
+	struct Buffer {
+		cl::Buffer cl_buffer;
+		mutable std::vector<T> cl_buffer_mirror_on_host;
+	};
+
+	template<typename T>
 	class OpenCLMatrix : public Matrix<T> {
 	public:
 		//Sole constructor
@@ -153,6 +159,31 @@ namespace {
 			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
 		}
 
+		static void run_set_to_product_of_where_lhs_is_a_long_row_matrix(
+			Buffer<T> &results_buffer,
+			const OpenCLMatrix &lhs_cl,
+			const OpenCLMatrix &rhs_cl,
+			std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
+			const cl::CommandQueue &command_queue
+			) 
+		{
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_product_of_where_lhs_is_a_long_row_matrix").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_product_of_where_lhs_is_a_long_row_matrix").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, results_buffer.cl_buffer);
+			clKernel.setArg(1, static_cast<unsigned int>(lhs_cl.getRowLength()));
+			clKernel.setArg(2, static_cast<unsigned int>(rhs_cl.getRowLength()));
+			clKernel.setArg(3, lhs_cl.buffer.cl_buffer);
+			clKernel.setArg(4, rhs_cl.buffer.cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ rhs_cl.getRowLength() };
+			cl::NDRange local_size = cl::NDRange{ std::min(rhs_cl.getRowLength(), max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
+		}
+
 		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
 			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
@@ -160,22 +191,7 @@ namespace {
 			if (lhs.getColumnLength() == 1) {
 				//row matrix multiplied with a non-row matrix
 				if(rhs.getRowLength() >= device_info.saturation_workitem_count) {
-
-					//get clKernel and its work group size for this device
-					size_t max_work_group_size = kernel_wrappers.at("set_to_product_of_where_lhs_is_a_long_row_matrix").kernel_work_group_size;
-					auto &clKernel = kernel_wrappers.at("set_to_product_of_where_lhs_is_a_long_row_matrix").clKernel;
-
-					//Set arguments for clKernel
-					clKernel.setArg(0, buffer.cl_buffer);
-					clKernel.setArg(1, static_cast<unsigned int>(lhs.getRowLength()));
-					clKernel.setArg(2, static_cast<unsigned int>(rhs.getRowLength()));
-					clKernel.setArg(3, lhs_cl.buffer.cl_buffer);
-					clKernel.setArg(4, rhs_cl.buffer.cl_buffer);
-				
-					//enqueueNDRangeKernel 
-					cl::NDRange global_size{ this->getRowLength() };
-					cl::NDRange local_size = cl::NDRange{ std::min(this->getRowLength(), max_work_group_size) };
-					command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0 }, global_size, local_size);
+					run_set_to_product_of_where_lhs_is_a_long_row_matrix(buffer, lhs_cl, rhs_cl, kernel_wrappers, command_queue);
 				}
 				else {
 					//per row multiply into shared_scratch_buffer[0]
@@ -483,10 +499,7 @@ namespace {
 		std::unordered_map<std::string, KernelWrapper> kernel_wrappers;
 		DeviceInfo device_info;
 		cl::CommandQueue command_queue;
-		struct Buffer {
-			cl::Buffer cl_buffer;
-			mutable std::vector<T> cl_buffer_mirror_on_host;
-		} buffer;
+		Buffer<T> buffer;
 		std::vector<cl::Buffer> shared_scratch_buffer;
 	};
 }
