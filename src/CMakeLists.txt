@@ -153,7 +153,7 @@ endif()
 
 #Visual Studio Specific
 if (MSVC)
-	set(ALL_NON_OPENCL_TARGETS gtest gtest gmock_main gtest_main ReferenceMatrixTest MINST ANNTest CharacterRecognition)
+	set(ALL_NON_OPENCL_TARGETS gtest gmock gtest_main gmock_main ReferenceMatrixTest MINST ANNTest CharacterRecognition)
 	set(ALL_OPENCL_TARGETS OpenCLMatrixTest CharacterRecognitionOpenCL)
 
 	#Compile-options for all projects dependent on gtest should be the same
@@ -164,7 +164,7 @@ if (MSVC)
 		set(MSVC_DEBUG_OPTIONS_b4_2015 /MTd -Zi)
 		target_compile_options(gtest PUBLIC "$<$<CONFIG:Debug>:${MSVC_DEBUG_OPTIONS_b4_2015}>")
 	endif()
-	set(MSVC_RELEASE_OPTIONS /MT -Zi)
+	set(MSVC_RELEASE_OPTIONS /MT -Zi /GL)
 	target_compile_options(gtest PUBLIC "$<$<CONFIG:Release>:${MSVC_RELEASE_OPTIONS}>")
 
 	#Makes breakpoints work
