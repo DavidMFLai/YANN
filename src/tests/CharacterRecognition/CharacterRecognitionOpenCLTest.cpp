@@ -29,7 +29,10 @@ TEST(CharacterRecognitionOpenCL, one_hidden_layer_with_15_neurons)
 	mINSTData.read_data(train_images_full_path, train_labels_full_path);
 
 	//setup OpenCLMatrixBuilder
-	auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1) * 15, KERNEL_FULL_PATH);
+	auto openCLMatrixBuilder = std::make_unique<OpenCLMatrixBuilder<float>>();
+	openCLMatrixBuilder->set_max_matrix_element_count(mINSTData.get_image_dimensions().at(0) *  mINSTData.get_image_dimensions().at(1) * 15);
+	//openCLMatrixBuilder->set_platform_name_contains("Intel");
+	//openCLMatrixBuilder->set_device_type(CL_DEVICE_TYPE_CPU);
 
 	//Setup ANN
 	ANNBuilder<float> ann_builder;
@@ -72,8 +75,8 @@ TEST(CharacterRecognitionOpenCL, one_hidden_layer_with_15_neurons)
 		}
 		total_count++;
 		
-		std::cout << "Correct Ratio = " << correct_count << '/' << total_count << std::endl;
+		std::cout << "Correct Ratio = " << correct_count << '/' << total_count << '\n';
 
 	}
-
+	
 }

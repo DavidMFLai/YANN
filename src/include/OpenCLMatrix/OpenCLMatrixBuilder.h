@@ -38,19 +38,32 @@ namespace {
 
 	template<typename T>
 	class OpenCLMatrixBuilder : public MatrixBuilder<T> {
-	public:
-		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count, const string &kernels_full_path)
-			: max_matrix_element_count{ max_matrix_element_count },
-			kernels_full_path{ kernels_full_path },
-			device_info{2048} {
+	private:
+		static void setup_opencl_objects_and_shared_buffers(
+			const std::string &kernels_full_path,
+			const size_t &max_matrix_element_count,
+			const cl_device_type device_type,
+			const std::string &platform_name_contains,
+			cl::Device &cl_device,
+			cl::Context &context,
+			cl::CommandQueue &queue,
+			unordered_map<string, KernelWrapper> &kernel_wrappers,
+			std::vector<cl::Buffer> &shared_scratch_buffer
+			)
+		{
 			//get platform
+			vector<cl::Platform> platforms;
 			cl::Platform::get(&platforms);
 
 			//find first device with OpenCL 2.0
 			for (auto &platform : platforms) {
+				if (platform.getInfo<CL_PLATFORM_NAME>().find_first_of(platform_name_contains) == string::npos) {
+					//cannot find platform_name_contains within platform name, skipping
+					continue;
+				}
 				vector<cl::Device> all_devices;
 				try {
-					platform.getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
+					platform.getDevices(device_type, &all_devices);
 				}
 				catch (cl::Error e) {
 					//thrown due to it cant find devices of the selected type. There is no way of finding the number of devices in OpenCL's C++ Wrapper.
@@ -71,7 +84,7 @@ namespace {
 			ifstream program_file{ kernels_full_path };
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
 			cl::Program::Sources source{ program_string };
-			program = cl::Program{ context, source };
+			auto program = cl::Program{ context, source };
 			try {
 				char options[] = "-cl-std=CL2.0";
 				//char options[] = "-cl-std=CL2.0 -g -s \"include/test2.cl\""; //see https://software.intel.com/en-us/node/539339
@@ -91,24 +104,69 @@ namespace {
 			//create command queue
 			queue = cl::CommandQueue{ context, cl_device, CL_QUEUE_PROFILING_ENABLE };
 
-			//create 2 scratch_buffers
-			shared_scratch_buffer.emplace_back( context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
-			shared_scratch_buffer.emplace_back( context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
+			//create shared_scratch_buffers
+			shared_scratch_buffer.emplace_back(context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr);
+			shared_scratch_buffer.emplace_back(context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr);
 		}
 
-		OpenCLMatrixBuilder<T>()
-			: OpenCLMatrixBuilder<T>(10000, KERNEL_FULL_PATH)
+	public:
+		OpenCLMatrixBuilder<T>() 
+			: max_matrix_element_count{ 10000 },
+			kernels_full_path{ KERNEL_FULL_PATH },
+			device_info{ 2048 },
+			platform_name_contains{"Advanced Micro Devices"},
+			device_type{ CL_DEVICE_TYPE_GPU },
+			has_setup_opencl_objects{false}
 		{}
 
 		//default destructor
 		~OpenCLMatrixBuilder() = default;
 
-		OpenCLMatrixBuilder &set_alu_count(size_t saturation_workitem_count) {
+		//sets the number of workitems needed to saturate the OpenCL device. This number is used solely for optimization. 
+		OpenCLMatrixBuilder &set_saturation_workitem_count(size_t saturation_workitem_count) {
 			device_info.saturation_workitem_count = saturation_workitem_count;
 			return *this;
 		}
-		
+
+		//sets the device type to find when building an opencl matrix
+		OpenCLMatrixBuilder &set_device_type(cl_device_type device_type) {
+			this->device_type = device_type;
+			return *this;
+		}
+
+		//sets the device type to find when building an opencl matrix
+		OpenCLMatrixBuilder &set_platform_name_contains(const std::string &platform_name_contains) {
+			this->platform_name_contains = platform_name_contains;
+			return *this;
+		}
+
+		//sets kernels_full_path
+		OpenCLMatrixBuilder &set_kernels_full_path(const std::string &kernels_full_path) {
+			this->kernels_full_path = kernels_full_path;
+			return *this;
+		}
+
+		//sets max matrix element count
+		OpenCLMatrixBuilder &set_max_matrix_element_count(size_t max_matrix_element_count) {
+			this->max_matrix_element_count = max_matrix_element_count;
+			return *this;
+		}
+
+
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
+			if (!has_setup_opencl_objects) {
+				has_setup_opencl_objects = true;
+				setup_opencl_objects_and_shared_buffers(kernels_full_path,
+					max_matrix_element_count,
+					device_type,
+					platform_name_contains,
+					cl_device,
+					context,
+					queue,
+					kernel_wrappers,
+					shared_scratch_buffer);
+			}
+
 			if (rowCount * columnCount > max_matrix_element_count) {
 				throw CannotCreateError{ "rowCount * columnCount is greater than max_matrix_element_count" };
 			}
@@ -128,6 +186,19 @@ namespace {
 		};
 
 		unique_ptr<Matrix<T>> create(initializer_list<initializer_list<T>> lists) override {
+			if (!has_setup_opencl_objects) {
+				has_setup_opencl_objects = true;
+				setup_opencl_objects_and_shared_buffers(kernels_full_path,
+					max_matrix_element_count,
+					device_type,
+					platform_name_contains,
+					cl_device,
+					context,
+					queue,
+					kernel_wrappers,
+					shared_scratch_buffer);
+			}
+
 			//total number of elements
 			size_t number_of_elements = lists.size() * lists.begin()->size();
 
@@ -161,6 +232,19 @@ namespace {
 		};
 
 		unique_ptr<Matrix<T>> create(const vector<vector<T>> &v) override {
+			if (!has_setup_opencl_objects) {
+				has_setup_opencl_objects = true;
+				setup_opencl_objects_and_shared_buffers(kernels_full_path,
+					max_matrix_element_count,
+					device_type,
+					platform_name_contains,
+					cl_device,
+					context,
+					queue,
+					kernel_wrappers,
+					shared_scratch_buffer);
+			}
+
 			//total number of elements
 			size_t number_of_elements = v.size() * v.begin()->size();
 
@@ -194,6 +278,19 @@ namespace {
 		};
 
 		unique_ptr<Matrix<T>> createRowMatrix(const vector<T> &v) override {
+			if (!has_setup_opencl_objects) {
+				has_setup_opencl_objects = true;
+				setup_opencl_objects_and_shared_buffers(kernels_full_path,
+					max_matrix_element_count,
+					device_type,
+					platform_name_contains,
+					cl_device,
+					context,
+					queue,
+					kernel_wrappers,
+					shared_scratch_buffer);
+			}
+
 			//total number of elements
 			size_t number_of_elements = v.size();
 
@@ -250,15 +347,16 @@ namespace {
 		}
 
 		string info;
-		vector<cl::Platform> platforms;
-		cl::Device cl_device;
-		DeviceInfo device_info;
-		cl::CommandQueue queue;
-		cl::Program program;
-		cl::Context context;
-		unordered_map<string, KernelWrapper> kernel_wrappers;
+		bool has_setup_opencl_objects;
+		std::string platform_name_contains;
 		size_t max_matrix_element_count;
 		string kernels_full_path;
+		cl::Device cl_device;
+		DeviceInfo device_info;
+		cl_device_type device_type;
+		cl::CommandQueue queue;
+		cl::Context context;
+		unordered_map<string, KernelWrapper> kernel_wrappers;
 		std::vector<cl::Buffer> shared_scratch_buffer;
 	};
 

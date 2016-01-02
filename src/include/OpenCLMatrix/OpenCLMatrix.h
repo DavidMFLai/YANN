@@ -159,8 +159,7 @@ namespace {
 
 			if (lhs.getColumnLength() == 1) {
 				//row matrix multiplied with a non-row matrix
-				if(rhs.getRowLength() >= 2048) {
-					//todo: fix this. the 2048 value should be taken from the hardware info
+				if(rhs.getRowLength() >= device_info.saturation_workitem_count) {
 
 					//get clKernel and its work group size for this device
 					size_t max_work_group_size = kernel_wrappers.at("set_to_product_of_where_lhs_is_a_long_row_matrix").kernel_work_group_size;
