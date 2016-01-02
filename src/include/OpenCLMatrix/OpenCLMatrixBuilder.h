@@ -46,19 +46,19 @@ namespace {
 				vector<cl::Device> all_devices;
 				try {
 					platform.getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
-					for (auto &device : all_devices) {
-						auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
-						if (major_version_as_string == "2") {
-							devices.push_back(device);
-							break;
-						}
-					}
-					if (devices.size() == 1) {
+				}
+				catch (cl::Error e) {
+					//thrown due to it cant find devices of the selected type. There is no other way finding the number of devices first in OpenCL's C++ Wrapper
+				}
+				for (auto &device : all_devices) {
+					auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
+					if (major_version_as_string == "2") {
+						devices.push_back(device);
 						break;
 					}
 				}
-				catch (cl::Error e) {
-					//do nothing
+				if (devices.size() == 1) {
+					break;
 				}
 			}
 
@@ -68,7 +68,6 @@ namespace {
 			//build the program
 			ifstream program_file{ kernels_full_path };
 			string program_string(std::istreambuf_iterator<char>{program_file}, std::istreambuf_iterator<char>{});
-
 			cl::Program::Sources source{ program_string };
 			program = cl::Program{ context, source };
 			try {
@@ -82,23 +81,8 @@ namespace {
 				std::cout << buildInfo << '\n';
 			}
 
-			//put all the kernels into a map
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_sum_of_rows", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_sum_of", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_row_multiply", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_scale", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "row_vectors_per_element_multiply_and_then_scale", program, devices[0]);
-			//OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "copy", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "outer_product", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "subtract_by", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_difference_of", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_product_of", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "set_to_product_of_where_lhs_is_a_long_row_matrix", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_column_multiply_and_then_transpose", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_sigmoid", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_sigmoid_prime", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_tanh", program, devices[0]);
-			OpenCLMatrixBuilder::add_to_wrapper(kernel_wrappers, "per_element_tanh_prime", program, devices[0]);
+			//Set kernel_wrappers, which entry contains the kernel itself with other auxilary information
+			OpenCLMatrixBuilder<T>::set_kernel_wrappers(kernel_wrappers, program, devices.at(0));
 
 			//create command queue
 			queue = cl::CommandQueue{ context, devices[0], CL_QUEUE_PROFILING_ENABLE };
@@ -239,15 +223,20 @@ namespace {
 			}
 		}
 
-		static void add_to_wrapper(std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
-			const string &kernel_name, 
-			const cl::Program &program,
-			const cl::Device &device) 
+		static void set_kernel_wrappers(unordered_map<string, KernelWrapper> &kernel_wrappers, cl::Program &program, const cl::Device &device)
 		{
-			KernelWrapper kernel_wrapper;
-			kernel_wrapper.clKernel = cl::Kernel{ program, kernel_name.c_str() };
-			kernel_wrapper.kernel_work_group_size = kernel_wrapper.clKernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device);
-			kernel_wrappers.insert(std::make_pair(kernel_name, kernel_wrapper));
+			kernel_wrappers.clear();
+
+			//put all the kernels into a map
+			vector<cl::Kernel> kernels;
+			program.createKernels(&kernels);
+
+			for (auto &kernel : kernels) {
+				KernelWrapper kernel_wrapper;
+				kernel_wrapper.clKernel = kernel;
+				kernel_wrapper.kernel_work_group_size = kernel_wrapper.clKernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device);
+				kernel_wrappers.insert(std::make_pair(kernel.getInfo<CL_KERNEL_FUNCTION_NAME>(), kernel_wrapper));
+			}
 		}
 
 		string info;
