@@ -240,6 +240,34 @@ namespace {
 			}
 		}
 
+		static void run_set_to_product_of(
+			cl::Buffer &results_buffer,
+			size_t M,
+			size_t K,
+			size_t N,
+			const cl::Buffer &lhs_cl_buffer,
+			const cl::Buffer &rhs_cl_buffer,
+			std::unordered_map<std::string, KernelWrapper> &kernel_wrappers,
+			const cl::CommandQueue &command_queue)
+		{
+			//get clKernel and its work group size for this device
+			size_t max_work_group_size = kernel_wrappers.at("set_to_product_of").kernel_work_group_size;
+			auto &clKernel = kernel_wrappers.at("set_to_product_of").clKernel;
+
+			//Set arguments for clKernel
+			clKernel.setArg(0, results_buffer);
+			clKernel.setArg(1, static_cast<unsigned int>(M));
+			clKernel.setArg(2, static_cast<unsigned int>(K));
+			clKernel.setArg(3, static_cast<unsigned int>(N));
+			clKernel.setArg(4, lhs_cl_buffer);
+			clKernel.setArg(5, rhs_cl_buffer);
+
+			//enqueueNDRangeKernel 
+			cl::NDRange global_size{ N, M };
+			cl::NDRange local_size = cl::NDRange{ 1, std::min(M, max_work_group_size) };
+			command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+		}
+
 		void set_to_product_of(const Matrix<T> &lhs, const Matrix<T> &rhs) override {
 			const OpenCLMatrix &lhs_cl = dynamic_cast<const OpenCLMatrix &>(lhs);
 			const OpenCLMatrix &rhs_cl = dynamic_cast<const OpenCLMatrix &>(rhs);
@@ -251,7 +279,6 @@ namespace {
 				}
 				else {
 					run_per_row_multiply(shared_scratch_buffer[0], lhs_cl, rhs_cl, kernel_wrappers, command_queue);
-
 					run_set_to_sum_of_rows(shared_scratch_buffer[0], rhs.getRowLength(), rhs.getColumnLength(), kernel_wrappers, command_queue);
 
 					//copy shared_scratch_buffer[0] to this->buffer.cl_buffer
@@ -264,22 +291,15 @@ namespace {
 				}
 			}
 			else {
-				//get clKernel and its work group size for this device
-				size_t max_work_group_size = kernel_wrappers.at("set_to_product_of").kernel_work_group_size;
-				auto &clKernel = kernel_wrappers.at("set_to_product_of").clKernel;
-
-				//Set arguments for clKernel
-				clKernel.setArg(0, buffer.cl_buffer);
-				clKernel.setArg(1, static_cast<unsigned int>(lhs.getColumnLength()));
-				clKernel.setArg(2, static_cast<unsigned int>(lhs.getRowLength()));
-				clKernel.setArg(3, static_cast<unsigned int>(rhs.getRowLength()));
-				clKernel.setArg(4, lhs_cl.buffer.cl_buffer);
-				clKernel.setArg(5, rhs_cl.buffer.cl_buffer);
-
-				//enqueueNDRangeKernel 
-				cl::NDRange global_size{ this->getRowLength(), this->getColumnLength() };
-				cl::NDRange local_size = cl::NDRange{ 1, std::min(this->getColumnLength(), max_work_group_size) };
-				command_queue.enqueueNDRangeKernel(clKernel, cl::NDRange{ 0, 0 }, global_size, local_size);
+				run_set_to_product_of(buffer.cl_buffer,
+					lhs.getColumnLength(),
+					lhs.getRowLength(),
+					rhs.getRowLength(),
+					lhs_cl.buffer.cl_buffer,
+					rhs_cl.buffer.cl_buffer,
+					kernel_wrappers, 
+					command_queue
+					);
 			}
 		}
 
