@@ -18,13 +18,17 @@
 #include "OpenCLMatrix.h"
 #include "MatrixBuilder.h"
 
-class KernelWrapper {
-public:
-	cl::Kernel clKernel;
-	size_t kernel_work_group_size;
-};
-
 namespace {
+
+	struct KernelWrapper {
+		cl::Kernel clKernel;
+		size_t kernel_work_group_size;
+	};
+
+	struct DeviceInfo {
+		cl_int saturation_workitem_count;
+	};
+
 	using std::vector;
 	using std::unordered_map;
 	using std::unique_ptr;
@@ -37,7 +41,8 @@ namespace {
 	public:
 		OpenCLMatrixBuilder<T>(size_t max_matrix_element_count, const string &kernels_full_path)
 			: max_matrix_element_count{ max_matrix_element_count },
-			kernels_full_path{ kernels_full_path } {
+			kernels_full_path{ kernels_full_path },
+			device_info{2048} {
 			//get platform
 			cl::Platform::get(&platforms);
 
@@ -48,22 +53,19 @@ namespace {
 					platform.getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
 				}
 				catch (cl::Error e) {
-					//thrown due to it cant find devices of the selected type. There is no other way finding the number of devices first in OpenCL's C++ Wrapper
+					//thrown due to it cant find devices of the selected type. There is no way of finding the number of devices in OpenCL's C++ Wrapper.
 				}
 				for (auto &device : all_devices) {
 					auto major_version_as_string = device.getInfo<CL_DEVICE_VERSION>().substr(7, 1);
 					if (major_version_as_string == "2") {
-						devices.push_back(device);
+						cl_device = device;
 						break;
 					}
-				}
-				if (devices.size() == 1) {
-					break;
 				}
 			}
 
 			//create context
-			context = cl::Context{ devices };
+			context = cl::Context{ cl_device };
 
 			//build the program
 			ifstream program_file{ kernels_full_path };
@@ -73,19 +75,21 @@ namespace {
 			try {
 				char options[] = "-cl-std=CL2.0";
 				//char options[] = "-cl-std=CL2.0 -g -s \"include/test2.cl\""; //see https://software.intel.com/en-us/node/539339
-				program.build(devices, options);
+				auto one_device_in_vector = std::vector<cl::Device>{ cl_device };
+				program.build(one_device_in_vector, options);
 			}
 			catch (cl::Error e) {
-				auto buildInfo = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices.at(0));
+				auto buildInfo = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(cl_device);
 				std::cout << e.what() << '\n';
 				std::cout << buildInfo << '\n';
+				throw e;
 			}
 
 			//Set kernel_wrappers, which entry contains the kernel itself with other auxilary information
-			OpenCLMatrixBuilder<T>::set_kernel_wrappers(kernel_wrappers, program, devices.at(0));
+			OpenCLMatrixBuilder<T>::set_kernel_wrappers(kernel_wrappers, program, cl_device);
 
 			//create command queue
-			queue = cl::CommandQueue{ context, devices[0], CL_QUEUE_PROFILING_ENABLE };
+			queue = cl::CommandQueue{ context, cl_device, CL_QUEUE_PROFILING_ENABLE };
 
 			//create 2 scratch_buffers
 			shared_scratch_buffer.emplace_back( context, CL_MEM_READ_WRITE, max_matrix_element_count * sizeof(T), nullptr, nullptr );
@@ -98,6 +102,11 @@ namespace {
 
 		//default destructor
 		~OpenCLMatrixBuilder() = default;
+
+		OpenCLMatrixBuilder &set_alu_count(size_t saturation_workitem_count) {
+			device_info.saturation_workitem_count = saturation_workitem_count;
+			return *this;
+		}
 		
 		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
 			if (rowCount * columnCount > max_matrix_element_count) {
@@ -108,15 +117,13 @@ namespace {
 			
 			std::array<size_t, 2> dimensions{ rowCount, columnCount };
 
-			unique_ptr<Matrix<T>> retval{
-				new OpenCLMatrix<T>{ 
-					std::move(buffer),
-					std::move(dimensions),
-					kernel_wrappers,
-					queue,
-					shared_scratch_buffer
-				}
-			};
+			unique_ptr<Matrix<T>> retval = std::make_unique<OpenCLMatrix<T>>(
+				std::move(buffer),
+				std::move(dimensions),
+				kernel_wrappers,
+				device_info,
+				queue,
+				shared_scratch_buffer);
 			return retval;
 		};
 
@@ -145,6 +152,7 @@ namespace {
 					std::move(buffer), 
 					std::move(dimensions), 
 					kernel_wrappers, 
+					device_info,
 					queue, 
 					shared_scratch_buffer
 				} 
@@ -177,6 +185,7 @@ namespace {
 					std::move(buffer), 
 					std::move(dimensions), 
 					kernel_wrappers, 
+					device_info,
 					queue, 
 					shared_scratch_buffer
 				} 
@@ -203,6 +212,7 @@ namespace {
 					std::move(buffer), 
 					std::move(dimensions), 
 					kernel_wrappers, 
+					device_info,
 					queue,
 					shared_scratch_buffer
 				}
@@ -241,7 +251,8 @@ namespace {
 
 		string info;
 		vector<cl::Platform> platforms;
-		vector<cl::Device> devices;
+		cl::Device cl_device;
+		DeviceInfo device_info;
 		cl::CommandQueue queue;
 		cl::Program program;
 		cl::Context context;

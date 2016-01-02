@@ -11,8 +11,7 @@
 
 template<typename T>
 class ReferenceMatrix : public Matrix<T> {
-private:
-	friend class ReferenceMatrixBuilder<T>;
+public:
 
 	//Constructor by vector of vectors
 	ReferenceMatrix(std::vector<std::vector<T>> lists) {
@@ -28,8 +27,8 @@ private:
 	ReferenceMatrix(const ReferenceMatrix &) = delete;
 	ReferenceMatrix &operator=(ReferenceMatrix &&) = delete;
 	ReferenceMatrix &operator=(const ReferenceMatrix &) = delete;
+	~ReferenceMatrix() = default;
 
-public:
 	//Getting element(i,j)
 	T& at(size_t i, size_t j) override{
 		return this->elems[matrixAccessProperties(i, j)];

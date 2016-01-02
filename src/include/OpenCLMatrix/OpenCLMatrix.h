@@ -23,18 +23,17 @@ namespace {
 
 	template<typename T>
 	class OpenCLMatrix : public Matrix<T> {
-
-	private:
-		friend class OpenCLMatrixBuilder<T>;
-
+	public:
 		//Sole constructor
-		OpenCLMatrix(cl::Buffer buffer, 
+		OpenCLMatrix(cl::Buffer buffer,
 			std::array<size_t, 2> dimensions,
-			unordered_map<string, KernelWrapper> &kernel_wrappers,
-			cl::CommandQueue &command_queue,
-			std::vector<cl::Buffer> shared_scratch_buffer)
-			: buffer{ buffer, {} }
+			const unordered_map<string, KernelWrapper> &kernel_wrappers,
+			const DeviceInfo &device_info,
+			const cl::CommandQueue &command_queue,
+			const std::vector<cl::Buffer> &shared_scratch_buffer)
+			: buffer{ buffer,{} }
 			, kernel_wrappers{ kernel_wrappers }
+			, device_info{device_info}
 			, command_queue{ command_queue }
 			, shared_scratch_buffer{ shared_scratch_buffer }
 		{
@@ -482,8 +481,9 @@ namespace {
 		}
 
 	private:
-		std::unordered_map<std::string, KernelWrapper> &kernel_wrappers;
-		cl::CommandQueue &command_queue;
+		std::unordered_map<std::string, KernelWrapper> kernel_wrappers;
+		DeviceInfo device_info;
+		cl::CommandQueue command_queue;
 		struct Buffer {
 			cl::Buffer cl_buffer;
 			mutable std::vector<T> cl_buffer_mirror_on_host;
