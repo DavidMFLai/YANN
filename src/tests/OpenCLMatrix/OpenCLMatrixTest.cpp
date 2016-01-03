@@ -15,14 +15,14 @@
 namespace {
 	void set_sum_of_rows_test_internal(const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(1, input_data.at(0).size()) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(1, input_data.at(0).size()) };
 		Matrix<float>::Sum_of_rows(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(input_data.size() * input_data.at(0).size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(1, input_data.at(0).size()) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(1, input_data.at(0).size()) };
 		Matrix<float>::Sum_of_rows(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -30,16 +30,16 @@ namespace {
 
 	void set_to_sum_of_test_internal(const std::vector<std::vector<float>> &lhs_data, const std::vector<std::vector<float>> &rhs_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
-		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_data.size(), lhs_data.at(0).size()) };
 		Matrix<float>::Add(*output_ref, *lhs_ref, *rhs_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(lhs_data.size() * lhs_data.at(0).size());
-		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
-		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data.size(), lhs_data.at(0).size()) };
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_data.size(), lhs_data.at(0).size()) };
 		Matrix<float>::Add(*output_cl, *lhs_cl, *rhs_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -47,16 +47,16 @@ namespace {
 
 	void per_Row_Multiply_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> &multiplicand_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
 		Matrix<float>::Per_Row_Multiply(*output_ref, *multipliers_ref, *multiplicand_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(multiplicand_data.size() * multiplicand_data.at(0).size());
-		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
 		Matrix<float>::Per_Row_Multiply(*output_cl, *multipliers_cl, *multiplicand_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -64,16 +64,16 @@ namespace {
 
 	void per_column_multiply_and_then_scale_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> &multiplicand_data, float scale) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_ref->getColumnLength(), multiplicand_ref->getRowLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_ref, *multipliers_ref, *multiplicand_ref, scale);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(multiplicand_data.size() * multiplicand_data.at(0).size());
-		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_cl->getColumnLength(), multiplicand_cl->getRowLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Scale(*output_cl, *multipliers_cl, *multiplicand_cl, scale);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -81,17 +81,17 @@ namespace {
 
 	void per_column_multiply_and_then_transpose_test_internal(const std::vector<std::vector<float>> &multipliers_data, const std::vector<std::vector<float>> & multiplicand_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(multiplicand_ref->getRowLength(), multiplicand_ref->getColumnLength()) };
+		auto multipliers_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(multiplicand_ref->getRowLength(), multiplicand_ref->getColumnLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Transpose(*output_ref, *multipliers_ref, *multiplicand_ref);
 
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(multiplicand_data.size() * multiplicand_data.at(0).size());
-		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multipliers_data) };
-		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(multiplicand_cl->getRowLength(), multiplicand_cl->getColumnLength()) };
+		auto multipliers_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multipliers_data) };
+		auto multiplicand_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(multiplicand_cl->getRowLength(), multiplicand_cl->getColumnLength()) };
 		Matrix<float>::Per_Column_Multiply_AndThen_Transpose(*output_cl, *multipliers_cl, *multiplicand_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -100,16 +100,16 @@ namespace {
 
 	void row_vectors_per_element_multiply_and_then_scale_test_internal(const std::vector<float> &lhs_data, const std::vector<float> &rhs_data, float scale) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.createRowMatrix(lhs_data) };
-		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.createRowMatrix(rhs_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_ref->getColumnLength(), rhs_ref->getRowLength()) };
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.buildRowMatrix(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.buildRowMatrix(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(rhs_ref->getColumnLength(), rhs_ref->getRowLength()) };
 		Matrix<float>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(*output_ref, *lhs_ref, *rhs_ref, scale);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(rhs_data.size());
-		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(lhs_data) };
-		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.createRowMatrix(rhs_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_cl->getColumnLength(), rhs_cl->getRowLength()) };
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.buildRowMatrix(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.buildRowMatrix(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(rhs_cl->getColumnLength(), rhs_cl->getRowLength()) };
 		Matrix<float>::Row_Vectors_Per_Element_Multiply_AndThen_Scale(*output_cl, *lhs_cl, *rhs_cl, scale);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -117,14 +117,14 @@ namespace {
 
 	void copy_test_internal(const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_ref->getColumnLength(), input_ref->getRowLength()) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_ref->getColumnLength(), input_ref->getRowLength()) };
 		Matrix<float>::Copy(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(input_data.size() * input_data.at(0).size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_cl->getColumnLength(), input_cl->getRowLength()) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_cl->getColumnLength(), input_cl->getRowLength()) };
 		Matrix<float>::Copy(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -132,16 +132,16 @@ namespace {
 
 	void outer_product_test_internal(const std::vector<std::vector<float>> &lhs_data, const std::vector<std::vector<float>> &rhs_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
-		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_ref->getRowLength(), rhs_ref->getRowLength()) };
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_ref->getRowLength(), rhs_ref->getRowLength()) };
 		Matrix<float>::Outer_product(*output_ref, *lhs_ref, *rhs_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(lhs_data.at(0).size() * rhs_data.at(0).size());
-		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
-		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_cl->getRowLength(), rhs_cl->getRowLength()) };
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_cl->getRowLength(), rhs_cl->getRowLength()) };
 		Matrix<float>::Outer_product(*output_cl, *lhs_cl, *rhs_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -149,14 +149,14 @@ namespace {
 
 	void subtract_by_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Subtract_By(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Subtract_By(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -164,14 +164,14 @@ namespace {
 
 	void per_element_sigmoid_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Sigmoid(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Sigmoid(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -179,14 +179,14 @@ namespace {
 
 	void per_element_sigmoid_prime_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Sigmoid_Prime(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Sigmoid_Prime(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -194,14 +194,14 @@ namespace {
 
 	void per_element_tanh_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Tanh(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Tanh(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -209,14 +209,14 @@ namespace {
 
 	void per_element_tanh_prime_test_internal(const std::vector<std::vector<float>> &output_data, const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(input_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Tanh_Prime(*output_ref, *input_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(input_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto input_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(input_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Per_Element_Tanh_Prime(*output_cl, *input_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -227,16 +227,16 @@ namespace {
 		const std::vector<std::vector<float>> &rhs_data) {
 
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
-		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Minus(*output_ref, *lhs_ref, *rhs_ref);
 
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(output_data.at(0).size() * output_data.size());
-		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
-		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Minus(*output_cl, *lhs_cl, *rhs_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -248,9 +248,9 @@ namespace {
 	{
 
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
-		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(lhs_data) };
-		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(rhs_data) };
-		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.create(output_data) };
+		auto lhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(lhs_data) };
+		auto rhs_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(rhs_data) };
+		auto output_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(output_data) };
 		Matrix<float>::Multiply(*output_ref, *lhs_ref, *rhs_ref);
 
 		//get data counts and use that for openCLMatrixBuilder
@@ -262,9 +262,9 @@ namespace {
 				
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(counts.at(0) * counts.at(1));
-		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(lhs_data) };
-		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(rhs_data) };
-		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.create(output_data) };
+		auto lhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(lhs_data) };
+		auto rhs_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(rhs_data) };
+		auto output_cl = std::unique_ptr<Matrix<float>>{ openCLMatrixBuilder.build(output_data) };
 		Matrix<float>::Multiply(*output_cl, *lhs_cl, *rhs_cl);
 
 		EXPECT_EQ(*output_ref, *output_cl);
@@ -357,7 +357,7 @@ namespace {
 
 	TEST(BasicOperations, create_from_dimensions) {
 		OpenCLMatrixBuilder<float> builder;
-		auto m = builder.create(3, 4);
+		auto m = builder.build(3, 4);
 
 		const auto dimensions = m->getDimensions();
 		const std::array<size_t, 2> expectedDimensions{ 3, 4 };
@@ -367,7 +367,7 @@ namespace {
 	TEST(BasicOperations, create_from_initializer_lists) {
 
 		OpenCLMatrixBuilder<float> builder;
-		auto m = builder.create({
+		auto m = builder.build({
 			{ 1.1f, 1.2f, 1.3f, 1.4f },
 			{ 2.1f, 2.2f, 2.3f, 2.4f },
 			{ 3.1f, 3.2f, 3.3f, 3.4f },
@@ -388,7 +388,7 @@ namespace {
 	TEST(BasicOperations, create_from_vectors) {
 
 		OpenCLMatrixBuilder<float> builder;
-		auto m = builder.create(std::vector<std::vector<float>>{
+		auto m = builder.build(std::vector<std::vector<float>>{
 			{ 1.1f, 1.2f, 1.3f, 1.4f },
 			{ 2.1f, 2.2f, 2.3f, 2.4f },
 			{ 3.1f, 3.2f, 3.3f, 3.4f },
@@ -409,7 +409,7 @@ namespace {
 	TEST(BasicOperations, create_row_vector_matrix) {
 
 		OpenCLMatrixBuilder<float> builder;
-		auto m = builder.createRowMatrix(std::vector<float>{
+		auto m = builder.buildRowMatrix(std::vector<float>{
 			{ 1.1f, 1.2f, 1.3f, 1.4f },
 		});
 
@@ -586,7 +586,7 @@ namespace {
 		//create opencl_matrix
 		OpenCLMatrixBuilder<float> openCLMatrixBuilder;
 		openCLMatrixBuilder.set_max_matrix_element_count(input_data.size());
-		auto opencl_matrix = openCLMatrixBuilder.create(size_x, size_y);
+		auto opencl_matrix = openCLMatrixBuilder.build(size_x, size_y);
 
 		//copy input data into opencl_matrix
 		Matrix<float>::Copy_from_vector(*opencl_matrix, input_data);

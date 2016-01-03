@@ -153,7 +153,7 @@ namespace CPPANN {
 			std::vector<std::unique_ptr<Matrix<T>>> weight_matrices(neuron_counts.size() - 1);
 			for (size_t idx = 0; idx < weight_matrices.size(); idx++) {
 				//create a new random bias vector of length == neuron_counts.at(idx + 1)
-				auto random_matrix = matrix_builder->create(neuron_counts.at(idx), neuron_counts.at(idx + 1));
+				auto random_matrix = matrix_builder->build(neuron_counts.at(idx), neuron_counts.at(idx + 1));
 				for (size_t i = 0; i < neuron_counts.at(idx); i++) {
 					for (size_t j = 0; j < neuron_counts.at(idx + 1); j++) {
 						random_matrix->at(i, j) = gen.generate();
@@ -163,7 +163,7 @@ namespace CPPANN {
 			}
 			//overwrite the random values with values from the settings
 			for (auto layer_idx_weight_matrix_pair : layer_idx_to_weight_matrix_values) {
-				auto random_matrix = matrix_builder->create(layer_idx_weight_matrix_pair.second);
+				auto random_matrix = matrix_builder->build(layer_idx_weight_matrix_pair.second);
 				weight_matrices.at(layer_idx_weight_matrix_pair.first) = std::move(random_matrix);
 			}
 			return weight_matrices;
@@ -236,12 +236,12 @@ namespace CPPANN {
 			
 			for (size_t idx = 0; idx < layers_count; idx++) {
 				if (idx == 0) {
-					signal_nodes.at(idx) = matrix_builder->create(1, signal_counts[idx]);
+					signal_nodes.at(idx) = matrix_builder->build(1, signal_counts[idx]);
 				}
 				else {
-					signal_nodes.at(idx) = matrix_builder->create(1, signal_counts[idx]);
-					network_nodes.at(idx - 1) = matrix_builder->create(1, signal_counts[idx]);
-					biases.at(idx - 1) = matrix_builder->createRowMatrix(settings_biases.at(idx - 1));
+					signal_nodes.at(idx) = matrix_builder->build(1, signal_counts[idx]);
+					network_nodes.at(idx - 1) = matrix_builder->build(1, signal_counts[idx]);
+					biases.at(idx - 1) = matrix_builder->buildRowMatrix(settings_biases.at(idx - 1));
 					weights.at(idx - 1) = std::move(weight_matrices.at(idx - 1));
 				}
 			}
@@ -256,31 +256,31 @@ namespace CPPANN {
 			dError_dSnp1.resize(layers_count - 2);
 			dSnp2_dSnp1.resize(layers_count - 2);
 			dTotalError_dSnp1.resize(layers_count - 2);
-			error_vector = matrix_builder->create( signal_nodes.back()->getColumnLength(), signal_nodes.back()->getRowLength() );
-			expected_vector = matrix_builder->create(signal_nodes.back()->getColumnLength(), signal_nodes.back()->getRowLength());
+			error_vector = matrix_builder->build( signal_nodes.back()->getColumnLength(), signal_nodes.back()->getRowLength() );
+			expected_vector = matrix_builder->build(signal_nodes.back()->getColumnLength(), signal_nodes.back()->getRowLength());
 
 			for (size_t idx = 0; idx < layers_count - 1; idx++) {
 				if (idx == 0) {
-					dSnp1_dNn.at(idx) = matrix_builder->create(1, network_nodes.at(idx)->getRowLength());
-					dSnp1_dBn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getRowLength() );
-					dSnp1_dWn.at(idx) = matrix_builder->create( weights.at(idx)->getColumnLength(),  weights.at(idx)->getRowLength() );
-					weight_updates.at(idx) = matrix_builder->create( weights.at(idx)->getColumnLength(), weights.at(idx)->getRowLength() );
-					bias_updates.at(idx) = matrix_builder->create( biases.at(idx)->getColumnLength(), biases.at(idx)->getRowLength() );
+					dSnp1_dNn.at(idx) = matrix_builder->build(1, network_nodes.at(idx)->getRowLength());
+					dSnp1_dBn.at(idx) = matrix_builder->build( 1, network_nodes.at(idx)->getRowLength() );
+					dSnp1_dWn.at(idx) = matrix_builder->build( weights.at(idx)->getColumnLength(),  weights.at(idx)->getRowLength() );
+					weight_updates.at(idx) = matrix_builder->build( weights.at(idx)->getColumnLength(), weights.at(idx)->getRowLength() );
+					bias_updates.at(idx) = matrix_builder->build( biases.at(idx)->getColumnLength(), biases.at(idx)->getRowLength() );
 				}
 				else {
-					dSnp1_dNn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getRowLength() );
-					dSnp1_dBn.at(idx) = matrix_builder->create( 1, network_nodes.at(idx)->getRowLength() );
-					dSnp1_dWn.at(idx) = matrix_builder->create( weights.at(idx)->getColumnLength(),  weights.at(idx)->getRowLength() );
-					weight_updates.at(idx) = matrix_builder->create( weights.at(idx)->getColumnLength(), weights.at(idx)->getRowLength() );
-					bias_updates.at(idx) = matrix_builder->create( biases.at(idx)->getColumnLength(), biases.at(idx)->getRowLength() );
-					dSOutput_dSnp1.at(idx - 1) = matrix_builder->create(signal_nodes.back()->getRowLength(), signal_nodes.at(idx)->getRowLength());
-					dError_dSnp1.at(idx - 1) = matrix_builder->create( signal_nodes.back()->getRowLength(), signal_nodes.at(idx)->getRowLength() );
-					dTotalError_dSnp1.at(idx - 1) = matrix_builder->create( 1, signal_nodes.at(idx)->getRowLength() );
+					dSnp1_dNn.at(idx) = matrix_builder->build( 1, network_nodes.at(idx)->getRowLength() );
+					dSnp1_dBn.at(idx) = matrix_builder->build( 1, network_nodes.at(idx)->getRowLength() );
+					dSnp1_dWn.at(idx) = matrix_builder->build( weights.at(idx)->getColumnLength(),  weights.at(idx)->getRowLength() );
+					weight_updates.at(idx) = matrix_builder->build( weights.at(idx)->getColumnLength(), weights.at(idx)->getRowLength() );
+					bias_updates.at(idx) = matrix_builder->build( biases.at(idx)->getColumnLength(), biases.at(idx)->getRowLength() );
+					dSOutput_dSnp1.at(idx - 1) = matrix_builder->build(signal_nodes.back()->getRowLength(), signal_nodes.at(idx)->getRowLength());
+					dError_dSnp1.at(idx - 1) = matrix_builder->build( signal_nodes.back()->getRowLength(), signal_nodes.at(idx)->getRowLength() );
+					dTotalError_dSnp1.at(idx - 1) = matrix_builder->build( 1, signal_nodes.at(idx)->getRowLength() );
 				}
 			}
 
 			for (size_t idx = 1; idx < layers_count - 2; idx++) {
-				dSnp2_dSnp1.at(idx - 1) = matrix_builder->create( signal_nodes.at(idx + 1)->getRowLength(), signal_nodes.at(idx)->getRowLength() );
+				dSnp2_dSnp1.at(idx - 1) = matrix_builder->build( signal_nodes.at(idx + 1)->getRowLength(), signal_nodes.at(idx)->getRowLength() );
 			}
 		}
 	public:

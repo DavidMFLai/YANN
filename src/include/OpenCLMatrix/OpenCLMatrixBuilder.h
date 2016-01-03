@@ -153,7 +153,7 @@ namespace {
 		}
 
 
-		unique_ptr<Matrix<T>> create(size_t rowCount, size_t columnCount) override {
+		unique_ptr<Matrix<T>> build(size_t rowCount, size_t columnCount) override {
 			if (!has_setup_opencl_objects) {
 				has_setup_opencl_objects = true;
 				setup_opencl_objects_and_shared_buffers(kernels_full_path,
@@ -185,7 +185,7 @@ namespace {
 			return retval;
 		};
 
-		unique_ptr<Matrix<T>> create(initializer_list<initializer_list<T>> lists) override {
+		unique_ptr<Matrix<T>> build(initializer_list<initializer_list<T>> lists) override {
 			if (!has_setup_opencl_objects) {
 				has_setup_opencl_objects = true;
 				setup_opencl_objects_and_shared_buffers(kernels_full_path,
@@ -231,7 +231,7 @@ namespace {
 			return retval;
 		};
 
-		unique_ptr<Matrix<T>> create(const vector<vector<T>> &v) override {
+		unique_ptr<Matrix<T>> build(const vector<vector<T>> &v) override {
 			if (!has_setup_opencl_objects) {
 				has_setup_opencl_objects = true;
 				setup_opencl_objects_and_shared_buffers(kernels_full_path,
@@ -277,7 +277,7 @@ namespace {
 			return retval;
 		};
 
-		unique_ptr<Matrix<T>> createRowMatrix(const vector<T> &v) override {
+		unique_ptr<Matrix<T>> buildRowMatrix(const vector<T> &v) override {
 			if (!has_setup_opencl_objects) {
 				has_setup_opencl_objects = true;
 				setup_opencl_objects_and_shared_buffers(kernels_full_path,
