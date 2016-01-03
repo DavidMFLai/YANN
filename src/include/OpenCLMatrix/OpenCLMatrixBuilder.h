@@ -57,7 +57,7 @@ namespace {
 
 			//find first device with OpenCL 2.0
 			for (auto &platform : platforms) {
-				if (platform.getInfo<CL_PLATFORM_NAME>().find_first_of(platform_name_contains) == string::npos) {
+				if (platform.getInfo<CL_PLATFORM_NAME>().find(platform_name_contains) == string::npos) {
 					//cannot find platform_name_contains within platform name, skipping
 					continue;
 				}
@@ -114,7 +114,7 @@ namespace {
 			: max_matrix_element_count{ 10000 },
 			kernels_full_path{ KERNEL_FULL_PATH },
 			device_info{ 2048 },
-			platform_name_contains{"Advanced Micro Devices"},
+			platform_name_contains{"AMD"},
 			device_type{ CL_DEVICE_TYPE_GPU },
 			has_setup_opencl_objects{false}
 		{}
@@ -346,14 +346,18 @@ namespace {
 			}
 		}
 
-		string info;
-		bool has_setup_opencl_objects;
-		std::string platform_name_contains;
-		size_t max_matrix_element_count;
-		string kernels_full_path;
-		cl::Device cl_device;
+		//set by setters
 		DeviceInfo device_info;
 		cl_device_type device_type;
+		std::string platform_name_contains;
+		string kernels_full_path;
+		size_t max_matrix_element_count;
+
+		//used to ensure that opencl boiler plate variables are generated only once
+		bool has_setup_opencl_objects;
+
+		//opencl variables that are created only once
+		cl::Device cl_device;
 		cl::CommandQueue queue;
 		cl::Context context;
 		unordered_map<string, KernelWrapper> kernel_wrappers;
