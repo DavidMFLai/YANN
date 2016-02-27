@@ -10,7 +10,7 @@
 #include "gtest\gtest.h"
 
 using namespace std;
-using namespace CPPANN;
+using namespace YANN;
 
 
 TEST(Basics, mattmazur)

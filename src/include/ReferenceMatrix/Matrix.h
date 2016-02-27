@@ -4,7 +4,7 @@
 #include <cassert>
 #include <vector>
 
-namespace {
+namespace YANN{
 	template <typename T>
 	class Matrix {
 		template<typename U>

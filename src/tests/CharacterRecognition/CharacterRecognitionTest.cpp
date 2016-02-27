@@ -10,7 +10,7 @@
 #include "ANNToMINSTConverter.h"
 
 using namespace std;
-using namespace CPPANN;
+using namespace YANN;
 using namespace Converter;
 
 TEST(CharacterRecognition, one_hidden_layer_with_15_neurons)

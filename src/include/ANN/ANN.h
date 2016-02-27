@@ -9,7 +9,7 @@
 #include <memory>
 
 using std::string;
-namespace CPPANN {
+namespace YANN {
 	enum class Neuron_Type {
 		Sigmoid,
 		Tanh

@@ -4,7 +4,7 @@
 #include <initializer_list>
 #include <memory>
 
-namespace {
+namespace YANN{
 	template <typename T>
 	class MatrixBuilder {
 	public:

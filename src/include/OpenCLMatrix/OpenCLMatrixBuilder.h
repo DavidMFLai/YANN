@@ -18,7 +18,7 @@
 #include "OpenCLMatrix.h"
 #include "MatrixBuilder.h"
 
-namespace {
+namespace YANN{
 
 	struct KernelWrapper {
 		cl::Kernel clKernel;

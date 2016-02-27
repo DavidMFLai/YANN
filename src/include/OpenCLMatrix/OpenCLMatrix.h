@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-namespace {
+namespace YANN{
 	using std::unordered_map;
 	using std::vector;
 

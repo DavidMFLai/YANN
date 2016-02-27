@@ -3,7 +3,7 @@
 #include "ReferenceMatrix.h"
 #include "MatrixBuilder.h"
 
-namespace {
+namespace YANN{
 	template <typename T>
 	class ReferenceMatrixBuilder : public MatrixBuilder<T> {
 	public:

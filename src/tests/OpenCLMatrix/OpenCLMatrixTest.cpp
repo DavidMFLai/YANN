@@ -12,7 +12,7 @@
 #include "ReferenceMatrix.h"
 #include "ReferenceMatrixBuilder.h"
 
-namespace {
+namespace YANN{
 	void set_sum_of_rows_test_internal(const std::vector<std::vector<float>> &input_data) {
 		ReferenceMatrixBuilder<float> referenceMatrixBuilder;
 		auto input_ref = std::unique_ptr<Matrix<float>>{ referenceMatrixBuilder.build(input_data) };

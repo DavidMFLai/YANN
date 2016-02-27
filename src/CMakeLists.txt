@@ -14,7 +14,7 @@
 # ########################################################################
 
 cmake_minimum_required (VERSION 3.3.2)
-project (XANN CXX)
+project (YANN CXX)
 
 #get TARGET_PLATFORM, which will be available by configuring this script
 if(TARGET_PLATFORM EQUAL 32 OR TARGET_PLATFORM EQUAL 64)

@@ -3,10 +3,12 @@
 #include <array>
 #include <tuple>
 
-#include "gmock\gmock.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ReferenceMatrix.h"
 #include "ReferenceMatrixBuilder.h"
+
+using namespace YANN;
 
 TEST(BasicOperations, Contruction_With_Dimensions) {
 	auto m = ReferenceMatrixBuilder<double>{}.build(4, 5);
