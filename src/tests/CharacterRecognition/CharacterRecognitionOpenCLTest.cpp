@@ -3,8 +3,8 @@
 #include <iostream>
 #include <memory>
 
-#include "gmock\gmock.h"
-#include "gtest\gtest.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include "ANN.h"
 #include "MinstData.h"

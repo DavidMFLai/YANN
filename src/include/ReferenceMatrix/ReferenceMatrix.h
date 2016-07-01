@@ -1,7 +1,5 @@
 #pragma once
-
 #include "Matrix.h"
-#include "ReferenceMatrixBuilder.h"
 
 #include <vector>
 #include <array>
@@ -31,12 +29,12 @@ namespace YANN {
 
 		//Getting element(i,j)
 		T& at(size_t i, size_t j) override{
-			return this->elems[matrixAccessProperties(i, j)];
+			return this->elems[this->matrixAccessProperties(i, j)];
 		}
 
 		//Getting element(i,j), function form, const version
 		const T& at(size_t i, size_t j) const override {
-			return this->elems[matrixAccessProperties(i, j)];
+			return this->elems[this->matrixAccessProperties(i, j)];
 		}
 
 		void zero() override {

@@ -14,6 +14,12 @@ using std::runtime_error;
 
 using uchar = unsigned char;
 
+static auto reverseInt = [](uint32_t i) {
+	unsigned char c1, c2, c3, c4;
+	c1 = i & 255, c2 = (i >> 8) & 255, c3 = (i >> 16) & 255, c4 = (i >> 24) & 255;
+	return ((uint32_t)c1 << 24) + ((uint32_t)c2 << 16) + ((uint32_t)c3 << 8) + c4;
+};
+
 template<typename T>
 class MINSTData {
 public:
@@ -114,12 +120,12 @@ private:
 		retval /= std::numeric_limits<uchar>::max() + 1; //the +1 allows easier division?
 		return retval; 
 	};
-
+#if 0
 	template<>
 	static uchar Convert_to_normalized_T<uchar>(uchar single_data) {
 		return single_data;
 	};
-
+#endif
 private:
 	array<uint32_t, 2> image_dimensions;
 	vector<vector<T>> images;
@@ -127,12 +133,6 @@ private:
 };
 
 
-
-static auto reverseInt = [](uint32_t i) {
-	unsigned char c1, c2, c3, c4;
-	c1 = i & 255, c2 = (i >> 8) & 255, c3 = (i >> 16) & 255, c4 = (i >> 24) & 255;
-	return ((uint32_t)c1 << 24) + ((uint32_t)c2 << 16) + ((uint32_t)c3 << 8) + c4;
-};
 
 
 

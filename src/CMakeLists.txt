@@ -16,6 +16,8 @@
 cmake_minimum_required (VERSION 3.3.2)
 project (YANN CXX)
 
+set (CMAKE_CXX_STANDARD 14)
+
 #get TARGET_PLATFORM, which will be available by configuring this script
 if(TARGET_PLATFORM EQUAL 32 OR TARGET_PLATFORM EQUAL 64)
 	message("TARGET_PLATFORM has been set to ${TARGET_PLATFORM}")
@@ -49,6 +51,7 @@ message("Import library found: " ${OPENCL_LIBRARIES})
 
 #adds google test and google mock
 add_subdirectory( ./googlemock )
+
 
 #adds ReferenceMatrixTest
 add_executable(ReferenceMatrixTest 
